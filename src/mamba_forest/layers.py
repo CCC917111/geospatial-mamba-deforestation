@@ -1,4 +1,13 @@
-"""Building blocks: a Mamba-2 style selective SSM block and multimodal fusion."""
+"""Building blocks of the CNN-Mamba segmentation network.
+
+The module provides the three components the architecture is built from:
+
+  Mamba2Block                 selective state-space block used along the time
+                              axis (one sequence per pixel) and along the
+                              flattened spatial axis at the bottleneck
+  StructureAwareStateFusion   re-injects 2D adjacency after the 1D Mamba scan
+  DynamicMultiModalFusion     content-dependent attention over the modalities
+"""
 
 from __future__ import annotations
 
@@ -7,27 +16,29 @@ from tensorflow.keras import layers
 
 
 class Mamba2Block(layers.Layer):
-  """Mamba-2 style block with selective state-space semantics.
+  """Selective state-space block.
 
-  The block keeps a small state of size ``d_state`` per sequence and updates it
-  with an input-dependent decay, which is what makes the SSM "selective": the
-  decay and the input/output projections are produced from the sequence itself
-  rather than being fixed.
+  The block keeps a state of size ``d_state`` per sequence and updates it with
+  a decay that is produced from the sequence itself, which is what makes the
+  state space *selective*: a slow signal (a stable canopy) can be held while a
+  fast one (a clear-cut between two seasons) is reacted to.
 
-  Per time step t (state h of size R = ``d_state``):
+  Per time step t, with state h of size R = ``d_state``:
 
-      alpha_t = exp(-exp(A_raw) * softplus(W_dt s_delta(x_t)))   (R,)
+      alpha_t = exp(-exp(A) * softplus(W_dt s_delta(x_t)))   (R,)
       h_t     = alpha_t * h_{t-1} + (1 - alpha_t) * (s_B(x_t) * P x_t)
       y_t     = (s_C(x_t) * h_t) P^T + D * conv(x)_t
 
-  where ``P`` is the shared state <-> channel projection. The recurrence is a
-  plain ``tf.scan`` (O(L) sequential steps), not the fused parallel kernel of
-  the reference CUDA implementation, so it is portable but not fast.
+  where ``P`` is the shared state <-> channel projection, ``s_delta``, ``s_B``
+  and ``s_C`` are the small learned projections that generate the selective SSM
+  parameters, and ``conv`` is a separable convolution that extracts short-range
+  patterns before the scan. The recurrence is evaluated with ``tf.scan``, so it
+  costs O(L) sequential steps and runs on any device.
 
   Args:
-    d_model: channel dimension of the input and output.
-    d_state: SSM state dimension R (small, e.g. 8-32).
-    expand: expansion factor E, the block works internally with E * d_model.
+    d_model: channel dimension of the input and of the output.
+    d_state: SSM state dimension R.
+    expand: expansion factor E; the block works internally with E * d_model.
     dropout_rate: dropout applied to the block output.
   """
 
@@ -43,8 +54,7 @@ class Mamba2Block(layers.Layer):
     # Input projection producing the processed branch and the gate.
     self.in_proj = layers.Dense(self.d_inner * 2, use_bias=True)
 
-    # Short-range mixing. A separable conv is used as a cheap stand-in for the
-    # depthwise + pointwise convolution of the reference implementation.
+    # Short-range mixing before the scan.
     self.conv = layers.SeparableConv1D(
         filters=self.d_inner, kernel_size=3, padding="same", use_bias=True)
 
@@ -98,9 +108,12 @@ class Mamba2Block(layers.Layer):
         conv_act, tf.transpose(self.state_to_channel), axes=[[2], [0]])
     u = s_B * conv_to_state                                  # [B, L, R]
 
-    # Sequential state update (time-major for tf.scan).
+    # Sequential state update (time-major for tf.scan). The recurrence is kept
+    # in float32 even under a mixed-precision policy: a few hundred sequential
+    # multiply-accumulates in float16 would lose more precision than the step
+    # saves in time.
     batch_size = tf.shape(x)[0]
-    h_0 = tf.zeros((batch_size, self.d_state), dtype=x.dtype)
+    h_0 = tf.zeros((batch_size, self.d_state), dtype=tf.float32)
 
     def step(h_prev, inputs):
       alpha_t, u_t = inputs
@@ -108,13 +121,14 @@ class Mamba2Block(layers.Layer):
 
     h_all = tf.scan(
         step,
-        elems=(tf.transpose(alpha, [1, 0, 2]), tf.transpose(u, [1, 0, 2])),
+        elems=(tf.cast(tf.transpose(alpha, [1, 0, 2]), tf.float32),
+               tf.cast(tf.transpose(u, [1, 0, 2]), tf.float32)),
         initializer=h_0,
         parallel_iterations=10)
-    h_all = tf.transpose(h_all, [1, 0, 2])                   # [B, L, R]
+    h_all = tf.cast(tf.transpose(h_all, [1, 0, 2]), conv_act.dtype)  # [B, L, R]
 
-    # Read the state out with the input-dependent C and lift it back to the
-    # channel dimension, then add the scaled convolution path.
+    # Read the state out with the input-dependent C, lift it back to the
+    # channel dimension and add the scaled convolution path.
     y = tf.tensordot(h_all * s_C, self.state_to_channel, axes=[[2], [0]])
     y = y + conv_act * tf.reshape(self.D, (1, 1, -1))        # [B, L, d_inner]
 
@@ -133,15 +147,65 @@ class Mamba2Block(layers.Layer):
     return config
 
 
-class MultiModalFusion(layers.Layer):
+class StructureAwareStateFusion(layers.Layer):
+  """Structure-Aware State Fusion (SASF) over a 2D grid of states.
+
+  Flattening a feature map into a sequence destroys vertical adjacency: two
+  pixels that are neighbours in the image are a full row apart in the scan
+  order, so the state of one barely reaches the other. SASF restores that 2D
+  inductive bias by mixing each state with its four direct neighbours,
+
+      h_fused(i) = h(i) + sum_{n in N(i)} w_n * h(n),
+
+  where ``N(i)`` is the up/down/left/right neighbourhood and the four weights
+  ``w_n`` are learned per direction and channel and initialised small, so the
+  layer starts close to the identity. Borders are handled by zero padding, i.e.
+  a missing neighbour contributes nothing.
+
+  Input and output are feature maps of shape [B, H, W, C].
+  """
+
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
+
+  def build(self, input_shape):
+    channels = int(input_shape[-1])
+    self.channels = channels
+    # One weight per direction and channel: up, down, left, right.
+    self.neighbour_weights = self.add_weight(
+        name="neighbour_weights", shape=(4, channels),
+        initializer=tf.keras.initializers.Constant(0.05), trainable=True)
+    super().build(input_shape)
+
+  def call(self, x):
+    # Shift the map in the four directions; the vacated row/column is zero, so
+    # pixels on the border simply see fewer neighbours.
+    up = tf.pad(x[:, 1:, :, :], [[0, 0], [0, 1], [0, 0], [0, 0]])
+    down = tf.pad(x[:, :-1, :, :], [[0, 0], [1, 0], [0, 0], [0, 0]])
+    left = tf.pad(x[:, :, 1:, :], [[0, 0], [0, 0], [0, 1], [0, 0]])
+    right = tf.pad(x[:, :, :-1, :], [[0, 0], [0, 0], [1, 0], [0, 0]])
+
+    weights = tf.cast(
+        tf.reshape(self.neighbour_weights, (4, 1, 1, 1, self.channels)), x.dtype)
+    return (x
+            + weights[0] * up
+            + weights[1] * down
+            + weights[2] * left
+            + weights[3] * right)
+
+  def get_config(self):
+    return super().get_config()
+
+
+class DynamicMultiModalFusion(layers.Layer):
   """Fuses modality feature maps with content-dependent attention weights.
 
-  Each modality is first pooled to a global descriptor; the concatenated
-  descriptors go through a small MLP that outputs one softmax weight per
-  modality, so the mixing depends on the sample instead of being a fixed
-  learned constant. The weighted sum is then refined by two 1x1 convolutions.
+  Each modality is pooled to a global descriptor; the concatenated descriptors
+  go through a small MLP that emits one softmax weight per modality, so the
+  mixing depends on the sample instead of being a fixed learned constant. The
+  weighted sum is then refined by two 1x1 convolutions and layer normalised.
 
-  All modalities must be given as spatial maps [B, H, W, C] with the same H, W.
+  All modalities are given as spatial maps [B, H, W, C] with the same H, W.
   """
 
   def __init__(self, d_model: int, num_modalities: int = 3,
@@ -149,6 +213,8 @@ class MultiModalFusion(layers.Layer):
     super().__init__(**kwargs)
     self.d_model = d_model
     self.num_modalities = num_modalities
+    self.hidden_dim = hidden_dim
+    self.dropout_rate = dropout_rate
 
     self.attention_mlp = tf.keras.Sequential([
         layers.Dense(hidden_dim, activation="relu"),
@@ -186,5 +252,7 @@ class MultiModalFusion(layers.Layer):
     config.update({
         "d_model": self.d_model,
         "num_modalities": self.num_modalities,
+        "hidden_dim": self.hidden_dim,
+        "dropout_rate": self.dropout_rate,
     })
     return config
