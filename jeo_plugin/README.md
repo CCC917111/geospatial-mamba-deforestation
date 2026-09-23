@@ -1,11 +1,15 @@
-# Mamba-MTST: a Mamba encoder for JEO
+Mamba-MTST: a Mamba encoder for JEO
+=============
+Welcome to the JAX track of the CNN-Mamba forest typology project!
 
 [JEO](https://github.com/google-deepmind/jeo) is DeepMind's JAX framework for
 geospatial model training: datasets, preprocessing ops, training loop and
 evaluators are all selected from a config file, and models are looked up by
-name under `jeo/models/`. This directory contains the three files needed to
-train a Mamba-based model inside that framework, plus tests that run without a
-JEO checkout.
+name under `jeo/models/`. This directory holds a second, independent
+implementation of the same idea as the TensorFlow package — Mamba encoders in
+place of transformer encoders for multi-temporal, multi-modal remote sensing —
+written as a plug-in for that framework, plus tests that run without a JEO
+checkout.
 
 ```
 mamba_mtst.py                  -> jeo/models/mamba_mtst.py
@@ -57,19 +61,32 @@ pip install jax flax einops
 python jeo_plugin/tests/test_mamba_mtst_shapes.py
 ```
 
-The tests cover output shapes for both heads, gradient finiteness, the fact
-that a global modality listed first still reaches the fused representation, and
-that the block is causal — a time step must not be influenced by later ones,
-which an earlier `SAME`-padded convolution silently violated.
+## Design notes
 
-## Differences from the version developed during the course project
+- **The depthwise convolution is causal.** It pads on the left only and
+  convolves with `VALID`, so step `t` never sees `t + 1`; `SAME` padding would
+  leak future time steps into the present one. A test perturbs the tail of a
+  sequence and asserts that the head does not move.
+- **Fusion does not depend on the order of `mods`.** A global modality such as
+  the climate series can be listed anywhere, including first, and still reaches
+  the fused representation; a test scales that modality and asserts the output
+  changes.
+- **The modality embedding is added per modality, before the sum,** so the
+  network can tell the sources apart instead of receiving one embedding added
+  several times to an already fused tensor.
+- **Shape errors are explicit.** Patch divisibility, missing modalities and
+  mismatched spatial grids raise `ValueError` with the offending modality named,
+  rather than failing later inside `einops`.
+- **The file is self-contained.** The positional-embedding helper is local, so
+  the model depends only on jax, flax and einops and can be developed and
+  tested without a JEO checkout.
 
-- The depthwise convolution is causal (left padding) instead of `SAME`.
-- Fusion no longer depends on the order of `mods`: a global modality listed
-  first used to be dropped with a warning.
-- The modality embedding is added to each modality before the sum instead of
-  being added several times to the already fused tensor.
-- Patch divisibility, missing modalities and mismatched spatial sizes raise
-  explicit errors instead of failing later inside `einops`.
-- The positional embedding helper is local, so the file no longer depends on
-  `jeo.components`; the unused `jeo.tools.checkpointing` import is gone.
+## Tests
+
+```bash
+python jeo_plugin/tests/test_mamba_mtst_shapes.py
+```
+
+The suite covers the block and encoder output shapes, causality of the Mamba
+block, both head types, gradient finiteness, and the fact that a global
+modality listed first still influences the output.
