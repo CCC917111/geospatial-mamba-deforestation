@@ -1,0 +1,10 @@
+# TensorFlow track (src/mamba_forest)
+tensorflow>=2.15
+numpy
+matplotlib
+
+# JAX track (jeo_plugin); install jax with the wheel matching your accelerator
+jax>=0.4.26
+flax>=0.8
+einops
+ml_collections

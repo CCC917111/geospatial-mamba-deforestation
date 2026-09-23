@@ -1,0 +1,18 @@
+[project]
+name = "mamba-forest"
+version = "0.1.0"
+description = "Mamba state-space models for multimodal forest-type segmentation on ForTy v1"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "tensorflow>=2.15",
+    "numpy",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

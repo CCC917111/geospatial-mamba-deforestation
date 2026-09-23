@@ -1,0 +1,30 @@
+# Runs and checkpoints
+runs/
+*.weights.h5
+*.h5
+*.ckpt
+*.npy
+*.npz
+
+# Data
+data/
+*.tfrecord*
+
+# Credentials - never commit these
+*.json.key
+service_account*.json
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
