@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowDash" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="620" fill="#ffffff"/>
+
+  <text x="30" y="34" font-size="17" font-weight="600" fill="#1f2933">Efficient Multi-Modal CNN-Mamba Segmentation</text>
+  <text x="30" y="54" font-size="12" fill="#64748b">ForTy v1: 128 x 128 tiles, 4 seasonal composites, 9 land-cover classes</text>
+
+  <!-- Stage labels -->
+  <text x="30" y="88" font-size="11" font-weight="600" fill="#94a3b8">1  INPUT MODALITIES</text>
+  <text x="250" y="88" font-size="11" font-weight="600" fill="#94a3b8">2  PARALLEL ENCODERS</text>
+  <text x="520" y="88" font-size="11" font-weight="600" fill="#94a3b8">3  DYNAMIC FUSION</text>
+  <text x="30" y="302" font-size="11" font-weight="600" fill="#94a3b8">4  U-NET ENCODER / DECODER WITH SPATIAL MAMBA BOTTLENECK</text>
+
+  <!-- Inputs -->
+  <rect x="30" y="100" width="185" height="46" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text x="42" y="120" font-size="13" fill="#1f2933">Sentinel-2 optical</text>
+  <text x="42" y="137" font-size="11" fill="#64748b">4 x 128 x 128 x 10</text>
+
+  <rect x="30" y="162" width="185" height="46" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text x="42" y="182" font-size="13" fill="#1f2933">Elevation / slope / aspect</text>
+  <text x="42" y="199" font-size="11" fill="#64748b">128 x 128 x 3</text>
+
+  <rect x="30" y="224" width="185" height="46" rx="6" fill="#eef2f7" stroke="#94a3b8"/>
+  <text x="42" y="244" font-size="13" fill="#1f2933">Climate variables</text>
+  <text x="42" y="261" font-size="11" fill="#64748b">4 x 14</text>
+
+  <!-- Encoders -->
+  <rect x="250" y="100" width="210" height="46" rx="6" fill="#e8f0ea" stroke="#6b9080"/>
+  <text x="262" y="120" font-size="13" fill="#1f2933">Temporal Mamba block</text>
+  <text x="262" y="137" font-size="11" fill="#64748b">one sequence per pixel, last state</text>
+
+  <rect x="250" y="162" width="210" height="46" rx="6" fill="#e8f0ea" stroke="#6b9080"/>
+  <text x="262" y="182" font-size="13" fill="#1f2933">Conv2D stack</text>
+  <text x="262" y="199" font-size="11" fill="#64748b">16 -&gt; 32 -&gt; d_model</text>
+
+  <rect x="250" y="224" width="210" height="46" rx="6" fill="#e8f0ea" stroke="#6b9080"/>
+  <text x="262" y="244" font-size="13" fill="#1f2933">MLP + spatial broadcast</text>
+  <text x="262" y="261" font-size="11" fill="#64748b">64 -&gt; d_model</text>
+
+  <line x1="215" y1="123" x2="248" y2="123" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="215" y1="185" x2="248" y2="185" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="215" y1="247" x2="248" y2="247" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- Fusion -->
+  <rect x="520" y="100" width="200" height="170" rx="6" fill="#fdf1e0" stroke="#d0a060"/>
+  <text x="532" y="126" font-size="13" fill="#1f2933">Dynamic fusion</text>
+  <text x="532" y="150" font-size="11" fill="#64748b">global pooling per modality</text>
+  <text x="532" y="168" font-size="11" fill="#64748b">MLP -&gt; softmax weight w_m</text>
+  <text x="532" y="186" font-size="11" fill="#64748b">weighted sum, 1x1 conv, LN</text>
+  <text x="532" y="216" font-size="12" font-weight="600" fill="#1f2933">128 x 128 x 32</text>
+  <text x="532" y="240" font-size="11" fill="#64748b">weights depend on the</text>
+  <text x="532" y="256" font-size="11" fill="#64748b">content of each sample</text>
+
+  <line x1="462" y1="123" x2="516" y2="150" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="462" y1="185" x2="516" y2="185" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="462" y1="247" x2="516" y2="220" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- Elbow from fusion down to the U-Net -->
+  <path d="M620 272 L620 314 L150 314 L150 332" fill="none" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- U-Net: encoder column -->
+  <rect x="60" y="336" width="180" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="72" y="363" font-size="12" fill="#1f2933">fused map 128 x 128 x 32</text>
+
+  <rect x="60" y="400" width="180" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="72" y="420" font-size="12" fill="#1f2933">enc1  64 x 64 x 64</text>
+  <text x="72" y="436" font-size="10" fill="#64748b">2 x conv3x3 + maxpool</text>
+
+  <rect x="60" y="464" width="180" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="72" y="484" font-size="12" fill="#1f2933">enc2  32 x 32 x 128</text>
+  <text x="72" y="500" font-size="10" fill="#64748b">2 x conv3x3 + maxpool</text>
+
+  <rect x="60" y="528" width="180" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="72" y="548" font-size="12" fill="#1f2933">enc3  16 x 16 x 256</text>
+  <text x="72" y="564" font-size="10" fill="#64748b">2 x conv3x3 + maxpool</text>
+
+  <line x1="150" y1="380" x2="150" y2="396" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="150" y1="444" x2="150" y2="460" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="150" y1="508" x2="150" y2="524" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- Bottleneck -->
+  <path d="M240 550 L300 550" fill="none" stroke="#64748b" marker-end="url(#arrow)"/>
+  <rect x="304" y="516" width="330" height="68" rx="6" fill="#f3e9f7" stroke="#a47bb9"/>
+  <text x="318" y="538" font-size="13" fill="#1f2933">Spatial Mamba bottleneck</text>
+  <text x="318" y="556" font-size="11" fill="#64748b">conv 512, flatten 16 x 16 -&gt; L = 256, selective scan</text>
+  <text x="318" y="573" font-size="11" fill="#64748b">SASF: h(i) += sum w_n h(n) over the 4-neighbourhood</text>
+  <path d="M638 550 L700 550" fill="none" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- U-Net: decoder column -->
+  <rect x="704" y="528" width="196" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="716" y="548" font-size="12" fill="#1f2933">up1  32 x 32 x 256</text>
+  <text x="716" y="564" font-size="10" fill="#64748b">deconv + concat enc2</text>
+
+  <rect x="704" y="464" width="196" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="716" y="484" font-size="12" fill="#1f2933">up2  64 x 64 x 128</text>
+  <text x="716" y="500" font-size="10" fill="#64748b">deconv + concat enc1</text>
+
+  <rect x="704" y="400" width="196" height="44" rx="6" fill="#eaf0fb" stroke="#7d94c4"/>
+  <text x="716" y="420" font-size="12" fill="#1f2933">up3  128 x 128 x 64</text>
+  <text x="716" y="436" font-size="10" fill="#64748b">deconv + concat fused map</text>
+
+  <rect x="704" y="336" width="196" height="44" rx="6" fill="#e9f6ee" stroke="#5d9c76"/>
+  <text x="716" y="356" font-size="12" fill="#1f2933">head  128 x 128 x 9</text>
+  <text x="716" y="372" font-size="10" fill="#64748b">conv3x3 + conv1x1 softmax</text>
+
+  <line x1="802" y1="524" x2="802" y2="512" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="802" y1="460" x2="802" y2="448" stroke="#64748b" marker-end="url(#arrow)"/>
+  <line x1="802" y1="396" x2="802" y2="384" stroke="#64748b" marker-end="url(#arrow)"/>
+
+  <!-- Skip connections -->
+  <path d="M240 486 H688 V538 H698" fill="none" stroke="#94a3b8" stroke-dasharray="5 4" marker-end="url(#arrowDash)"/>
+  <path d="M240 422 H676 V474 H698" fill="none" stroke="#94a3b8" stroke-dasharray="5 4" marker-end="url(#arrowDash)"/>
+  <path d="M240 358 H664 V410 H698" fill="none" stroke="#94a3b8" stroke-dasharray="5 4" marker-end="url(#arrowDash)"/>
+  <text x="418" y="392" font-size="11" fill="#94a3b8">skip connections</text>
+</svg>
