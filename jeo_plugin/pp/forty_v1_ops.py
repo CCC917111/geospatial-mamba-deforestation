@@ -41,9 +41,9 @@ def forty_v1_normalize(**kwargs):
       ], axis=-1)
     if "climate" in data:
       climate = tf.cast(data["climate"], tf.float32)
-      # Standardise over every axis but the last one. Reducing over singleton
-      # spatial axes (as an earlier version did) makes the mean equal to the
-      # input and silently zeroes the whole modality.
+      # Standardise over every axis but the last one. Reducing over the
+      # singleton spatial axes as well would make the mean equal to the input
+      # and zero the whole modality.
       axes = list(range(climate.shape.rank - 1))
       mean, variance = tf.nn.moments(climate, axes=axes, keepdims=True)
       result["climate"] = (climate - mean) * tf.math.rsqrt(variance + 1e-6)
