@@ -29,6 +29,7 @@ src/mamba_forest/
   losses.py      ComboLoss, weighted cross-entropy plus soft Dice
   train.py       training loop, metrics, checkpointing, CLI
   evaluate.py    test-split evaluation, CLI
+  predict.py     apply a checkpoint to your own tiles, CLI
 jeo_plugin/      JAX/Flax implementation, see jeo_plugin/README.md
 tests/           unit tests for the TensorFlow track
 scripts/         plotting helper
@@ -64,6 +65,7 @@ and [Programming Reference](reference.md) lists the exact signatures.
 | Change what the model is trained on | `data.py` |
 | Change the objective | `losses.py` |
 | Change the loop, metrics or schedule | `train.py` |
+| Apply the model to new data | `predict.py`, [Mapping Your Own Region](apply.md) |
 | Add a modality or a dataset | [Common Tasks](tasks.md) |
 | Understand why something is built this way | [High-level Design](design.md) |
 

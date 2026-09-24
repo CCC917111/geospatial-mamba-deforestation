@@ -63,6 +63,8 @@ data module:
    is what `forest_scores` aggregates, so it can point at whatever group of
    classes the new benchmark reports.
 3. Adjust the channel constants at the top of `model.py`.
+4. Update `CLASS_COLORS` in `predict.py` so the colour map has one entry per
+   class.
 
 Tile size is free as long as it is divisible by 8, since the encoder pools
 three times; the network is fully convolutional and returns a map at the

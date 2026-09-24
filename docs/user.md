@@ -94,6 +94,16 @@ flags — `--d-model`, `--d-state-temporal`, `--d-state-spatial` and
 `--bottleneck-channels` — must be given the same values they had during
 training, or `load_weights` will refuse the checkpoint.
 
+## Prediction on your own tiles
+
+```bash
+make predict TILES=my_tiles OUT=predictions
+```
+
+Applies the checkpoint to a directory of `.npz` tiles and writes a class map per
+tile plus `predictions.csv`. The input contract and the output files are
+documented in [Mapping Your Own Region](apply.md).
+
 ## Plotting
 
 ```bash

@@ -109,6 +109,25 @@ full list of flags; the four architecture flags — `--d-model`,
 match the values the checkpoint was trained with, since a checkpoint stores
 weights and not the architecture.
 
+## `mamba_forest.predict`
+
+Command-line entry point, `python -m mamba_forest.predict --weights ... \
+--input-dir ... --output-dir ...`. It applies a checkpoint to a directory of
+`.npz` tiles and writes a class map per tile plus a `predictions.csv` of class
+shares. [Mapping Your Own Region](apply.md) documents the input contract and
+the outputs.
+
+| Name | Purpose |
+|---|---|
+| `REQUIRED_ARRAYS` | The three arrays a tile file must contain: `s2`, `elevation`, `climate`. |
+| `CLASS_COLORS` | One RGB triple per class, in the order of `CLASS_NAMES`. |
+| `load_tile(path)` | Reads a tile and validates its shapes against the contract. |
+| `preprocess_tile(tile)` | Applies `data.normalize` and adds the batch axis. |
+| `colourise(class_map)` | `[H, W]` class indices to an `[H, W, 3]` `uint8` image. |
+| `class_shares(class_map, num_classes)` | Pixel fraction per class. |
+
+The same four architecture flags as `evaluate` apply, for the same reason.
+
 ## `scripts/plot_results.py`
 
 Plots the training loss and the validation metrics from a
