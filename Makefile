@@ -5,8 +5,10 @@ VAL_SHARDS ?= 8
 TEST_SHARDS ?= 64
 EPOCHS ?= 40
 WEIGHTS ?= $(OUTPUT_DIR)/best.weights.h5
+TILES ?= tiles
+OUT ?= predictions
 
-.PHONY: install train eval test lint clean
+.PHONY: install train eval predict test lint clean
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -22,6 +24,13 @@ eval:
 	$(PYTHON) -m mamba_forest.evaluate \
 		--weights $(WEIGHTS) \
 		--test-shards $(TEST_SHARDS)
+
+predict:
+	$(PYTHON) -m mamba_forest.predict \
+		--weights $(WEIGHTS) \
+		--input-dir $(TILES) \
+		--output-dir $(OUT) \
+		--save-png
 
 test:
 	$(PYTHON) -m pytest tests -q

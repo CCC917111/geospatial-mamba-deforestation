@@ -259,6 +259,35 @@ and other vegetation.
 More detail, including the training configuration and how to reproduce the
 numbers, is in [`results/README.md`](results/README.md).
 
+## Mapping your own region
+
+The benchmark says how good the model is; this is how you point it at your own
+imagery. Give it a directory of tiles and it returns a forest-type map per tile
+plus a table of what is in them:
+
+```bash
+make predict TILES=my_tiles OUT=predictions
+```
+
+Each tile is one `.npz` file holding three unnormalised arrays — `s2`
+`(4, H, W, 10)` Sentinel-2 seasonal composites, `elevation` `(H, W, 3)` in
+metres and degrees, and `climate` `(4, 14)` — with `H = W` divisible by 8.
+`predict.py` applies exactly the same normalisation as the training pipeline,
+so there is no second copy of the scaling constants to drift.
+
+You get back `<tile>_class_map.npy` with the nine class indices per pixel, an
+optional colour-coded PNG, and `predictions.csv` with the pixel share of every
+class per tile plus the combined `forest_share`. That last table is what turns
+the model into an answer: average the shares over the tiles covering a
+concession to get its composition, or subtract the class maps of two years to
+separate *natural forest converted to tree crops* from *natural forest cleared
+to bare ground* — a distinction a binary forest mask cannot make, because in
+the first case the canopy is still there.
+
+The full contract — array shapes, units, band order, what each output file
+holds, and how to retarget the model to a different taxonomy — is in
+[`docs/apply.md`](docs/apply.md).
+
 ----------------
 
 Developer page
@@ -285,6 +314,11 @@ For more information about the software, select the following pages.
 
 The layout of the repository, the path a batch takes through it, and where to
 start for the change you have in mind.
+
+## [Mapping Your Own Region](docs/apply.md)
+
+The input contract for your own tiles, what the prediction run writes, and how
+to turn the class shares into a composition or a change map.
 
 ## [Programming Reference](docs/reference.md)
 
@@ -321,7 +355,8 @@ The testing strategy, what each test covers and how to run the suite.
 │   ├── model.py              # CNN-Mamba U-Net segmenter
 │   ├── losses.py             # weighted cross-entropy + Dice objective
 │   ├── train.py              # training loop, metrics, checkpointing
-│   └── evaluate.py           # test-split evaluation
+│   ├── evaluate.py           # test-split evaluation
+│   └── predict.py            # apply a checkpoint to your own tiles
 ├── jeo_plugin/               # JAX/Flax implementation for JEO
 │   ├── mamba_mtst.py         # Mamba-MTST model
 │   ├── configs/              # JEO training config
@@ -331,7 +366,7 @@ The testing strategy, what each test covers and how to run the suite.
 ├── docs/                     # developer documentation and figures
 ├── scripts/plot_results.py   # training curves from the metrics CSV
 ├── results/                  # benchmark numbers and run configuration
-└── Makefile                  # install / train / eval / test / lint / clean
+└── Makefile                  # install / train / eval / predict / test / lint
 ```
 
 ## References
