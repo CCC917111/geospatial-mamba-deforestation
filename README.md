@@ -63,7 +63,9 @@ This is a deep-learning project on forest type mapping from satellite time
 series. It implements an efficient multi-modal CNN-Mamba framework that
 combines Sentinel-2 optical time series, climate variables and elevation data
 into pixel-level segmentation of forest types, and evaluates it on the ForTy v1
-benchmark. The repository contains the full pipeline: the input pipeline that
+benchmark. It was developed by Yike Chen, Qianhua Wan, Cherng Khai Hng and
+Jiawei Li as a deep-learning course project at the Chinese University of Hong
+Kong, Shenzhen. The repository contains the full pipeline: the input pipeline that
 streams the dataset from Google Cloud Storage, the model, the training
 objective designed for the class imbalance of the task, the training and
 evaluation entry points, and the unit tests. A second implementation of the
