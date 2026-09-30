@@ -6,7 +6,7 @@ This page is about how to run this software.
 #### Install
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate   # Python 3.10-3.12
 make install                      # pip install -r requirements.txt && pip install -e .
 ```
 
@@ -398,7 +398,14 @@ The testing strategy, what each test covers and how to run the suite.
 
 ## Setup
 
-Python 3.10 or newer. The dependencies are listed in
+Python 3.10 to 3.12. TensorFlow publishes stable releases for a limited
+range of Python versions; on a newer interpreter such as 3.14, pip finds only a
+release candidate and `make install` stops. If your default `python3` is newer,
+create the environment with a 3.12 interpreter (`python3.12 -m venv .venv`, or
+`uv venv --python 3.12 --seed .venv` with [uv](https://docs.astral.sh/uv/)).
+The test suite passes on Python 3.12 with TensorFlow 2.21.
+
+The dependencies are listed in
 [`requirements.txt`](requirements.txt) — TensorFlow 2.15 or newer, NumPy and
 matplotlib, plus pytest and flake8 for the tests and style checks — and
 `make install` installs them together with the package itself
