@@ -16,8 +16,6 @@ import argparse
 import json
 import os
 
-import numpy as np
-
 from mamba_forest import data as data_lib
 from mamba_forest.model import MambaForestSegmenter
 from mamba_forest.train import evaluate, forest_scores

@@ -153,7 +153,8 @@ def evaluate(model, dataset, num_classes: int):
         tf.reshape(y_true, [-1]), tf.reshape(y_pred, [-1]),
         num_classes=num_classes, dtype=tf.int64).numpy()
 
-  return float(accuracy.result()), float(mean_iou.result()), f1_from_confusion(confusion)
+  return (float(accuracy.result()), float(mean_iou.result()),
+          f1_from_confusion(confusion))
 
 
 def forest_scores(per_class_f1: np.ndarray) -> dict:
