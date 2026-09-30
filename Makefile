@@ -11,6 +11,7 @@ OUT ?= predictions
 .PHONY: install train eval predict test lint clean
 
 install:
+	$(PYTHON) -m pip install -r requirements.txt
 	$(PYTHON) -m pip install -e .
 
 train:
