@@ -2,7 +2,7 @@
 
 The module provides the three components the architecture is built from:
 
-  Mamba2Block                 selective state-space block used along the time
+  MambaBlock                 selective state-space block used along the time
                               axis (one sequence per pixel) and along the
                               flattened spatial axis at the bottleneck
   StructureAwareStateFusion   re-injects 2D adjacency after the 1D Mamba scan
@@ -15,7 +15,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-class Mamba2Block(layers.Layer):
+class MambaBlock(layers.Layer):
   """Selective state-space block.
 
   The block keeps a state of size ``d_state`` per sequence and updates it with
@@ -153,14 +153,15 @@ class StructureAwareStateFusion(layers.Layer):
   Flattening a feature map into a sequence destroys vertical adjacency: two
   pixels that are neighbours in the image are a full row apart in the scan
   order, so the state of one barely reaches the other. SASF restores that 2D
-  inductive bias by mixing each state with its four direct neighbours,
+  inductive bias by fusing each state with its five-point neighbourhood,
 
       h_fused(i) = h(i) + sum_{n in N(i)} w_n * h(n),
 
-  where ``N(i)`` is the up/down/left/right neighbourhood and the four weights
-  ``w_n`` are learned per direction and channel and initialised small, so the
-  layer starts close to the identity. Borders are handled by zero padding, i.e.
-  a missing neighbour contributes nothing.
+  where ``N(i)`` is the pixel itself and its up, down, left and right
+  neighbours. The weights ``w_n`` are learned per position and channel: the
+  centre weight starts at zero and the four neighbour weights start small, so
+  the layer starts close to the identity. Borders are handled by zero padding,
+  i.e. a missing neighbour contributes nothing.
 
   Input and output are feature maps of shape [B, H, W, C].
   """
@@ -171,6 +172,10 @@ class StructureAwareStateFusion(layers.Layer):
   def build(self, input_shape):
     channels = int(input_shape[-1])
     self.channels = channels
+    # Weight of the centre position, one per channel.
+    self.centre_weight = self.add_weight(
+        name="centre_weight", shape=(channels,),
+        initializer="zeros", trainable=True)
     # One weight per direction and channel: up, down, left, right.
     self.neighbour_weights = self.add_weight(
         name="neighbour_weights", shape=(4, channels),
@@ -185,9 +190,11 @@ class StructureAwareStateFusion(layers.Layer):
     left = tf.pad(x[:, :, 1:, :], [[0, 0], [0, 0], [0, 1], [0, 0]])
     right = tf.pad(x[:, :, :-1, :], [[0, 0], [0, 0], [1, 0], [0, 0]])
 
+    centre = tf.cast(tf.reshape(self.centre_weight, (1, 1, 1, self.channels)), x.dtype)
     weights = tf.cast(
         tf.reshape(self.neighbour_weights, (4, 1, 1, 1, self.channels)), x.dtype)
     return (x
+            + centre * x
             + weights[0] * up
             + weights[1] * down
             + weights[2] * left

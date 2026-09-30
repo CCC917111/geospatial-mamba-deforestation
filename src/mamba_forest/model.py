@@ -28,7 +28,7 @@ from __future__ import annotations
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from mamba_forest.layers import (DynamicMultiModalFusion, Mamba2Block,
+from mamba_forest.layers import (DynamicMultiModalFusion, MambaBlock,
                                  StructureAwareStateFusion)
 
 # Channel counts of the ForTy v1 modalities.
@@ -62,7 +62,7 @@ class MambaForestSegmenter(tf.keras.Model):
     self.bottleneck_channels = bottleneck_channels
 
     # --- Temporal encoder ---------------------------------------------------
-    self.temporal_mamba = Mamba2Block(
+    self.temporal_mamba = MambaBlock(
         d_model=OPTICAL_CHANNELS, d_state=d_state_temporal, expand=2,
         dropout_rate=dropout_rate)
     self.temporal_norm = layers.LayerNormalization(axis=-1)
@@ -100,7 +100,7 @@ class MambaForestSegmenter(tf.keras.Model):
     # --- Spatial Mamba bottleneck with SASF ---------------------------------
     self.bottleneck_conv = layers.Conv2D(
         bottleneck_channels, 3, activation="relu", padding="same")
-    self.spatial_mamba = Mamba2Block(
+    self.spatial_mamba = MambaBlock(
         d_model=bottleneck_channels, d_state=d_state_spatial, expand=2,
         dropout_rate=dropout_rate)
     self.spatial_norm = layers.LayerNormalization(axis=-1)
