@@ -9,7 +9,8 @@ in [High-level Design](design.md).
 
 ## Requirements
 
-- Python 3.10 or newer.
+- Python 3.10 to 3.12 (tested with 3.12). A very new interpreter such as 3.14
+  has no stable TensorFlow release yet; see [Setup](../README.md#setup).
 - TensorFlow 2.15 or newer. A GPU is not required to run the tests, but
   training at the default settings assumes one.
 - Google Cloud credentials with read access to the public ForTy bucket:
