@@ -1,0 +1,6 @@
+[flake8]
+# The code base uses two-space indentation (docs/coding.md), so the
+# four-space indentation checks are switched off; everything else applies.
+max-line-length = 88
+extend-ignore = E111, E114
+exclude = .git, __pycache__, build, dist
