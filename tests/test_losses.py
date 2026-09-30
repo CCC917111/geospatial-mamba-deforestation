@@ -27,7 +27,7 @@ def _one_hot(indices):
 
 
 def _labels_and_prediction(label_index: int, predicted_index: int,
-                          confidence: float = 0.9):
+                           confidence: float = 0.9):
   """A 1x2x2 tile with a single true class and a single predicted class."""
   labels = _one_hot(np.full((1, 2, 2), label_index))
   wrong = (1.0 - confidence) / (NUM_CLASSES - 1)
