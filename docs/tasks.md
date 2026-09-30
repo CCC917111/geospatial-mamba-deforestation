@@ -76,15 +76,3 @@ resolution it was given.
 of 128 is the reduced budget the reported numbers were produced under. Expect
 to raise `--epochs` and to lower `--patience` accordingly, and keep
 `--val-shards` fixed so the validation metrics stay comparable.
-
-## Work on the JAX track
-
-`jeo_plugin/` is independent of the TensorFlow package and is used by copying
-its three files into a JEO checkout; see
-[`jeo_plugin/README.md`](../jeo_plugin/README.md). Its tests run without a JEO
-checkout, so the model can be developed on its own:
-
-```bash
-pip install jax flax einops
-python jeo_plugin/tests/test_mamba_mtst_shapes.py
-```

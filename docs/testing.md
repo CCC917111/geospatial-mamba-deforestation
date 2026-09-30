@@ -17,15 +17,14 @@ python tests/test_layers.py        # any file also runs standalone
 ```
 
 Each file works both under pytest and as a script: running it directly executes
-every `test_*` function in order and prints one line per test. The JAX track
-has its own suite, `python jeo_plugin/tests/test_mamba_mtst_shapes.py`, which
-needs jax, flax and einops but no JEO checkout.
+every `test_*` function in order and prints one line per test. Everything the
+suite needs is in `requirements.txt`.
 
 ## Unit tests
 
 ### `tests/test_layers.py`
 
-- **Shape preservation.** `Mamba2Block` returns a tensor of the same shape it
+- **Shape preservation.** `MambaBlock` returns a tensor of the same shape it
   was given, so it can be dropped into a residual stack.
 - **Causality.** Perturbing the tail of a sequence must not change the outputs
   at the head, and must change the outputs at the tail — the second half of the
@@ -41,6 +40,9 @@ needs jax, flax and einops but no JEO checkout.
 - **SASF locality.** A perturbation at one pixel must reach its direct
   neighbours and must not reach a distant pixel — the property that separates a
   neighbourhood fusion from a global mixing layer.
+- **SASF uses the five-point neighbourhood.** With the neighbour weights at
+  zero and the centre weight at one, the layer doubles its input: the pixel's
+  own state is a term of the fusion, as in the equation.
 - **Fusion contract.** The fused map has the expected shape, the wrong number
   of modalities raises `ValueError`, and scaling any one modality changes the
   output, which catches a fusion that silently drops an input.
@@ -86,6 +88,6 @@ want to extend the suite.
 ## Adding a test
 
 Add a `test_*` function to the file that matches the module under test, keep it
-free of dataset access, and prefer a property over a golden value: assert that
-a perturbation propagates where it should and stops where it should not, rather
+free of dataset access, and prefer a property over a hard-coded number: assert
+that a perturbation propagates where it should and stops where it should not, rather
 than that an output equals a number produced by today's random seed.

@@ -39,15 +39,16 @@ the same shards, which keeps validation metrics comparable across epochs.
 
 | Class | Input | Output | Purpose |
 |---|---|---|---|
-| `Mamba2Block(d_model, d_state, expand, dropout_rate)` | `[B, L, d_model]` | `[B, L, d_model]` | Selective state-space block with a residual connection. |
-| `StructureAwareStateFusion()` | `[B, H, W, C]` | `[B, H, W, C]` | Mixes each state with its four direct neighbours. |
+| `MambaBlock(d_model, d_state, expand, dropout_rate)` | `[B, L, d_model]` | `[B, L, d_model]` | Selective state-space block with a residual connection. |
+| `StructureAwareStateFusion()` | `[B, H, W, C]` | `[B, H, W, C]` | Fuses each state over its five-point neighbourhood (itself, up, down, left, right). |
 | `DynamicMultiModalFusion(d_model, num_modalities, hidden_dim, dropout_rate)` | list of `[B, H, W, C]` | `[B, H, W, d_model]` | Content-dependent attention over the modalities. |
 
-`Mamba2Block` builds three weights of its own: `A_raw` `(d_state,)`, the decay
+`MambaBlock` builds three weights of its own: `A_raw` `(d_state,)`, the decay
 parameter; `state_to_channel` `(d_state, d_inner)`, the shared projection
 between the state space and the channels; and `D` `(d_inner,)`, the per-channel
 skip scale on the convolution path. `StructureAwareStateFusion` builds
-`neighbour_weights` `(4, C)`, one weight per direction and channel.
+`centre_weight` `(C,)` and `neighbour_weights` `(4, C)`, one weight per position
+and channel.
 
 `DynamicMultiModalFusion` raises `ValueError` if the number of maps it is given
 differs from `num_modalities`; all maps must share `H` and `W`.

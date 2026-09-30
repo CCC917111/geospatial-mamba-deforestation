@@ -18,8 +18,7 @@ in [High-level Design](design.md).
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-make install                       # pip install -e .
-# pip install -r requirements.txt  # both tracks, including JAX
+make install                       # pip install -r requirements.txt && pip install -e .
 ```
 
 ## Training

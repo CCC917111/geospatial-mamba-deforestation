@@ -15,23 +15,21 @@ model seasonal dynamics and global context in linear time, a dynamic MLP-based
 fusion mechanism weighs the modalities per sample, and a U-Net-style
 encoder-decoder with a Mamba bottleneck reconstructs the segmentation map.
 
-There are two independent implementations: a TensorFlow package under
-`src/mamba_forest/`, which is the one the reported numbers come from, and a
-JAX/Flax plug-in for DeepMind's JEO framework under `jeo_plugin/`.
+The implementation is a TensorFlow package under `src/mamba_forest/`; every
+reported number comes from it.
 
 ## Layout
 
 ```
 src/mamba_forest/
   data.py        ForTy v1 streaming, normalisation, augmentation, batching
-  layers.py      Mamba2Block, StructureAwareStateFusion, DynamicMultiModalFusion
+  layers.py      MambaBlock, StructureAwareStateFusion, DynamicMultiModalFusion
   model.py       MambaForestSegmenter, the five-stage network
   losses.py      ComboLoss, weighted cross-entropy plus soft Dice
   train.py       training loop, metrics, checkpointing, CLI
   evaluate.py    test-split evaluation, CLI
   predict.py     apply a checkpoint to your own tiles, CLI
-jeo_plugin/      JAX/Flax implementation, see jeo_plugin/README.md
-tests/           unit tests for the TensorFlow track
+tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper
 docs/            these pages and the figures
 results/         benchmark numbers and run configuration
