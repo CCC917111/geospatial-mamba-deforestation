@@ -17,12 +17,12 @@ import tensorflow as tf
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from mamba_forest.layers import (DynamicMultiModalFusion, Mamba2Block,  # noqa: E402
+from mamba_forest.layers import (DynamicMultiModalFusion, MambaBlock,  # noqa: E402
                                  StructureAwareStateFusion)
 
 
 def test_mamba_block_preserves_shape():
-  block = Mamba2Block(d_model=12, d_state=8)
+  block = MambaBlock(d_model=12, d_state=8)
   x = tf.random.normal((3, 7, 12))
   y = block(x, training=False)
   assert y.shape == x.shape, y.shape
@@ -40,7 +40,7 @@ def _perturbation(shape, scale: float = 5.0):
 
 def test_mamba_block_is_causal():
   """A time step must not be influenced by the steps that follow it."""
-  block = Mamba2Block(d_model=8, d_state=4)
+  block = MambaBlock(d_model=8, d_state=4)
   x = tf.random.normal((1, 10, 8))
   block(x, training=False)  # build the weights
 
@@ -62,7 +62,7 @@ def test_mamba_block_is_causal():
 
 def test_mamba_block_state_carries_information():
   """The output at the last step must depend on the first step."""
-  block = Mamba2Block(d_model=8, d_state=4)
+  block = MambaBlock(d_model=8, d_state=4)
   x = tf.random.normal((1, 6, 8))
   block(x, training=False)
 
@@ -90,6 +90,16 @@ def test_sasf_preserves_shape_and_locality():
   distant = np.max(np.abs(y_reference[0, 5, 5] - y_perturbed[0, 5, 5]))
   assert neighbour > 1e-6, "a direct neighbour is not reached"
   assert distant < 1e-6, "a distant pixel must not be reached"
+
+
+def test_sasf_uses_the_five_point_neighbourhood():
+  """The centre position has its own weight, as in h + sum_{n in N} w_n h_n."""
+  sasf = StructureAwareStateFusion()
+  x = tf.random.normal((1, 4, 4, 3))
+  sasf(x)  # build
+  sasf.centre_weight.assign(tf.ones((3,)))
+  sasf.neighbour_weights.assign(tf.zeros((4, 3)))
+  np.testing.assert_allclose(sasf(x).numpy(), 2.0 * x.numpy(), rtol=1e-6)
 
 
 def test_fusion_output_shape_and_modality_count():
