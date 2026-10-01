@@ -87,8 +87,10 @@ python -m mamba_forest.evaluate \
     --weights runs/mamba_forest/best.weights.h5 --test-shards 64
 ```
 
-This prints pixel accuracy, mean IoU and the benchmark columns — Overall,
-Forests, N, P, TC — and writes `test_metrics.json` next to the weights. A
+This prints pixel accuracy, mean IoU and the benchmark columns — `Overall`
+(macro F1 over the nine classes), `Forests` (mean F1 of the three forest
+types) and `N`, `P`, `TC` (the F1 of natural forest, planted forest and tree
+crops) — and writes `test_metrics.json` next to the weights. A
 checkpoint stores weights and not the architecture, so the four architecture
 flags — `--d-model`, `--d-state-temporal`, `--d-state-spatial` and
 `--bottleneck-channels` — must be given the same values they had during

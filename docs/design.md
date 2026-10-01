@@ -69,11 +69,12 @@ the scan. Following Spatial-Mamba [10], SASF restores it after the scan by
 fusing the state of each pixel over its five-point neighbourhood — the pixel
 itself and its up, down, left and right neighbours:
 
-$$
-h_{t,\mathrm{fused}} = h_t + \sum_{n \in \mathcal{N}} w_n\, h_n .
-$$
+```math
+h_i^{\mathrm{fused}} = h_i + \sum_{n \in \mathcal{N}(i)} w_n \odot h_n
+```
 
-`w_n` is learned per position and channel. The centre weight starts at zero and
+Each of the five neighbour positions has its own weight vector `w_n`, with one
+entry per channel, shared by all pixels; ⊙ is the channel-wise product. The centre weight starts at zero and
 the four neighbour weights start small, so the layer starts close to the
 identity. Borders are zero-padded, so a pixel on the edge simply sees fewer
 neighbours. Each state stays its own leading term, and the Mamba block passes
@@ -110,10 +111,10 @@ no additional receptive field, since the bottleneck is already global.
 
 ## The objective
 
-$$
-\mathcal{L} = \alpha\,\mathcal{L}_{\mathrm{WCCE}} + (1-\alpha)\,\mathcal{L}_{\mathrm{Dice}},
+```math
+\mathcal{L} = \alpha \mathcal{L}_{\mathrm{WCCE}} + (1-\alpha) \mathcal{L}_{\mathrm{Dice}},
 \qquad \alpha = 0.4
-$$
+```
 
 The cross-entropy term is weighted per class and smoothed by 0.05 [11]. Class
 weighting addresses the imbalance directly at the pixel level; label smoothing
