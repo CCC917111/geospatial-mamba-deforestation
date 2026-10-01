@@ -105,7 +105,7 @@ def normalize(example):
 
 
 def augment(example, max_brightness_delta: float = 0.1, seed: int | None = None):
-  """Applies the training-time augmentation of the paper.
+  """Applies the training-time augmentation.
 
   Satellite imagery is acquired from nadir, so the semantic class of a region
   is invariant to mirroring: horizontal and vertical flips are each applied
