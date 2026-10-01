@@ -3,6 +3,25 @@ Multi-Modal CNN-Mamba for Forest Type Segmentation
 Welcome to the CNN-Mamba forest typology project main page!
 This page is about how to run this software.
 
+#### Setup
+
+Python 3.10 to 3.12. TensorFlow publishes stable releases for a limited
+range of Python versions; on a newer interpreter such as 3.14, pip finds only a
+release candidate and `make install` stops. If your default `python3` is newer,
+create the environment with a 3.12 interpreter (`python3.12 -m venv .venv`, or
+`uv venv --python 3.12 --seed .venv` with [uv](https://docs.astral.sh/uv/)).
+The test suite passes on Python 3.12 with TensorFlow 2.21.
+
+The dependencies are listed in
+[`requirements.txt`](requirements.txt) — TensorFlow 2.15 or newer, NumPy and
+matplotlib, plus pytest and flake8 for the tests and style checks — and
+`make install` installs them together with the package itself
+(`pip install -r requirements.txt && pip install -e .`). A single GPU is enough
+for training; with the default 128 shards per epoch the input pipeline streams
+the data from Google Cloud Storage, so nothing has to be downloaded first.
+Reading the bucket needs application-default credentials
+(`gcloud auth application-default login`).
+
 #### Install
 
 ```bash
@@ -30,6 +49,13 @@ python -m mamba_forest.evaluate \
     --weights runs/mamba_forest/best.weights.h5 --test-shards 64
 ```
 
+#### Predict on Your Own Tiles
+
+```bash
+# Forest-type map per tile plus a table of class shares
+make predict TILES=my_tiles OUT=predictions
+```
+
 #### Run Tests
 
 ```bash
@@ -48,9 +74,7 @@ make lint                         # flake8, 88 columns
 make clean
 ```
 
-Reading the dataset from Google Cloud Storage needs application-default
-credentials (`gcloud auth application-default login`). The full usage guide,
-with every flag and the files each command writes, is in
+The full usage guide, with every flag and the files each command writes, is in
 [`docs/user.md`](docs/user.md).
 
 ----------------
@@ -59,19 +83,19 @@ User page
 =============
 Welcome to the CNN-Mamba forest typology project user main page!
 
-This is a deep-learning project on forest type mapping from satellite time
-series. It implements an efficient multi-modal CNN-Mamba framework that
-combines Sentinel-2 optical time series, climate variables and elevation data
-into pixel-level segmentation of forest types, and evaluates it on the ForTy v1
-benchmark. It was developed by Yike Chen, Qianhua Wan, Cherng Khai Hng and
-Jiawei Li as a deep-learning course project at the Chinese University of Hong
-Kong, Shenzhen. The repository contains the full pipeline: the input pipeline that
-streams the dataset from Google Cloud Storage, the model, the training
-objective designed for the class imbalance of the task, the training and
-evaluation entry points, a prediction tool for your own tiles, and the unit
-tests.
+This is a deep-learning project which has been completed by Yike Chen, Qianhua
+Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
+Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
+model for satellite time series: an efficient multi-modal CNN-Mamba framework
+that combines Sentinel-2 optical time series, climate variables and elevation
+data into pixel-level segmentation of forest types, evaluated on the ForTy v1
+benchmark. It mainly contains two parts. The segmentation model comes with the
+input pipeline that streams the dataset from Google Cloud Storage, the training
+objective designed for the class imbalance of the task, and the training and
+evaluation entry points; the prediction tool applies a trained model to your
+own tiles and maps the forest types in them.
 
-# Abstract
+# Forest Type Segmentation Abstract
 
 Accurate forest type classification is critical for environmental monitoring
 and sustainable management. Distinguishing natural forest from planted forest
@@ -155,7 +179,7 @@ accelerator.
 
 Here is an introduction to the five stages the network is built from.
 
-### Parallel modality encoders
+### Parallel Modality Encoders
 
 The three modalities are encoded in parallel, each in the way that suits its
 structure. The optical time series of shape `[B, T, H, W, C]` is folded into
@@ -176,7 +200,7 @@ spatial extent, so a small MLP turns them into a modality embedding that is
 broadcast over space to `[B, H, W, d_model]`, letting the climatic context
 influence every pixel at negligible cost.
 
-### Dynamic multi-modal fusion
+### Dynamic Multi-Modal Fusion
 
 Instead of concatenating the three feature maps, the model computes fusion
 weights from their content. Each modality is pooled to a global descriptor, the
@@ -187,7 +211,7 @@ refined by 1 x 1 convolutions and layer normalisation. A cloudy tile can
 therefore lean on terrain and climate, while a clear tile leans on the optical
 series.
 
-### U-Net encoder
+### U-Net Encoder
 
 The hierarchical encoder is a U-Net-style [[3]](#ref-3) downsampling path of three
 stages, following the use of U-Net encoders around Mamba blocks in
@@ -198,7 +222,7 @@ spatial resolution goes 128 -> 64 -> 32 -> 16 while the channel width grows
 32 -> 64 -> 128 -> 256, so the encoder learns increasingly abstract spatial
 representations while keeping the hierarchy available for the decoder.
 
-### Spatial Mamba bottleneck with SASF
+### Spatial Mamba Bottleneck with SASF
 
 At the 16 x 16 bottleneck the feature map is projected to 512 channels and
 flattened into a sequence of length 256. A selective state-space model with
@@ -222,7 +246,7 @@ with weights learned per position and channel. This re-introduces a 2D
 inductive bias, so the linear sequence model stays aware of the physical
 spatial structure.
 
-### Multi-stage decoder
+### Multi-Stage Decoder
 
 The decoder reconstructs 16 -> 32 -> 64 -> 128 in three stages. Each begins
 with a transposed convolution of stride 2, concatenates the matching encoder
@@ -289,10 +313,15 @@ and other vegetation.
 More detail, including the training configuration and how to reproduce the
 numbers, is in [`results/README.md`](results/README.md).
 
-## Mapping your own region
+# Forest Map Prediction Abstract
 
-The benchmark says how good the model is; this is how you point it at your own
-imagery. Give it a directory of tiles and it returns a forest-type map per tile
+The prediction tool applies a trained model to imagery of your own region. The
+benchmark says how good the model is; this is how you point it at your own
+tiles.
+
+## Mapping Your Own Region
+
+Give it a directory of tiles and it returns a forest-type map per tile
 plus a table of what is in them:
 
 ```bash
@@ -327,6 +356,23 @@ Welcome to the CNN-Mamba forest typology project developer main page!
 ----------------
 ## Abstract
 
+This is a deep-learning project which has been completed by Yike Chen, Qianhua
+Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
+Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
+model for satellite time series: an efficient multi-modal CNN-Mamba framework
+that combines Sentinel-2 optical time series, climate variables and elevation
+data into pixel-level segmentation of forest types, evaluated on the ForTy v1
+benchmark. It mainly contains two parts. The segmentation model comes with the
+input pipeline that streams the dataset from Google Cloud Storage, the training
+objective designed for the class imbalance of the task, and the training and
+evaluation entry points; the prediction tool applies a trained model to your
+own tiles and maps the forest types in them.
+
+For more information about the software, select the following pages.
+
+----------------
+## [Programming Reference](docs/reference.md)
+
 The repository is organised as a small installable package plus two entry
 points. `src/mamba_forest/` holds the TensorFlow implementation: `data.py`
 streams and preprocesses ForTy v1, `layers.py` holds the three building blocks
@@ -337,45 +383,10 @@ entry points, with `predict.py` applying a checkpoint to your own tiles.
 `tests/` covers the blocks, the network and the objective, and `docs/` holds
 the pages below.
 
-For more information about the software, select the following pages.
-
-----------------
-## [Developer Overview](docs/developer.md)
-
-The layout of the repository, the path a batch takes through it, and where to
-start for the change you have in mind.
-
-## [Mapping Your Own Region](docs/apply.md)
-
-The input contract for your own tiles, what the prediction run writes, and how
-to turn the class shares into a composition or a change map.
-
-## [Programming Reference](docs/reference.md)
-
-The module-by-module map of the package: what each file provides, the public
-classes and functions, their arguments and the tensor shapes they expect.
-
-## [High-level Design](docs/design.md)
-
-The architecture in detail, with the equations of the selective state-space
-recurrence, the design decisions behind the fusion and the bottleneck, and the
-data flow diagram.
-
-## [Coding Style](docs/coding.md)
-
-The style the code follows and how to check it.
-
-## [Common Tasks](docs/tasks.md)
-
-How to extend the project: add a modality, swap the backbone, change the
-objective, or run on a different dataset.
-
-## [Testing](docs/testing.md)
-
-The testing strategy, what each test covers and how to run the suite.
-
-----------------
-## Repository layout
+The main code of the project is laid out as follows; every public class and
+function, its arguments and the tensor shapes it expects are on the
+Programming Reference page, and the path a batch takes through the package is
+on the [Developer Overview](docs/developer.md) page.
 
 ```
 .
@@ -396,25 +407,81 @@ The testing strategy, what each test covers and how to run the suite.
 └── Makefile                  # install / train / eval / predict / test / lint
 ```
 
-## Setup
+## [High-level Design](docs/design.md)
 
-Python 3.10 to 3.12. TensorFlow publishes stable releases for a limited
-range of Python versions; on a newer interpreter such as 3.14, pip finds only a
-release candidate and `make install` stops. If your default `python3` is newer,
-create the environment with a 3.12 interpreter (`python3.12 -m venv .venv`, or
-`uv venv --python 3.12 --seed .venv` with [uv](https://docs.astral.sh/uv/)).
-The test suite passes on Python 3.12 with TensorFlow 2.21.
+In this project, three properties of the task shape the architecture.
 
-The dependencies are listed in
-[`requirements.txt`](requirements.txt) — TensorFlow 2.15 or newer, NumPy and
-matplotlib, plus pytest and flake8 for the tests and style checks — and
-`make install` installs them together with the package itself
-(`pip install -r requirements.txt && pip install -e .`). A single GPU is enough
-for training; with the default 128 shards per epoch the input pipeline streams
-the data from Google Cloud Storage, so nothing has to be downloaded first.
-Reading the bucket needs application-default credentials
-(`gcloud auth application-default login`).
+1. The signal is temporal but the sequence is short: telling planted forest
+   from natural forest depends on how the canopy changes between seasons, and
+   each sample has only four composites. A selective state-space block models
+   that sequence in linear time.
+2. The modalities are heterogeneous: optical imagery is a spatial time series,
+   terrain a static map and climate a few numbers per season. Each gets its
+   own encoder, and a content-dependent fusion layer weights them per sample.
+3. The classes of interest are rare: planted forest and tree crops cover under
+   20% of the labelled pixels, so the objective adds a region-level Dice term
+   and class weights to the cross-entropy.
 
+The design page gives the equations of the selective state-space recurrence,
+the reasoning behind the fusion and the bottleneck, and the data flow diagram.
+
+## [Coding Style](docs/coding.md)
+
+We followed the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+with the conventions below.
+
+- Two-space indentation, 80 columns for code and prose and 88 as the hard
+  limit, checked with `make lint`.
+- Every public class and function has a docstring that states its intent, its
+  arguments and the tensor shapes it expects and returns, written as
+  `[B, T, H, W, C]`.
+- Comments explain intent rather than mechanics, and anything a future reader
+  would find surprising gets a comment.
+- Arguments are validated where a wrong value would otherwise fail deep inside
+  a framework call, randomness comes from a single `--seed` flag, and every
+  configuration is saved next to its checkpoints.
+- No credentials, absolute paths or machine-specific settings in the source;
+  the dataset root, the output directory and every hyper-parameter are flags
+  with defaults.
+
+## [Common Tasks](docs/tasks.md)
+
+This page gives you the recipes for the changes people most often want to make.
+
+1. Add a fourth modality, such as the Sentinel-1 radar ForTy v1 also ships:
+   read and normalise it in `data.py`, give it an encoder in `model.py`, and
+   raise the number of modalities in the fusion layer.
+2. Change the capacity of the network with `--d-model` and the channel
+   schedule of the encoder and decoder.
+3. Change the objective through `ComboLoss`: `--combo-alpha`,
+   `--no-class-weights` or a new class-weight vector.
+4. Run on a different dataset by adapting the data module, the class list and
+   the colour map.
+5. Train on the full dataset with `--train-shards 1024`.
+
+## [Testing](docs/testing.md)
+
+The suite runs on CPU in under a minute and needs neither a GPU nor the
+dataset: every test builds a small model on synthetic tensors.
+
+```bash
+make test                          # python -m pytest tests -q
+```
+
+- `tests/test_layers.py` checks that the Mamba block preserves shape, is causal
+  and carries information through its state, that SASF stays local, and that
+  the fusion layer uses every modality.
+- `tests/test_model.py` checks that the network returns valid probabilities at
+  the input resolution, that every modality and the season order change the
+  prediction, and that gradients are finite.
+- `tests/test_losses.py` checks that the loss ranks predictions correctly,
+  weights the classes exactly as configured, excludes absent classes from the
+  Dice term and rejects invalid settings.
+
+The data module talks to Google Cloud Storage, so it is exercised by running a
+training job rather than by a unit test.
+
+----------------
 ## References
 
 1. <a id="ref-1"></a>Y. Jiang and M. Neumann. Not every tree is a forest:
