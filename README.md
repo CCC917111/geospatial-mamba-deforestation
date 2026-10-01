@@ -240,11 +240,18 @@ representations while keeping the hierarchy available for the decoder.
 ### Spatial Mamba Bottleneck with SASF
 
 At the 16 x 16 bottleneck the feature map is projected to 512 channels and
-flattened into a sequence of length 256. A selective state-space model with
-`d_state = 16` scans that sequence [[2]](#ref-2), so every patch can reach every
-other patch with linear rather than quadratic cost — a "global eye" that
-connects disjoint forest patches across the tile, as Mamba does for global
-context in medical image segmentation [[9]](#ref-9).
+flattened row by row into a sequence of 256 positions, each standing for an
+8 x 8 pixel patch of the tile. A selective state-space model with
+`d_state = 16` scans that sequence once [[2]](#ref-2): at every step it decides
+from the input how much of its 16-dimensional state to keep and how much to
+overwrite, so the state at a position summarises the patches before it in scan
+order, and a forest patch in the top rows can inform one at the bottom of the
+tile. The pass costs time linear in the sequence length, where self-attention
+would cost quadratic — this is the global context that Mamba-UNet
+[[9]](#ref-9) brings to medical image segmentation. The scan runs in one
+direction, so a position sees only what precedes it; the SASF step below and
+the decoder's convolutions carry information back locally, and a
+multi-directional scan is the natural extension.
 
 Flattening a 2D map into a 1D sequence loses vertical adjacency: two pixels
 that are neighbours in the image are a full row apart in scan order.
