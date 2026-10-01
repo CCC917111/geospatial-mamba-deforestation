@@ -158,9 +158,10 @@ class StructureAwareStateFusion(layers.Layer):
       h_fused(i) = h(i) + sum_{n in N(i)} w_n * h(n),
 
   where ``N(i)`` is the pixel itself and its up, down, left and right
-  neighbours. The weights ``w_n`` are learned per position and channel: the
-  centre weight starts at zero and the four neighbour weights start small, so
-  the layer starts close to the identity. Borders are handled by zero padding,
+  neighbours. Each neighbour position has its own weight ``w_n`` with one
+  entry per channel, shared by all pixels: the centre weight starts at zero
+  and the four neighbour weights start small, so the layer starts close to
+  the identity. Borders are handled by zero padding,
   i.e. a missing neighbour contributes nothing.
 
   Input and output are feature maps of shape [B, H, W, C].
