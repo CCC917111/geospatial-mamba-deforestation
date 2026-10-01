@@ -1,15 +1,18 @@
 Results
 =============
 
-All numbers are F1 scores in percent on the ForTy v1 test split, following the
-protocol of the benchmark: **Overall** is the macro F1 over the nine classes,
-**Forests** is the mean F1 of the three forest types, and **N**, **P** and
-**TC** are the individual F1 scores of natural forest, planted forest and tree
-crops.
+All numbers are F1 scores in percent, computed over pixels and following the
+metrics of the benchmark. For one class, *precision* is the share of the pixels
+predicted as that class that really belong to it, *recall* is the share of the
+class's pixels that are found, and *F1* is their harmonic mean. **Overall F1**
+is the macro average over the nine classes, **Forest mean F1** the average over
+the three forest types, and the last three columns are the F1 of natural
+forest, planted forest and tree crops. In the code and in `test_metrics.json`
+these five columns are named `Overall`, `Forests`, `N`, `P` and `TC`.
 
 ## Benchmark
 
-| Model | Overall | Forests | N | P | TC |
+| Model | Overall F1 | Forest mean F1 | Natural forest F1 | Planted forest F1 | Tree crops F1 |
 |---|---:|---:|---:|---:|---:|
 | UNet3D | 32.4 | 24.2 | 56.2 | 7.5 | 8.8 |
 | UTAE | 49.4 | 37.7 | 71.4 | 13.8 | 27.8 |
@@ -17,20 +20,23 @@ crops.
 | **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
 
 The baseline scores are the ones published with the ForTy benchmark, where
-every baseline is trained on the full training split. The CNN-Mamba model was
-trained on 128 of the 1024 training shards, about 12.5% of the data, and
-evaluated on 64 test shards. Under that budget it improves on UNet3D and UTAE
-in every column, most clearly on the two classes the benchmark finds hardest —
-planted forest (27.64 against 13.8) and tree crops (54.12 against 27.8) — and
-stays behind MTSViT, which sees eight times as much training data.
+every baseline is trained on the full training split and evaluated on the full
+test split. The CNN-Mamba model read 128 of the 1,024 training shards per
+epoch (12.5% of the split, drawn at random again every epoch), was validated
+on 8 fixed validation shards, and was evaluated on 64 of the 1,024
+test shards (6.25% of the test split), so the comparison is indicative rather
+than exact. Under that budget it improves on UNet3D and UTAE in every column,
+most clearly on the two classes the benchmark finds hardest — planted forest
+(27.64 against 13.8) and tree crops (54.12 against 27.8) — and stays behind
+MTSViT.
 
 ## Training configuration
 
 | Setting | Value |
 |---|---|
-| Training shards per epoch | 128 of 1024 (~12.5%) |
-| Validation shards | 8, fixed across epochs |
-| Test shards | 64 |
+| Training shards per epoch | 128 of 1,024 (12.5%), a new random draw every epoch |
+| Validation shards | 8 of 1,024, fixed across epochs, used to choose the checkpoint |
+| Test shards | 64 of 1,024 (6.25%), used only for the reported numbers |
 | Batch size | 16 |
 | Optimiser | AdamW, weight decay 5e-3 |
 | Learning rate | 2e-4, cosine decay to 10% |
