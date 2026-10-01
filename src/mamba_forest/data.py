@@ -3,7 +3,7 @@
 ForTy v1 is published as 1024 TFRecord shards per split under
 ``gs://forest_typology/forty_v1/1.0.0/``. Reading a sample of shards per epoch
 keeps experiments on a single GPU tractable: the default of 128 training shards
-is 12.5% of the training split per epoch, drawn at random again every epoch.
+is 12.5% of the training split.
 
 Each example used here contains:
 
