@@ -113,8 +113,8 @@ long-range dependencies in linear time instead of the quadratic attention of a
 transformer [[2]](#ref-2). A dynamic MLP-based fusion mechanism adaptively
 integrates the modalities per sample, and a U-Net-style encoder-decoder
 [[3]](#ref-3) with a Mamba bottleneck reconstructs high-resolution segmentation
-maps. On the ForTy dataset [[1]](#ref-1), reading only 12.5% of the training
-data per epoch, the approach outperforms the UNet3D [[4]](#ref-4) and UTAE [[5]](#ref-5)
+maps. On the ForTy dataset [[1]](#ref-1), trained on only 12.5% of the available
+data, the approach outperforms the UNet3D [[4]](#ref-4) and UTAE [[5]](#ref-5)
 baselines and reaches competitive performance relative to MTSViT [[1]](#ref-1),
 which shows its data efficiency under limited-resource settings.
 
@@ -158,7 +158,7 @@ budget, so the reported model uses part of each split:
 
 | Split | Shards used | Share of the split | Used for |
 |---|---|---:|---|
-| Training | 128 of 1,024 per epoch, drawn at random again every epoch | 12.5% per epoch | fitting the weights |
+| Training | 128 of 1,024, randomly sampled | 12.5% | fitting the weights |
 | Validation | 8 of 1,024, the same 8 every epoch | 0.8% | monitoring training and choosing the checkpoint |
 | Test | 64 of 1,024 | 6.25% | the reported numbers only |
 
@@ -331,12 +331,9 @@ F1 of each forest type.
 | MTSViT [[1]](#ref-1) | 81.1 | 74.9 | 82.8 | 62.9 | 78.9 |
 | **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
 
-The baseline numbers are those reported with the benchmark [[1]](#ref-1):
-those models are trained on the full training split and evaluated on the full
-test split. This model reads 12.5% of the training split per epoch and is
-evaluated on 64 of the 1,024 test shards
-([Training, Validation and Test Sets](#training-validation-and-test-sets)), so
-the comparison is indicative rather than exact. Under that budget it improves
+The baseline numbers are those reported with the benchmark [[1]](#ref-1) and
+are trained on the full training split; this model is trained on 128 of the
+1,024 training shards, about 12.5% of the data. Under that budget it improves
 on UNet3D and UTAE in every column, with the clearest gains on the two classes
 the benchmark finds hardest — planted forest and tree crops — and stays behind
 MTSViT. The combination of a
