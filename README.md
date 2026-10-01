@@ -113,8 +113,8 @@ long-range dependencies in linear time instead of the quadratic attention of a
 transformer [[2]](#ref-2). A dynamic MLP-based fusion mechanism adaptively
 integrates the modalities per sample, and a U-Net-style encoder-decoder
 [[3]](#ref-3) with a Mamba bottleneck reconstructs high-resolution segmentation
-maps. On the ForTy dataset [[1]](#ref-1), trained on only 12.5% of the available
-data, the approach outperforms the UNet3D [[4]](#ref-4) and UTAE [[5]](#ref-5)
+maps. On the ForTy dataset [[1]](#ref-1), reading only 12.5% of the training
+data per epoch, the approach outperforms the UNet3D [[4]](#ref-4) and UTAE [[5]](#ref-5)
 baselines and reaches competitive performance relative to MTSViT [[1]](#ref-1),
 which shows its data efficiency under limited-resource settings.
 
@@ -135,10 +135,11 @@ weighted cross-entropy plus Dice objective.
 
 [ForTy v1](https://console.cloud.google.com/storage/browser/forest_typology)
 [[1]](#ref-1) is a public forest-typology benchmark of about 200,000 globally
-sampled 128 x 128 pixel tiles, published as 1024 TFRecord shards per split. Samples are partitioned
-into geographically distinct 100 x 100 km blocks in an 8:1:1 ratio, so the
-train, validation and test splits do not share spatial autocorrelation. Each
-tile provides:
+sampled 128 x 128 pixel tiles. The tiles are partitioned by geographically
+distinct 100 x 100 km blocks in an 8:1:1 ratio into a training split of about
+160,000 tiles, a validation split of about 19,000 and a test split of about
+20,000, so the three splits do not share spatial autocorrelation. Each split is
+published as 1,024 TFRecord shards. Each tile provides:
 
 - **Sentinel-2 optical imagery** [[6]](#ref-6) — 10 bands at 10-20 m resolution, as
   four seasonal composites.
@@ -150,9 +151,23 @@ tile provides:
   classes, of which the three forest types (natural forest, planted forest,
   tree crops) are the classes of interest.
 
-Nothing is downloaded up front: the pipeline streams a random subset of shards
-per epoch straight from Google Cloud Storage, which keeps an epoch to a few
-thousand tiles and makes single-GPU experiments possible.
+### Training, Validation and Test Sets
+
+Training on the full training split did not fit the project's single-GPU
+budget, so the reported model uses part of each split:
+
+| Split | Shards used | Share of the split | Used for |
+|---|---|---:|---|
+| Training | 128 of 1,024 per epoch, drawn at random again every epoch | 12.5% per epoch | fitting the weights |
+| Validation | 8 of 1,024, the same 8 every epoch | 0.8% | monitoring training and choosing the checkpoint |
+| Test | 64 of 1,024 | 6.25% | the reported numbers only |
+
+The test shards are never used for training or for choosing the checkpoint,
+and because the splits come from disjoint geographic blocks, no test tile lies
+in a block that the model was trained on. Nothing is downloaded up front: the
+pipeline streams the shards straight from Google Cloud Storage. These are the
+defaults of `make train` and `make eval`; `--train-shards 1024` trains on the
+full split.
 
 ## Preprocessing
 
@@ -238,11 +253,16 @@ that are neighbours in the image are a full row apart in scan order.
 16 x 16 and the state of each pixel is fused over its five-point neighbourhood
 — the pixel itself and its up, down, left and right neighbours:
 
-$$
-h_{t,\mathrm{fused}} = h_t + \sum_{n \in \mathcal{N}} w_n\, h_n ,
-$$
+```math
+h_i^{\mathrm{fused}} = h_i + \sum_{n \in \mathcal{N}(i)} w_n \odot h_n ,
+```
 
-with weights learned per position and channel. This re-introduces a 2D
+where $`\mathcal{N}(i)`$ is the five-point neighbourhood of pixel *i*, and each
+of the five neighbour positions has its own learned weight vector
+*w<sub>n</sub>* with one entry per channel, shared by all pixels; ⊙ is the
+channel-wise product, and a neighbour outside the map contributes zero. The
+centre weight starts at zero and the four neighbour weights at 0.05, so the
+layer starts close to the identity. This re-introduces a 2D
 inductive bias, so the linear sequence model stays aware of the physical
 spatial structure.
 
@@ -262,14 +282,15 @@ under mixed-precision training.
 The objective is a convex combination of a weighted categorical cross-entropy
 and a Dice loss,
 
-$$
-\mathcal{L} = \alpha\,\mathcal{L}_{\mathrm{WCCE}} + (1-\alpha)\,\mathcal{L}_{\mathrm{Dice}},
+```math
+\mathcal{L} = \alpha \mathcal{L}_{\mathrm{WCCE}} + (1-\alpha) \mathcal{L}_{\mathrm{Dice}},
 \qquad
-\mathcal{L}_{\mathrm{Dice}} = 1 - \frac{2\,\lvert A \cap B\rvert}{\lvert A\rvert + \lvert B\rvert},
+\mathcal{L}_{\mathrm{Dice}} = 1 - \frac{2 \lvert A \cap B \rvert}{\lvert A \rvert + \lvert B \rvert},
 \qquad \alpha = 0.4,
-$$
+```
 
-which puts 40% of the weight on pixel-wise supervision and 60% on region-level
+where *A* and *B* are the predicted and the ground-truth mask of a class. This
+puts 40% of the weight on pixel-wise supervision and 60% on region-level
 overlap. The cross-entropy term uses label smoothing [[11]](#ref-11) of 0.05 and a
 per-class weight vector, `[1.0, 1.0, 3.0, 1.0, 1.0, 1.2, 1.0, 2.0, 1.0]`, that
 raises the cost of the rare classes, planted forest most of all. The Dice term
@@ -283,28 +304,35 @@ Gradients are clipped to a global norm of 1.0, and mixed-precision training
 [[15]](#ref-15) keeps the compute-heavy operations in float16 with dynamic loss
 scaling while weights and the output head stay in float32, which cuts memory
 use and speeds up training without affecting the result. Each epoch streams 128
-randomly chosen training shards in batches of 16.
+randomly chosen training shards in batches of 16, as described under
+[Training, Validation and Test Sets](#training-validation-and-test-sets).
 
 ## Results
 
-All numbers are F1 in percent on the ForTy v1 test split: **Overall** is the
-macro F1 over the nine classes, **Forests** the mean F1 of the three forest
-types, and **N**, **P** and **TC** the F1 of natural forest, planted forest and
-tree crops.
+All numbers are F1 scores in percent, computed over pixels. For one class,
+*precision* is the share of the pixels predicted as that class that really
+belong to it, *recall* is the share of the class's pixels that are found, and
+*F1* is their harmonic mean, 2 · precision · recall / (precision + recall).
+**Overall F1** is the macro average over all nine classes and **Forest mean
+F1** the average over the three forest types; the last three columns are the
+F1 of each forest type.
 
-| Model | Overall | Forests | N | P | TC |
+| Model | Overall F1 | Forest mean F1 | Natural forest F1 | Planted forest F1 | Tree crops F1 |
 |---|---:|---:|---:|---:|---:|
 | UNet3D [[4]](#ref-4) | 32.4 | 24.2 | 56.2 | 7.5 | 8.8 |
 | UTAE [[5]](#ref-5) | 49.4 | 37.7 | 71.4 | 13.8 | 27.8 |
 | MTSViT [[1]](#ref-1) | 81.1 | 74.9 | 82.8 | 62.9 | 78.9 |
 | **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
 
-The baseline numbers are those reported with the benchmark [[1]](#ref-1) and are
-trained on the full training split; this model is trained on
-128 of the 1024 shards, about 12.5% of the data. Under that budget it improves
+The baseline numbers are those reported with the benchmark [[1]](#ref-1):
+those models are trained on the full training split and evaluated on the full
+test split. This model reads 12.5% of the training split per epoch and is
+evaluated on 64 of the 1,024 test shards
+([Training, Validation and Test Sets](#training-validation-and-test-sets)), so
+the comparison is indicative rather than exact. Under that budget it improves
 on UNet3D and UTAE in every column, with the clearest gains on the two classes
 the benchmark finds hardest — planted forest and tree crops — and stays behind
-MTSViT, which sees eight times as much training data. The combination of a
+MTSViT. The combination of a
 weighted cross-entropy with the Dice term is what makes those rare classes
 trainable: with a plain unweighted cross-entropy the validation metrics swing
 between epochs and the under-represented classes collapse into natural forest
