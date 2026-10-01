@@ -8,6 +8,18 @@ change something.
 
 ## Abstract
 
+This is a deep-learning project which has been completed by Yike Chen, Qianhua
+Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
+Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
+model for satellite time series: an efficient multi-modal CNN-Mamba framework
+that combines Sentinel-2 optical time series, climate variables and elevation
+data into pixel-level segmentation of forest types, evaluated on the ForTy v1
+benchmark. It mainly contains two parts. The segmentation model comes with the
+input pipeline that streams the dataset from Google Cloud Storage, the training
+objective designed for the class imbalance of the task, and the training and
+evaluation entry points; the prediction tool applies a trained model to your
+own tiles and maps the forest types in them.
+
 The project implements an efficient multi-modal CNN-Mamba framework for
 pixel-level forest type segmentation on the ForTy v1 benchmark. Convolutional
 encoders extract local spatial structure, selective state-space (Mamba) blocks
