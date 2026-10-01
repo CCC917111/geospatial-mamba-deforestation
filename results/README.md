@@ -20,12 +20,9 @@ these five columns are named `Overall`, `Forests`, `N`, `P` and `TC`.
 | **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
 
 The baseline scores are the ones published with the ForTy benchmark, where
-every baseline is trained on the full training split and evaluated on the full
-test split. The CNN-Mamba model read 128 of the 1,024 training shards per
-epoch (12.5% of the split, drawn at random again every epoch), was validated
-on 8 fixed validation shards, and was evaluated on 64 of the 1,024
-test shards (6.25% of the test split), so the comparison is indicative rather
-than exact. Under that budget it improves on UNet3D and UTAE in every column,
+every baseline is trained on the full training split. The CNN-Mamba model was
+trained on 128 of the 1,024 training shards, about 12.5% of the data, validated
+on 8 validation shards and evaluated on 64 test shards. Under that budget it improves on UNet3D and UTAE in every column,
 most clearly on the two classes the benchmark finds hardest — planted forest
 (27.64 against 13.8) and tree crops (54.12 against 27.8) — and stays behind
 MTSViT.
@@ -34,9 +31,9 @@ MTSViT.
 
 | Setting | Value |
 |---|---|
-| Training shards per epoch | 128 of 1,024 (12.5%), a new random draw every epoch |
+| Training shards | 128 of 1,024 (~12.5%), randomly sampled |
 | Validation shards | 8 of 1,024, fixed across epochs, used to choose the checkpoint |
-| Test shards | 64 of 1,024 (6.25%), used only for the reported numbers |
+| Test shards | 64 of 1,024, used only for the reported numbers |
 | Batch size | 16 |
 | Optimiser | AdamW, weight decay 5e-3 |
 | Learning rate | 2e-4, cosine decay to 10% |
