@@ -58,8 +58,11 @@ The same block is used twice, on two different axes:
   transposed to `[B, H, W, T, C]` before being folded to `[B*H*W, T, C]`, so a
   sequence really is the time series of one pixel rather than a row of
   neighbouring pixels. The last state is the temporal summary.
-- **Spatially**, over the flattened 16 x 16 bottleneck grid, so each patch can
-  reach every other patch in linear time.
+- **Spatially**, over the 16 x 16 bottleneck grid flattened in raster order:
+  one linear-time pass in which the state at each patch summarises all the
+  patches before it. The scan is causal and runs in one direction, so context
+  flows forward along the raster order; SASF below restores the local 2D
+  neighbourhood in both directions.
 
 ## Structure-Aware State Fusion
 
