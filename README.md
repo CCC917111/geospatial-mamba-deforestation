@@ -353,6 +353,10 @@ More detail, including the training configuration and how to run controlled
 new experiments, is in [`results/README.md`](results/README.md). The
 [optimization audit](docs/optimization-audit.md) describes protocol fixes and
 the synthetic performance measurement.
+The [GPU validation runbook](docs/gpu-validation.md) provides the real-record
+preflight, two-epoch smoke run, paired objective experiments and full-test
+evaluation commands. Those real-data/GPU runs still require an appropriate
+execution environment.
 
 # Forest Map Prediction Abstract
 

@@ -41,6 +41,8 @@ src/mamba_forest/
   train.py       training loop, metrics, checkpointing, CLI
   evaluate.py    test-split evaluation, CLI
   predict.py     apply a checkpoint to your own tiles, CLI
+  validate_data.py  inspect actual source records and GPU availability, CLI
+  benchmark.py   synchronized synthetic model-compute measurements, CLI
 tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper
 docs/            these pages and the figures

@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "cpu_count": 5,
+    "thread_settings": {
+      "TF_NUM_INTRAOP_THREADS": "2",
+      "TF_NUM_INTEROP_THREADS": "2",
+      "OMP_NUM_THREADS": null
+    },
+    "tensorflow_threading": {
+      "intra_op_parallelism_threads": 0,
+      "inter_op_parallelism_threads": 0
+    },
+    "tensorflow_threading_note": "0 indicates no explicit tf.config.threading override; environment settings are recorded separately.",
+    "logical_devices": [
+      "/device:CPU:0"
+    ],
+    "requested_device": "/CPU:0",
+    "input_devices": {
+      "s2": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "elevation": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "climate": "/job:localhost/replica:0/task:0/device:CPU:0"
+    },
+    "precision": "float32",
+    "seed": 42,
+    "input_shapes": {
+      "s2": [
+        1,
+        4,
+        128,
+        128,
+        10
+      ],
+      "elevation": [
+        1,
+        128,
+        128,
+        3
+      ],
+      "climate": [
+        1,
+        4,
+        14
+      ]
+    },
+    "label_shape": [
+      1,
+      128,
+      128,
+      9
+    ],
+    "model_config": {
+      "num_classes": 9,
+      "d_model": 32,
+      "dropout_rate": 0.2,
+      "d_state_temporal": 8,
+      "d_state_spatial": 16,
+      "bottleneck_channels": 512
+    },
+    "parameters": 7732800,
+    "warmup_steps": 2,
+    "steps": 3,
+    "scope": "Synthetic model compute plus scalar output synchronization; excludes dataset IO, preprocessing, checkpoint loading, graph tracing and output-file writes. No accuracy measurement."
+  },
+  "results": {
+    "inference_eager": {
+      "latencies_seconds": [
+        0.3246230229997309,
+        0.3165420350014756,
+        0.29239781700016465
+      ],
+      "median_seconds": 0.3165420350014756,
+      "p95_seconds": 0.3238149241999054,
+      "tiles_per_second": 3.2134953952572225,
+      "measured_steps": 3
+    },
+    "inference_graph": {
+      "latencies_seconds": [
+        0.1357513930015557,
+        0.1722902299989073,
+        0.14901195699712844
+      ],
+      "median_seconds": 0.14901195699712844,
+      "p95_seconds": 0.16996240269872942,
+      "tiles_per_second": 6.563781865609299,
+      "measured_steps": 3
+    }
+  }
+}

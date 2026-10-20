@@ -89,6 +89,9 @@ suite needs is in `requirements.txt`.
 - `test_predict.py` checks graph/eager agreement, dynamic tile sizes and the
   input contract.
 - `test_benchmark.py` checks timing aggregation and warmup accounting.
+- `test_validate_data.py` checks local-record schema diagnostics, sampled
+  metadata, invalid labels and inputs, duplicate observed IDs, saved failure
+  reports, and the GPU requirement before any record IO.
 
 ## What is not covered
 

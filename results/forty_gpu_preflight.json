@@ -1,0 +1,31 @@
+{
+  "status": "failed",
+  "scope": "First record of one selected shard per split only; this does not establish geographic isolation or full-dataset validity.",
+  "config": {
+    "gcs_root": "gs://forest_typology/forty_v1/1.0.0",
+    "train_shards": 128,
+    "val_shards": 8,
+    "test_shards": 1024,
+    "total_shards": 1024,
+    "seed": 42,
+    "require_gpu": true,
+    "output": "results/forty_gpu_preflight.json"
+  },
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "precision_policy": "float32",
+    "devices": [
+      {
+        "name": "/physical_device:CPU:0",
+        "type": "CPU"
+      }
+    ]
+  },
+  "splits": {},
+  "errors": [
+    {
+      "stage": "gpu",
+      "error": "--require-gpu requested but no GPU is visible"
+    }
+  ]
+}

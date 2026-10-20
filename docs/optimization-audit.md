@@ -109,6 +109,37 @@ python -m mamba_forest.benchmark --mode both --tile-size 32 \
 
 ## Validation
 
+### Follow-up: default model and real-data readiness
+
+The [official ForTy documentation](https://github.com/google-deepmind/forest_typology/blob/main/forty_v1/README.md)
+confirms the bucket root, 1,024-shard naming convention and the modality keys.
+Its climate shape is `[4, 1, 1, 14]`; the parser's `[4, 14]` representation
+removes only singleton spatial dimensions. These documentation checks do not
+verify the live TFRecord encoding or label semantics.
+
+The default 128×128 model (7,732,800 parameters, batch 1, float32) was also
+measured on CPU with two warmups and three synchronized samples per mode.
+The [raw artifact](../results/performance_cpu_128.json) records eager median
+316.54 ms and graph median 149.01 ms, approximately 2.12 times faster for this
+synthetic compute comparison. Three samples are a small diagnostic measurement,
+not a robust hardware performance study. It has the same scalar-output and
+IO exclusions as the reduced-model benchmark above.
+
+The current runtime has no visible GPU, uses a CPU TensorFlow build, and its
+enforced network policy excludes Google Cloud Storage. No GPU provisioning
+capability or configured cloud identity is available. Consequently no real
+ForTy training, full-test evaluation or GPU measurement has been executed.
+The retained [preflight report](../results/forty_gpu_preflight.json) records
+the GPU-gate failure with zero inspected splits and no source-record IO.
+The [runbook](gpu-validation.md) stages those experiments, starting with
+`mamba_forest.validate_data`. This preflight retains raw feature diagnostics,
+normalization/label checks, available sample IDs and coordinates, and exact
+selected paths; `--require-gpu` fails before record IO on a CPU-only runtime.
+Its three inspected records can detect a duplicate inspected ID but cannot
+establish full-split geographic separation.
+
+### Automated checks
+
 The baseline's 17 tests passed before changes. New tests cover local TFRecord
 split isolation and membership, augmentation alignment, invalid labels,
 hand-computed metrics, batch-boundary invariance, empty evaluation, saved
@@ -119,7 +150,9 @@ metrics and reloads both checkpoints; the final checkpoint reproduces the
 trained model's output. Tests use synthetic data and do not replace a real
 ForTy validation run.
 
-Final checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 44 tests passed in
-47.51 seconds, flake8 passed and `git diff --check` passed. Keras checkpoint
+Final checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 52 tests passed in
+48.34 seconds, flake8 passed and `git diff --check` passed. The preflight tests
+include malformed raw-feature diagnostics, optional metadata, observed duplicate
+IDs, invalid inputs and the GPU gate before record IO. Keras checkpoint
 serialization emitted 433 NumPy `__array__(copy=...)` deprecation warnings;
 checkpoint reload and prediction-equivalence checks passed despite them.

@@ -86,3 +86,19 @@ selection uses the same validation macro F1 rule in both runs. Repeat with
 several paired seeds, report the actual epochs and training time, and evaluate
 the full test split (`--test-shards 1024`) for comparison with full-benchmark
 results. Isolate one loss setting at a time when attributing its effect.
+
+The [GPU validation runbook](../docs/gpu-validation.md) expands this into a
+real-record preflight, smoke run, paired three-seed protocol and full-test
+evaluation. These experiments have not run in the current CPU environment.
+
+## Retained compute measurements
+
+- `performance_cpu.json`: reduced 32×32 model, ten measured steps per mode.
+- `performance_cpu_128.json`: default 128×128 model, three measured inference
+  steps after two warmups; eager median 316.54 ms, graph median 149.01 ms.
+- `forty_gpu_preflight.json`: the GPU requirement failed on this CPU runtime;
+  no source records were opened and no real-data validation result is implied.
+
+The timing artifacts contain raw synchronized CPU timings and configuration. They
+exclude source IO and measure fixed-shape model compute, so they do not report
+GPU performance, real-data accuracy or production-predictor end-to-end latency.

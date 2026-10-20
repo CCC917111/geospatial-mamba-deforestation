@@ -115,6 +115,13 @@ test use the first N shards without augmentation. An empty split is an error.
 
 ## Measuring compute performance
 
+For actual source validation, paired objective experiments and full-test
+evaluation, follow the [GPU validation runbook](gpu-validation.md). Start with
+`python -m mamba_forest.validate_data --require-gpu --output preflight.json`;
+this rejects a CPU-only runtime before opening any records and samples one
+record from each selected split once a GPU is available. A passing preflight
+does not establish whole-dataset integrity or geographic independence.
+
 ```bash
 python -m mamba_forest.benchmark --mode both --tile-size 32 \
     --batch-size 1 --d-model 8 --bottleneck-channels 32 \
