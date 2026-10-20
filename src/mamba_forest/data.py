@@ -3,7 +3,8 @@
 ForTy v1 is published as 1024 TFRecord shards per split under
 ``gs://forest_typology/forty_v1/1.0.0/``. Reading a sample of shards per epoch
 keeps experiments on a single GPU tractable: the default of 128 training shards
-is 12.5% of the training split.
+is a per-epoch budget of 12.5% of the training split. Rotating subsets can expose
+the model to more unique training shards over a run.
 
 Each example used here contains:
 
@@ -14,6 +15,9 @@ Each example used here contains:
 """
 
 from __future__ import annotations
+
+from numbers import Integral
+import random
 
 import tensorflow as tf
 
@@ -61,10 +65,37 @@ def shard_paths(split: str, gcs_root: str = GCS_ROOT,
   """Returns the full list of shard paths of a split."""
   if split not in ("train", "validation", "test"):
     raise ValueError(f"Unknown split: {split}")
+  if not isinstance(total_shards, Integral) or total_shards < 1:
+    raise ValueError("total_shards must be a positive integer")
   return [
       f"{gcs_root}/forty_v1-{split}.tfrecord-{i:05d}-of-{total_shards:05d}"
       for i in range(total_shards)
   ]
+
+
+def selected_shard_paths(split: str, shards_per_epoch: int,
+                         seed: int | None = None, epoch: int = 0,
+                         shuffle_shards: bool = False,
+                         gcs_root: str = GCS_ROOT,
+                         total_shards: int = TOTAL_SHARDS) -> list[str]:
+  """Selects explicit shard membership independently of dataset iteration.
+
+  With ``shuffle_shards``, samples without replacement using ``seed + epoch``;
+  an omitted seed draws a new random subset. Otherwise takes the leading shards,
+  preserving the historical validation/test protocol. Reusing an epoch and seed
+  reproduces membership and order, even after a warmup iterator has run.
+  """
+  paths = shard_paths(split, gcs_root, total_shards)
+  if (not isinstance(shards_per_epoch, Integral)
+          or not 1 <= shards_per_epoch <= total_shards):
+    raise ValueError(
+        f"shards_per_epoch must be in [1, {total_shards}], got {shards_per_epoch}")
+  if not isinstance(epoch, Integral) or epoch < 0:
+    raise ValueError("epoch must be a non-negative integer")
+  if shuffle_shards:
+    sampler = random.Random(None if seed is None else seed + epoch)
+    return sampler.sample(paths, shards_per_epoch)
+  return paths[:shards_per_epoch]
 
 
 def parse_example(example_proto):
@@ -73,7 +104,7 @@ def parse_example(example_proto):
   example = {}
   for key, shape in FEATURE_SHAPES.items():
     value = tf.reshape(parsed[key], shape)
-    example[key] = tf.cast(value, tf.float32) if value.dtype == tf.int64 else value
+    example[key] = value
   return example
 
 
@@ -151,8 +182,28 @@ def augment(example, max_brightness_delta: float = 0.1, seed: int | None = None)
 
 def encode_labels(example, num_classes: int = NUM_CLASSES):
   """Adds the one-hot label tensor required by the categorical losses."""
+  if not isinstance(num_classes, Integral) or num_classes < 1:
+    raise ValueError("num_classes must be a positive integer")
   processed = dict(example)
-  labels = tf.cast(example["segmentation_labels"], tf.int32)
+  raw_labels = tf.convert_to_tensor(example["segmentation_labels"])
+  if not (raw_labels.dtype.is_integer or raw_labels.dtype.is_floating):
+    raise TypeError("segmentation_labels must contain integer class indices")
+  checks = [
+      tf.debugging.assert_greater_equal(
+          raw_labels, tf.cast(0, raw_labels.dtype),
+          message="segmentation_labels must be non-negative"),
+      tf.debugging.assert_less(
+          raw_labels, tf.cast(num_classes, raw_labels.dtype),
+          message="segmentation_labels must be less than num_classes"),
+  ]
+  if raw_labels.dtype.is_floating:
+    checks.append(tf.debugging.assert_equal(
+        raw_labels, tf.floor(raw_labels),
+        message="segmentation_labels must contain integer class indices"))
+  # Without these checks one_hot silently turns invalid indices into all-zero
+  # targets, hiding corrupt labels from the loss and counting them as class 0.
+  with tf.control_dependencies(checks):
+    labels = tf.cast(raw_labels, tf.int32)
   processed["segmentation_labels"] = labels
   processed["labels"] = tf.one_hot(labels, num_classes)
   return processed
@@ -175,7 +226,8 @@ def make_dataset(split: str, shards_per_epoch: int, batch_size: int = 16,
                  training: bool | None = None, shuffle_shards: bool | None = None,
                  shuffle_buffer: int = 0, seed: int | None = None,
                  gcs_root: str = GCS_ROOT, total_shards: int = TOTAL_SHARDS,
-                 num_classes: int = NUM_CLASSES) -> tf.data.Dataset:
+                 num_classes: int = NUM_CLASSES,
+                 epoch: int = 0) -> tf.data.Dataset:
   """Builds a batched dataset from a subset of the split's shards.
 
   Args:
@@ -185,35 +237,36 @@ def make_dataset(split: str, shards_per_epoch: int, batch_size: int = 16,
     training: whether to apply augmentation. Defaults to True for the training
       split and False otherwise, so that evaluation never sees augmented data.
     shuffle_shards: whether to pick a random subset of shards. Defaults to the
-      value of ``training``, so that evaluation always sees the same examples
-      and metrics are comparable across epochs.
+      value of ``training``. Membership is fixed for this dataset; rebuild with a
+      new ``epoch`` to rotate the training subset.
     shuffle_buffer: if > 0, shuffle examples with this buffer size.
     seed: seed for the shard and example shuffling, so a run reads the shards
       in a reproducible order.
     gcs_root: root of the TFRecord shards.
     total_shards: number of shards per split.
     num_classes: number of segmentation classes.
+    epoch: non-negative epoch index used with ``seed`` to select training shards.
   """
-  if shards_per_epoch < 1 or shards_per_epoch > total_shards:
-    raise ValueError(
-        f"shards_per_epoch must be in [1, {total_shards}], got {shards_per_epoch}")
+  if not isinstance(batch_size, Integral) or batch_size < 1:
+    raise ValueError("batch_size must be a positive integer")
+  if not isinstance(shuffle_buffer, Integral) or shuffle_buffer < 0:
+    raise ValueError("shuffle_buffer must be a non-negative integer")
   if training is None:
     training = split == "train"
   if shuffle_shards is None:
     shuffle_shards = training
 
-  paths = shard_paths(split, gcs_root, total_shards)
+  paths = selected_shard_paths(
+      split, shards_per_epoch, seed=seed, epoch=epoch,
+      shuffle_shards=shuffle_shards, gcs_root=gcs_root,
+      total_shards=total_shards)
   files = tf.data.Dataset.from_tensor_slices(paths)
-  if shuffle_shards:
-    # Reshuffling every epoch lets long runs cover more of the dataset.
-    files = files.shuffle(total_shards, seed=seed, reshuffle_each_iteration=True)
-  files = files.take(shards_per_epoch)
 
   dataset = files.interleave(
       tf.data.TFRecordDataset,
       cycle_length=min(8, shards_per_epoch),
       num_parallel_calls=tf.data.AUTOTUNE,
-      deterministic=not shuffle_shards)
+      deterministic=seed is not None or not shuffle_shards)
   dataset = dataset.map(parse_example, num_parallel_calls=tf.data.AUTOTUNE)
   dataset = dataset.map(
       lambda ex: preprocess(ex, num_classes, training),

@@ -6,8 +6,9 @@ Example:
         --train-shards 128 --val-shards 8 --epochs 40 \
         --output-dir runs/mamba_forest
 
-Each epoch reads a fresh random subset of training shards and a fixed subset of
-validation shards, so validation metrics are comparable across epochs. The
+Each epoch reads an explicit seeded subset of training shards and a fixed
+validation subset. Training membership rotates unless --fixed-train-subset is
+set; exact paths are recorded in split_manifest.json. The
 learning rate follows a cosine decay from its initial value down to 10% of it,
 per-epoch metrics are written to ``training_results.csv`` in the output
 directory, and the checkpoint with the best macro F1 is kept.
@@ -19,6 +20,7 @@ import argparse
 import json
 import math
 import os
+import time
 
 import numpy as np
 import tensorflow as tf
@@ -31,6 +33,10 @@ BASE_COLUMNS = [
     "epoch", "train_loss", "val_accuracy", "val_mean_iou",
     "overall_f1", "forests_f1",
 ]
+TIMING_COLUMNS = [
+    "train_seconds", "validation_seconds", "train_examples",
+    "train_examples_per_second",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +48,8 @@ def parse_args() -> argparse.Namespace:
                  help="Root of the ForTy v1 TFRecord shards")
   p.add_argument("--train-shards", type=int, default=128,
                  help="Training shards read per epoch (1024 = full split)")
+  p.add_argument("--fixed-train-subset", action="store_true",
+                 help="Reuse the same seeded training shards in every epoch")
   p.add_argument("--val-shards", type=int, default=8,
                  help="Validation shards (fixed across epochs)")
   p.add_argument("--batch-size", type=int, default=16)
@@ -75,14 +83,44 @@ def parse_args() -> argparse.Namespace:
   return p.parse_args()
 
 
-def build_datasets(args):
-  train_ds = data_lib.make_dataset(
+def build_train_dataset(args, epoch: int = 0):
+  """Builds the explicitly selected training subset for a zero-based epoch."""
+  shard_epoch = 0 if args.fixed_train_subset else epoch
+  return data_lib.make_dataset(
       "train", args.train_shards, batch_size=args.batch_size,
-      training=True, seed=args.seed, gcs_root=args.gcs_root)
+      training=True, seed=args.seed, gcs_root=args.gcs_root, epoch=shard_epoch)
+
+
+def build_datasets(args):
+  """Builds the first training epoch and the fixed validation subset."""
+  train_ds = build_train_dataset(args)
   val_ds = data_lib.make_dataset(
       "validation", args.val_shards, batch_size=args.batch_size,
       training=False, gcs_root=args.gcs_root)
   return train_ds, val_ds
+
+
+def training_epoch_manifest(args, epoch: int) -> dict:
+  """Records exact paths for a one-based epoch before its iterator starts."""
+  shard_epoch = 0 if args.fixed_train_subset else epoch - 1
+  return {
+      "epoch": epoch,
+      "shard_epoch": shard_epoch,
+      "training_completed": False,
+      "paths": data_lib.selected_shard_paths(
+          "train", args.train_shards, seed=args.seed, epoch=shard_epoch,
+          shuffle_shards=True, gcs_root=args.gcs_root),
+  }
+
+
+def write_split_manifest(path: str, manifest: dict) -> None:
+  """Atomically writes selection provenance and completed unique coverage."""
+  completed = {shard for epoch in manifest["epochs"]
+               if epoch["training_completed"] for shard in epoch["paths"]}
+  manifest["completed_unique_train_shards"] = len(completed)
+  with open(path + ".tmp", "w", encoding="utf-8") as handle:
+    json.dump(manifest, handle, indent=2)
+  os.replace(path + ".tmp", path)
 
 
 def cosine_learning_rate(initial: float, alpha: float, epoch: int,
@@ -132,29 +170,44 @@ def f1_from_confusion(confusion: np.ndarray) -> np.ndarray:
                    where=denominator > 0)
 
 
-def evaluate(model, dataset, num_classes: int):
+def evaluate(model, dataset, num_classes: int, return_confusion: bool = False):
   """Returns (accuracy, mean IoU, per-class F1) on ``dataset``.
 
-  The confusion matrix is accumulated batch by batch, so evaluating many shards
-  does not require holding every pixel label in memory.
+  Inference and int64 confusion updates run in one graph per batch, and only
+  the final matrix is copied to NumPy. Mean IoU excludes classes absent from
+  both labels and predictions; macro F1 retains all ``num_classes`` classes,
+  with zero F1 for absent classes. An empty or zero-pixel dataset is rejected.
+  With ``return_confusion=True``, the matrix is returned as a fourth value.
   """
-  accuracy = tf.keras.metrics.CategoricalAccuracy()
-  mean_iou = tf.keras.metrics.MeanIoU(num_classes)
-  confusion = np.zeros((num_classes, num_classes), dtype=np.int64)
+  if num_classes < 1:
+    raise ValueError("num_classes must be positive")
+  confusion = tf.Variable(
+      tf.zeros((num_classes, num_classes), dtype=tf.int64), trainable=False)
+
+  @tf.function(reduce_retracing=True)
+  def accumulate(inputs, labels):
+    predictions = model(inputs, training=False)
+    y_true = tf.argmax(labels, axis=-1)
+    y_pred = tf.argmax(predictions, axis=-1)
+    confusion.assign_add(tf.math.confusion_matrix(
+        tf.reshape(y_true, [-1]), tf.reshape(y_pred, [-1]),
+        num_classes=num_classes, dtype=tf.int64))
 
   for batch in dataset:
     inputs, labels = data_lib.split_inputs_labels(batch)
-    predictions = model(inputs, training=False)
-    accuracy.update_state(labels, predictions)
-    y_true = tf.argmax(labels, axis=-1)
-    y_pred = tf.argmax(predictions, axis=-1)
-    mean_iou.update_state(y_true, y_pred)
-    confusion += tf.math.confusion_matrix(
-        tf.reshape(y_true, [-1]), tf.reshape(y_pred, [-1]),
-        num_classes=num_classes, dtype=tf.int64).numpy()
+    accumulate(inputs, labels)
 
-  return (float(accuracy.result()), float(mean_iou.result()),
-          f1_from_confusion(confusion))
+  matrix = confusion.numpy()
+  total_pixels = int(matrix.sum())
+  if total_pixels == 0:
+    raise ValueError("evaluation dataset contains no pixels")
+  true_positives = np.diag(matrix).astype(np.float64)
+  union = matrix.sum(axis=0) + matrix.sum(axis=1) - true_positives
+  present = union > 0
+  result = (float(true_positives.sum() / total_pixels),
+            float(np.mean(true_positives[present] / union[present])),
+            f1_from_confusion(matrix))
+  return result + (matrix,) if return_confusion else result
 
 
 def forest_scores(per_class_f1: np.ndarray) -> dict:
@@ -171,19 +224,33 @@ def forest_scores(per_class_f1: np.ndarray) -> dict:
 
 def main() -> None:
   args = parse_args()
-  tf.random.set_seed(args.seed)
-  np.random.seed(args.seed)
+  if args.epochs < 1:
+    raise ValueError("epochs must be positive")
+  tf.keras.utils.set_random_seed(args.seed)
   os.makedirs(args.output_dir, exist_ok=True)
   with open(os.path.join(args.output_dir, "config.json"), "w") as f:
     json.dump(vars(args), f, indent=2, default=str)
 
-  if not args.no_mixed_precision:
-    # Half precision for the compute-heavy operations, float32 for the weights
-    # and the softmax head, with dynamic loss scaling to prevent underflow.
-    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+  # Set both branches explicitly so repeated in-process runs do not inherit
+  # the policy of a preceding experiment.
+  tf.keras.mixed_precision.set_global_policy(
+      "float32" if args.no_mixed_precision else "mixed_float16")
 
   num_classes = data_lib.NUM_CLASSES
   train_ds, val_ds = build_datasets(args)
+  manifest_path = os.path.join(args.output_dir, "split_manifest.json")
+  manifest = {
+      "schema_version": 1,
+      "selection_protocol": "python-random-seed-plus-epoch-v1",
+      "gcs_root": args.gcs_root,
+      "total_shards_per_split": data_lib.TOTAL_SHARDS,
+      "seed": args.seed,
+      "training_mode": "fixed" if args.fixed_train_subset else "rotating",
+      "validation_paths": data_lib.selected_shard_paths(
+          "validation", args.val_shards, gcs_root=args.gcs_root),
+      "epochs": [],
+  }
+  write_split_manifest(manifest_path, manifest)
 
   model = MambaForestSegmenter(
       num_classes=num_classes, d_model=args.d_model, dropout_rate=args.dropout,
@@ -234,29 +301,50 @@ def main() -> None:
   history, best_score, epochs_without_improvement = [], -1.0, 0
   results_path = os.path.join(args.output_dir, "training_results.csv")
   columns = BASE_COLUMNS + [
-      "f1_" + name.lower().replace(" ", "_") for name in data_lib.CLASS_NAMES]
+      "f1_" + name.lower().replace(" ", "_") for name in data_lib.CLASS_NAMES
+  ] + TIMING_COLUMNS
 
   for epoch in range(1, args.epochs + 1):
+    if epoch > 1:
+      train_ds = build_train_dataset(args, epoch - 1)
+    selection = training_epoch_manifest(args, epoch)
+    manifest["epochs"].append(selection)
+    write_split_manifest(manifest_path, manifest)
     learning_rate = cosine_learning_rate(
         args.learning_rate, args.lr_alpha, epoch - 1, args.epochs)
     base_optimizer.learning_rate.assign(learning_rate)
 
     train_loss.reset_state()
+    train_examples = 0
+    started = time.perf_counter()
     for batch in train_ds:
       inputs, labels = data_lib.split_inputs_labels(batch)
       train_step(inputs, labels)
+      train_examples += int(labels.shape[0])
+    loss_value = float(train_loss.result())  # Synchronize before stopping time.
+    train_seconds = time.perf_counter() - started
+    if not train_examples:
+      raise ValueError("the training epoch yielded no examples")
+    selection["training_completed"] = True
+    write_split_manifest(manifest_path, manifest)
 
+    started = time.perf_counter()
     accuracy, mean_iou, per_class_f1 = evaluate(model, val_ds, num_classes)
+    validation_seconds = time.perf_counter() - started
     scores = forest_scores(per_class_f1)
 
-    row = ([epoch, float(train_loss.result()), accuracy, mean_iou,
+    row = ([epoch, loss_value, accuracy, mean_iou,
             scores["overall_f1"], scores["forests_f1"]]
-           + [float(v) for v in per_class_f1])
+           + [float(v) for v in per_class_f1]
+           + [train_seconds, validation_seconds, train_examples,
+              train_examples / train_seconds])
     history.append(row)
     print(f"epoch {epoch:3d}/{args.epochs} | lr {learning_rate:.2e} | "
           f"loss {row[1]:.4f} | val acc {accuracy:.4f} | mIoU {mean_iou:.4f} | "
           f"overall F1 {scores['overall_f1']:.4f} | "
           f"forests F1 {scores['forests_f1']:.4f}")
+    print(f"  train {train_seconds:.2f}s | val {validation_seconds:.2f}s | "
+          f"{train_examples / train_seconds:.2f} training tiles/s")
     print(f"  N {scores['natural_forest_f1']:.4f} | "
           f"P {scores['planted_forest_f1']:.4f} | "
           f"TC {scores['tree_crops_f1']:.4f}")

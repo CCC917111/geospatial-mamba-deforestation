@@ -73,6 +73,8 @@ resolution it was given.
 ## Train on the full dataset
 
 `--train-shards 1024` reads the whole training split in one epoch; the default
-of 128 is the reduced budget the reported numbers were produced under. Expect
+of 128 is a reduced per-epoch read budget. Rotating subsets can still cover
+most of the training split across epochs. Use `--fixed-train-subset` for an
+experiment restricted to the same 128 shards for its entire duration. Expect
 to raise `--epochs` and to lower `--patience` accordingly, and keep
 `--val-shards` fixed so the validation metrics stay comparable.

@@ -113,10 +113,10 @@ long-range dependencies in linear time instead of the quadratic attention of a
 transformer [[2]](#ref-2). A dynamic MLP-based fusion mechanism adaptively
 integrates the modalities per sample, and a U-Net-style encoder-decoder
 [[3]](#ref-3) with a Mamba bottleneck reconstructs high-resolution segmentation
-maps. On the ForTy dataset [[1]](#ref-1), trained on only 12.5% of the available
-data, the approach outperforms the UNet3D [[4]](#ref-4) and UTAE [[5]](#ref-5)
-baselines and reaches competitive performance relative to MTSViT [[1]](#ref-1),
-which shows its data efficiency under limited-resource settings.
+maps. The historical ForTy scores below use a training read budget of 128
+shards per epoch. Published UNet3D [[4]](#ref-4), UTAE [[5]](#ref-5) and
+MTSViT [[1]](#ref-1) scores provide context; their training and evaluation
+protocols differ, so the table does not establish model or data efficiency.
 
 ![Architecture](docs/figures/architecture.svg)
 
@@ -138,8 +138,11 @@ weighted cross-entropy plus Dice objective.
 sampled 128 x 128 pixel tiles. The tiles are partitioned by geographically
 distinct 100 x 100 km blocks in an 8:1:1 ratio into a training split of about
 160,000 tiles, a validation split of about 19,000 and a test split of about
-20,000, so the three splits do not share spatial autocorrelation. Each split is
-published as 1,024 TFRecord shards. Each tile provides:
+20,000. Geographic blocking reduces leakage risk but does not establish the
+absence of spatial autocorrelation across boundaries. This package preserves
+the published split namespaces; its parsed records do not include coordinates
+or block IDs, so it cannot independently verify geographic separation. Each
+split is published as 1,024 TFRecord shards. Each tile provides:
 
 - **Sentinel-2 optical imagery** [[6]](#ref-6) — 10 bands at 10-20 m resolution, as
   four seasonal composites.
@@ -153,18 +156,23 @@ published as 1,024 TFRecord shards. Each tile provides:
 
 ### Training, Validation and Test Sets
 
-Training on the full training split did not fit the project's single-GPU
-budget, so the reported model uses part of each split:
+The default run limits the shards read per epoch and evaluates subsets:
 
 | Split | Shards used | Share of the split | Used for |
 |---|---|---:|---|
-| Training | 128 of 1,024, randomly sampled | 12.5% | fitting the weights |
+| Training | 128 of 1,024, resampled each epoch | 12.5% per epoch | fitting the weights |
 | Validation | 8 of 1,024, the same 8 every epoch | 0.8% | monitoring training and choosing the checkpoint |
 | Test | 64 of 1,024 | 6.25% | the reported numbers only |
 
-The test shards are never used for training or for choosing the checkpoint,
-and because the splits come from disjoint geographic blocks, no test tile lies
-in a block that the model was trained on. Nothing is downloaded up front: the
+The training loop uses only the training namespace for fitting and validation
+for checkpoint selection; the test namespace is read by the evaluation CLI.
+Rotating the training subset means 12.5% is not the total unique coverage:
+40 independent draws would cover about 99.5% of shards in expectation.
+Historical run coverage is unknown because no shard manifest was retained.
+New runs save exact per-epoch paths in `split_manifest.json`; use
+`--fixed-train-subset` to reuse the same seeded subset throughout a run.
+Validation and test retain the first N shards, which can be unrepresentative
+if shard ordering correlates with geography. Nothing is downloaded up front: the
 pipeline streams the shards straight from Google Cloud Storage. These are the
 defaults of `make train` and `make eval`; `--train-shards 1024` trains on the
 full split.
@@ -309,8 +317,9 @@ Parameters are optimised with AdamW [[13]](#ref-13), weight decay 5e-3, from an
 initial learning rate of 2e-4 under a cosine decay [[14]](#ref-14) down to 10% of it.
 Gradients are clipped to a global norm of 1.0, and mixed-precision training
 [[15]](#ref-15) keeps the compute-heavy operations in float16 with dynamic loss
-scaling while weights and the output head stay in float32, which cuts memory
-use and speeds up training without affecting the result. Each epoch streams 128
+scaling while weights and the output head stay in float32. Its speed and
+numerical effects depend on the hardware; use `--no-mixed-precision` on CPU.
+Each epoch streams 128
 randomly chosen training shards in batches of 16, as described under
 [Training, Validation and Test Sets](#training-validation-and-test-sets).
 
@@ -331,19 +340,19 @@ F1 of each forest type.
 | MTSViT [[1]](#ref-1) | 81.1 | 74.9 | 82.8 | 62.9 | 78.9 |
 | **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
 
-The baseline numbers are those reported with the benchmark [[1]](#ref-1) and
-are trained on the full training split; this model is trained on 128 of the
-1,024 training shards, about 12.5% of the data. Under that budget it improves
-on UNet3D and UTAE in every column, with the clearest gains on the two classes
-the benchmark finds hardest — planted forest and tree crops — and stays behind
-MTSViT. The combination of a
-weighted cross-entropy with the Dice term is what makes those rare classes
-trainable: with a plain unweighted cross-entropy the validation metrics swing
-between epochs and the under-represented classes collapse into natural forest
-and other vegetation.
+The baseline numbers are published benchmark results [[1]](#ref-1), trained
+on the full training split. The historical CNN-Mamba scores used a rotating
+128-shard per-epoch budget and a 64-shard test subset. Its natural-forest F1
+is lower than UTAE (64.67 versus 71.4); the other displayed scores are higher.
+Different test membership, training budgets and modalities prevent a controlled
+ranking. No historical checkpoint, run logs or objective ablation artifacts are
+retained here, so these scores and the effect of the weighted Dice objective
+cannot be independently reproduced from the repository alone.
 
-More detail, including the training configuration and how to reproduce the
-numbers, is in [`results/README.md`](results/README.md).
+More detail, including the training configuration and how to run controlled
+new experiments, is in [`results/README.md`](results/README.md). The
+[optimization audit](docs/optimization-audit.md) describes protocol fixes and
+the synthetic performance measurement.
 
 # Forest Map Prediction Abstract
 
@@ -493,7 +502,7 @@ This page gives you the recipes for the changes people most often want to make.
 
 ## [Testing](docs/testing.md)
 
-The suite runs on CPU in under a minute and needs neither a GPU nor the
+The suite runs on CPU and needs neither a GPU nor the
 dataset: every test builds a small model on synthetic tensors.
 
 ```bash

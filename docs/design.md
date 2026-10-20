@@ -50,7 +50,9 @@ at the bottleneck where the sequence is 256 steps long.
 
 The recurrence is evaluated with `tf.scan` rather than the fused CUDA kernel of
 the reference implementation [2]: O(L) sequential steps, portable to any device,
-and irrelevant to the runtime at these sequence lengths.
+with device-dependent overhead. Inference uses graph execution to avoid an
+eager dispatch per recurrent step; the synthetic benchmark measures this
+overhead separately from data loading and does not establish GPU performance.
 
 The same block is used twice, on two different axes:
 

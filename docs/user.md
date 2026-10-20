@@ -42,11 +42,18 @@ from epoch to epoch. Each epoch prints the learning rate, the training loss,
 pixel accuracy, mean IoU, Overall and Forests F1, and the three forest classes
 individually.
 
+Selection is explicit for each zero-based epoch using `seed + epoch`.
+Re-reading a dataset for model warmup does not change its shard membership.
+Use `--fixed-train-subset` to train on the same seeded subset every epoch;
+without it, the 128-shard default is a per-epoch read budget and can cover much
+more than 12.5% of the split over a complete run.
+
 The flags worth knowing:
 
 | Flag | Default | Effect |
 |---|---|---|
 | `--train-shards` | 128 | Training shards per epoch; 1024 is the full split. |
+| `--fixed-train-subset` | off | Keep the same seeded training subset for every epoch. |
 | `--val-shards` | 8 | Validation shards, fixed across epochs. |
 | `--batch-size` | 16 | Tiles per step. |
 | `--epochs` | 40 | Maximum epochs; early stopping may end the run sooner. |
@@ -64,13 +71,17 @@ The flags worth knowing:
 | `--grad-clip` | 1.0 | Global-norm gradient clipping; 0 disables it. |
 | `--no-mixed-precision` | off | Train in float32 instead of mixed float16. |
 | `--patience` | 8 | Epochs without improvement before stopping. |
-| `--seed` | 42 | Seed for TensorFlow, NumPy and the shard shuffling. |
+| `--seed` | 42 | Seed for Python, TensorFlow, Keras, NumPy and shard selection. |
 
 Written to `--output-dir`:
 
 - `config.json` — every resolved flag, so the run can be repeated.
+- `split_manifest.json` — exact validation paths and paths for every started
+  training epoch, completion flags, and completed unique shard coverage.
 - `training_results.csv` — one row per epoch: loss, pixel accuracy, mean IoU,
-  Overall and Forests F1, and the per-class F1 scores.
+  Overall and Forests F1, per-class F1, training/validation seconds, training
+  examples and training tiles per second. Timings include input reads and graph
+  compilation, and exclude checkpoint writes.
 - `best.weights.h5` — the checkpoint with the best Overall F1.
 - `last.weights.h5` — the most recent checkpoint.
 
@@ -95,6 +106,28 @@ checkpoint stores weights and not the architecture, so the four architecture
 flags — `--d-model`, `--d-state-temporal`, `--d-state-spatial` and
 `--bottleneck-channels` — must be given the same values they had during
 training, or `load_weights` will refuse the checkpoint.
+
+The JSON also records exact test shard paths, checkpoint SHA-256, model and
+runtime settings, pixel count, per-class support and the confusion matrix.
+Mean IoU excludes classes absent from both truth and prediction; macro F1
+includes all nine classes and assigns zero to absent classes. Validation and
+test use the first N shards without augmentation. An empty split is an error.
+
+## Measuring compute performance
+
+```bash
+python -m mamba_forest.benchmark --mode both --tile-size 32 \
+    --batch-size 1 --d-model 8 --bottleneck-channels 32 \
+    --steps 10 --output results/performance_cpu.json
+```
+
+The benchmark compares eager and graph inference on one unchanged model, and
+measures training on a separate model. Warmup and tracing are excluded, every
+step is synchronized, and JSON retains raw latencies, median, p95, throughput,
+input shapes, precision and device settings. Synthetic in-memory compute
+excludes data loading and file writes. Use a different output path to preserve
+the checked-in reference measurement. See the
+[audit](optimization-audit.md) for measured results and limits.
 
 ## Prediction on your own tiles
 

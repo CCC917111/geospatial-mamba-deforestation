@@ -13,8 +13,11 @@ Example:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+
+import tensorflow as tf
 
 from mamba_forest import data as data_lib
 from mamba_forest.model import MambaForestSegmenter
@@ -44,6 +47,15 @@ def parse_args() -> argparse.Namespace:
   return p.parse_args()
 
 
+def weights_sha256(path: str) -> str:
+  """Identifies a local checkpoint without loading its bytes into memory."""
+  digest = hashlib.sha256()
+  with open(path, "rb") as checkpoint:
+    for chunk in iter(lambda: checkpoint.read(1024 * 1024), b""):
+      digest.update(chunk)
+  return digest.hexdigest()
+
+
 def main() -> None:
   args = parse_args()
   num_classes = data_lib.NUM_CLASSES
@@ -60,12 +72,18 @@ def main() -> None:
       d_state_spatial=args.d_state_spatial,
       bottleneck_channels=args.bottleneck_channels)
   # Build the variables before loading the weights.
+  built = False
   for batch in test_ds.take(1):
     inputs, _ = data_lib.split_inputs_labels(batch)
     model(inputs, training=False)
+    built = True
+  if not built:
+    raise ValueError(f"test split under {args.gcs_root} yielded no batches")
+  checkpoint_sha256 = weights_sha256(args.weights)
   model.load_weights(args.weights)
 
-  accuracy, mean_iou, per_class_f1 = evaluate(model, test_ds, num_classes)
+  accuracy, mean_iou, per_class_f1, confusion = evaluate(
+      model, test_ds, num_classes, return_confusion=True)
   scores = forest_scores(per_class_f1)
 
   print(f"pixel accuracy : {accuracy:.4f}")
@@ -81,7 +99,33 @@ def main() -> None:
 
   metrics = {
       "weights": args.weights,
+      "weights_sha256": checkpoint_sha256,
+      "gcs_root": args.gcs_root,
+      "split": "test",
       "test_shards": args.test_shards,
+      "shard_paths": data_lib.selected_shard_paths(
+          "test", args.test_shards, gcs_root=args.gcs_root),
+      "batch_size": args.batch_size,
+      "model_config": model.get_config(),
+      "runtime": {
+          "tensorflow_version": tf.__version__,
+          "precision_policy": tf.keras.mixed_precision.global_policy().name,
+          "devices": [
+              {"name": device.name, "type": device.device_type}
+              for device in tf.config.list_physical_devices()
+          ],
+      },
+      "num_pixels": int(confusion.sum()),
+      "confusion_matrix": confusion.tolist(),
+      "confusion_axes": {"rows": "true", "columns": "predicted"},
+      "class_support": {
+          name: int(count)
+          for name, count in zip(data_lib.CLASS_NAMES, confusion.sum(axis=1))
+      },
+      "metric_conventions": {
+          "overall_f1": "macro mean over all classes; absent classes have F1 0",
+          "mean_iou": "mean over classes with nonzero true or predicted support",
+      },
       "pixel_accuracy": accuracy,
       "mean_iou": mean_iou,
       **scores,

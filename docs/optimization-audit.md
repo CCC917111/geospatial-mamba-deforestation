@@ -1,0 +1,125 @@
+# Optimization audit — 2026-10-20
+
+Reviewed the data pipeline, comparison claims, training loop, evaluation and
+prediction at baseline commit `0b7b8a2`.
+
+## Data protocol
+
+The code preserves ForTy's `train`, `validation` and `test` shard namespaces.
+It does not parse coordinates or geographic block IDs, so the repository
+cannot independently verify the benchmark's geographic split or rule out
+correlation across block boundaries. No real ForTy records were available in
+this environment; the public schema and real-data accuracy remain unverified.
+
+Previously, training reshuffled all 1,024 shards on each dataset iteration and
+read 128. A model-build warmup started an extra sampling iteration. Describing
+this as using only 12.5% of the available training data was incorrect: it was a
+per-epoch read budget. Across 40 independent epochs, expected unique coverage
+would be `1 - (1 - 128/1024)^40`, approximately 99.5%. This expectation does
+not reconstruct historical run coverage.
+
+Training now selects explicit paths with a seeded `seed + epoch` sampler.
+Dataset warmup preserves membership. `--fixed-train-subset` reuses the same
+seeded membership for every epoch. `split_manifest.json` records every started
+epoch, its training completion status, validation paths, sampling protocol and
+the number of unique shards in completed epochs. This changes the sampling
+sequence relative to old runs. Paths identify selected files; they are not
+content hashes or a proof of per-record geographic independence.
+
+Validation and test retain their historical first-N-shard selection without
+augmentation. This makes comparisons stable but can be unrepresentative if
+shard ordering correlates with geography. Invalid, fractional or out-of-range
+labels now fail before one-hot encoding instead of silently creating zero
+targets. Parsed integer masks retain their integer dtype.
+
+## Model and objective comparisons
+
+The existing table contains published baseline scores and historical
+CNN-Mamba scores from a 64-shard test subset. Training budget, test membership
+and modalities were not matched. Natural-forest F1 is below UTAE (64.67 versus
+71.4), contradicting the earlier claim that all displayed scores were higher.
+The table is retained as contextual history with corrected interpretation.
+
+No historical checkpoint, logs, manifests or objective ablation artifacts
+were retained, so the claimed data efficiency and loss-function effects cannot
+be validated. [The results guide](../results/README.md) provides paired fixed
+subset commands for new objective comparisons. Use several paired seeds,
+identical split manifests and checkpoint-selection rules, and report actual
+epochs and wall time. Full-benchmark comparisons require full-test evaluation
+and matched training/data protocols; no new accuracy ranking is claimed here.
+
+Evaluation now saves exact test paths, checkpoint SHA-256, model/runtime
+settings, pixel counts, per-class support and the int64 confusion matrix.
+Accuracy, mean IoU and F1 derive from the same matrix. Mean IoU excludes classes
+with no true or predicted support; macro F1 includes all nine classes and
+assigns absent classes zero. Empty validation/test datasets fail explicitly.
+
+## Training and inference performance
+
+The architecture and checkpoint weight structure are unchanged. The sequential
+`tf.scan` implementation remains portable; it has device-dependent dispatch
+cost and is not equivalent in speed to a fused Mamba CUDA implementation.
+
+Evaluation now compiles inference and confusion updates into a graph, retains
+the matrix on the device and copies it once at the end. Prediction uses a
+compiled function with dynamic spatial dimensions. Without
+`--save-probabilities`, it transfers a uint8 class map and scalar mean
+confidence per tile instead of the full nine-channel float32 probability map.
+For a 128×128 tile this reduces these output tensors from 589,824 bytes to
+16,388 bytes, about 36-fold; this is a transfer-size calculation, not a latency
+measurement. The first input tile is also loaded only once. Input validation
+rejects an incorrect season count, empty dimensions and non-finite arrays.
+
+Training seeds Python/Keras as well as TensorFlow and NumPy, and logs elapsed
+training/validation seconds and training throughput. These epoch timers include
+input IO and graph compilation and exclude checkpoint writes. A seed and shard
+manifest establish membership, not bitwise determinism on every accelerator.
+Use float32 on CPU unless measuring a specific mixed-precision configuration.
+
+The retained [CPU measurement](../results/performance_cpu.json) used TensorFlow
+2.21.0, Python 3.12.14, float32, 32×32 tiles, batch size 1, `d_model=8`, state
+dimensions 8/16 and bottleneck width 32 (3,413,016 parameters). Both TensorFlow
+thread environment settings were 2. Each mode had three warmup steps followed
+by ten synchronized measurements; raw samples and runtime settings are in JSON.
+Inference modes share one unchanged model/input; training uses a separate
+model with AdamW and ComboLoss.
+
+| Synthetic mode | Median step | p95 step | Tiles/s |
+|---|---:|---:|---:|
+| Eager inference | 89.59 ms | 118.60 ms | 10.94 |
+| Graph inference | 14.34 ms | 14.93 ms | 73.48 |
+| Graph training | 53.38 ms | 62.60 ms | 18.46 |
+
+Graph inference median was about 6.25 times faster in this measurement. This
+compares fixed-shape synthetic model compute plus a scalar output barrier; it
+does not time the production predictor's dynamic signature, class-map outputs,
+file writes, remote input pipeline, default 128×128 model or GPU execution.
+It provides no evidence of an accuracy improvement or a training speedup
+against a previous implementation.
+
+Reproduce the measurement with:
+
+```bash
+TF_CPP_MIN_LOG_LEVEL=2 TF_NUM_INTRAOP_THREADS=2 TF_NUM_INTEROP_THREADS=2 \
+python -m mamba_forest.benchmark --mode both --tile-size 32 \
+    --batch-size 1 --d-model 8 --bottleneck-channels 32 \
+    --steps 10 --warmup 3 --device /CPU:0 \
+    --output runs/performance_cpu.json
+```
+
+## Validation
+
+The baseline's 17 tests passed before changes. New tests cover local TFRecord
+split isolation and membership, augmentation alignment, invalid labels,
+hand-computed metrics, batch-boundary invariance, empty evaluation, saved
+provenance, graph/eager prediction agreement, dynamic tile sizes, predictor
+file outputs, benchmark warmup accounting, and a two-epoch training run on
+small local records. The smoke run verifies exact manifests, finite timing
+metrics and reloads both checkpoints; the final checkpoint reproduces the
+trained model's output. Tests use synthetic data and do not replace a real
+ForTy validation run.
+
+Final checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 44 tests passed in
+47.51 seconds, flake8 passed and `git diff --check` passed. Keras checkpoint
+serialization emitted 433 NumPy `__array__(copy=...)` deprecation warnings;
+checkpoint reload and prediction-equivalence checks passed despite them.

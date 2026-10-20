@@ -19,6 +19,7 @@ Streaming and preprocessing of the ForTy v1 TFRecord shards.
 | `CLASS_NAMES` | `tuple[str, ...]` | Class names in label order. |
 | `FOREST_CLASS_INDICES` | `tuple[int, int, int]` | The three forest classes aggregated into the `Forests` metric. |
 | `shard_paths(split, gcs_root, total_shards)` | `-> list[str]` | Full shard list of a split. |
+| `selected_shard_paths(split, shards_per_epoch, seed, epoch, ...)` | `-> list[str]` | Explicit shard membership and order for an epoch. |
 | `parse_example(proto)` | `-> dict[str, Tensor]` | Parses one serialized example into the documented shapes. |
 | `normalize(example)` | `-> dict[str, Tensor]` | Per-modality scaling; climate is z-scored over time. |
 | `augment(example, max_brightness_delta, seed)` | `-> dict[str, Tensor]` | Synchronised flips plus optical-only brightness jitter. |
@@ -34,6 +35,10 @@ also holds `labels` `[H, W, 9]`.
 `make_dataset` takes `training` and `shuffle_shards`, both defaulting to
 `split == "train"`, so evaluation never sees augmented data and always reads
 the same shards, which keeps validation metrics comparable across epochs.
+Membership stays fixed across iterators. Rebuild the training dataset with a
+different zero-based `epoch` to rotate its seeded sample; the training CLI does
+this unless `--fixed-train-subset` is set. Invalid class indices are rejected
+before one-hot encoding.
 
 ## `mamba_forest.layers`
 
@@ -90,14 +95,18 @@ for the full list of flags; the defaults reproduce the configuration in
 | Function | Purpose |
 |---|---|
 | `build_datasets(args)` | Training and validation datasets from the parsed flags. |
+| `build_train_dataset(args, epoch)` | Explicit training subset for a zero-based epoch. |
+| `training_epoch_manifest(args, epoch)` | Paths and status for a one-based training epoch. |
+| `write_split_manifest(path, manifest)` | Atomic manifest write with completed shard coverage. |
 | `cosine_learning_rate(initial, alpha, epoch, total_epochs)` | Cosine decay from `initial` to `alpha * initial`. |
 | `scale_loss` / `unscale_gradients` | Dynamic loss scaling under mixed precision, across Keras versions. |
 | `f1_from_confusion(confusion)` | Per-class F1 from a confusion matrix, rows = true. |
-| `evaluate(model, dataset, num_classes)` | `(pixel accuracy, mean IoU, per-class F1)`, accumulated batch by batch. |
+| `evaluate(model, dataset, num_classes, return_confusion=False)` | Graph-accumulated `(accuracy, mean IoU, F1)`; optional fourth confusion matrix. Empty input is an error. |
 | `forest_scores(per_class_f1)` | `Overall`, `Forests`, `N`, `P` and `TC`. |
 
 Outputs written to `--output-dir`: `config.json` with the resolved flags,
-`training_results.csv` with one row per epoch, and the `best.weights.h5` and
+`training_results.csv` with metrics and elapsed training/validation times,
+`split_manifest.json` with exact shard paths, and the `best.weights.h5` and
 `last.weights.h5` checkpoints.
 
 ## `mamba_forest.evaluate`

@@ -2,9 +2,10 @@ Testing
 =============
 Welcome to the CNN-Mamba forest typology testing page!
 
-The suite is written so that it runs on CPU in under a minute and needs neither
-a GPU nor access to the dataset: every test builds a small model on synthetic
-tensors. The point is to pin down the properties that are easy to break
+The suite runs on CPU and needs neither
+a GPU nor access to the remote dataset: tests use small models, synthetic
+tensors and temporary local TFRecords. The point is to pin down properties
+that are easy to break
 silently — a sequence folded along the wrong axis, a modality that stops
 reaching the output, a loss term that quietly rewards ignoring a class — rather
 than to check numerical values that depend on initialisation.
@@ -16,8 +17,8 @@ make test                          # python -m pytest tests -q
 python tests/test_layers.py        # any file also runs standalone
 ```
 
-Each file works both under pytest and as a script: running it directly executes
-every `test_*` function in order and prints one line per test. Everything the
+The original layer, model and loss files also work as standalone scripts.
+New tests use pytest fixtures and should be run through pytest. Everything the
 suite needs is in `requirements.txt`.
 
 ## Unit tests
@@ -77,13 +78,24 @@ suite needs is in `requirements.txt`.
 - **Validation.** An `alpha` outside `[0, 1]` and a weight vector of the wrong
   length are both rejected.
 
+## Data, evaluation, prediction and performance
+
+- `test_data.py` writes local TFRecords to check split isolation, explicit
+  epoch membership, warmup stability, label validation and augmentation alignment.
+- `test_evaluation.py` checks confusion-derived metrics, batch invariance,
+  empty-data errors and evaluation provenance.
+- `test_training.py` checks fixed/rotating manifests and a two-epoch synthetic
+  training run with checkpoint and timing outputs.
+- `test_predict.py` checks graph/eager agreement, dynamic tile sizes and the
+  input contract.
+- `test_benchmark.py` checks timing aggregation and warmup accounting.
+
 ## What is not covered
 
-The data module talks to Google Cloud Storage, so `make_dataset` is exercised
-by running a training job rather than by a unit test; the parts of it that are
-pure tensor manipulation — `normalize`, `augment`, `encode_labels` — take and
-return plain tensors and can be called directly on a synthetic example if you
-want to extend the suite.
+Tests exercise `make_dataset` using local files. They do not verify the public
+bucket's schema, geographic block separation, historical benchmark scores or
+real-data accuracy. Synthetic timing measurements do not establish performance
+on other hardware or include the remote input pipeline.
 
 ## Adding a test
 

@@ -95,6 +95,10 @@ def load_tile(path: Path) -> dict[str, np.ndarray]:
     raise ValueError(f"{path.name}: s2 must be (T, H, W, "
                      f"{data_lib.FEATURE_SHAPES['s2'][-1]}), got {tile['s2'].shape}")
   time, height, width, _ = tile["s2"].shape
+  if time != data_lib.FEATURE_SHAPES["s2"][0]:
+    raise ValueError(f"{path.name}: expected four seasonal composites, got {time}")
+  if height < 1 or width < 1:
+    raise ValueError(f"{path.name}: tile dimensions must be positive")
 
   if tile["elevation"].shape != (height, width, 3):
     raise ValueError(f"{path.name}: elevation must be ({height}, {width}, 3), "
@@ -108,6 +112,9 @@ def load_tile(path: Path) -> dict[str, np.ndarray]:
   if height % 8:
     raise ValueError(f"{path.name}: the tile size must be divisible by 8 "
                      f"(the encoder pools three times), got {height}")
+  for key, array in tile.items():
+    if not np.isfinite(array).all():
+      raise ValueError(f"{path.name}: {key} contains non-finite values")
   return tile
 
 
@@ -117,6 +124,37 @@ def preprocess_tile(tile: dict[str, np.ndarray]) -> dict[str, tf.Tensor]:
   normalised = data_lib.normalize(example)
   return {key: tf.expand_dims(normalised[key], axis=0)
           for key in ("s2", "elevation", "climate")}
+
+
+def make_predictor(model, save_probabilities: bool = False):
+  """Compiles inference for any valid tile size without tracing each size.
+
+  Returns maps [B,H,W] and mean confidence [B]. The full probability tensor
+  [B,H,W,C] is returned only when requested, keeping the usual host transfer
+  small. The model must already be built before creating this function.
+  """
+  time, _, _, channels = data_lib.FEATURE_SHAPES["s2"]
+  signature = {
+      "s2": tf.TensorSpec([None, time, None, None, channels], tf.float32),
+      "elevation": tf.TensorSpec(
+          [None, None, None, data_lib.FEATURE_SHAPES["elevation"][-1]], tf.float32),
+      "climate": tf.TensorSpec(
+          [None, *data_lib.FEATURE_SHAPES["climate"]], tf.float32),
+  }
+
+  @tf.function(input_signature=[signature], reduce_retracing=True)
+  def predict(inputs):
+    probabilities = model(inputs, training=False)
+    outputs = {
+        "class_map": tf.cast(tf.argmax(probabilities, axis=-1), tf.uint8),
+        "mean_confidence": tf.reduce_mean(
+            tf.reduce_max(probabilities, axis=-1), axis=[1, 2]),
+    }
+    if save_probabilities:
+      outputs["probabilities"] = probabilities
+    return outputs
+
+  return predict
 
 
 def colourise(class_map: np.ndarray) -> np.ndarray:
@@ -147,8 +185,10 @@ def main() -> None:
       d_state_temporal=args.d_state_temporal,
       d_state_spatial=args.d_state_spatial,
       bottleneck_channels=args.bottleneck_channels)
-  model(preprocess_tile(load_tile(paths[0])), training=False)  # build the weights
+  first_inputs = preprocess_tile(load_tile(paths[0]))
+  model(first_inputs, training=False)  # build the weights
   model.load_weights(args.weights)
+  predict = make_predictor(model, args.save_probabilities)
   print(f"loaded weights from {args.weights}")
 
   if args.save_png:
@@ -158,17 +198,17 @@ def main() -> None:
 
   rows = []
   totals = np.zeros(num_classes, dtype=np.float64)
-  for path in paths:
-    inputs = preprocess_tile(load_tile(path))
-    probabilities = model(inputs, training=False).numpy()[0]
-    class_map = probabilities.argmax(axis=-1).astype(np.uint8)
-    confidence = probabilities.max(axis=-1)
+  for index, path in enumerate(paths):
+    inputs = first_inputs if index == 0 else preprocess_tile(load_tile(path))
+    outputs = predict(inputs)
+    class_map = outputs["class_map"].numpy()[0]
+    mean_confidence = float(outputs["mean_confidence"].numpy()[0])
 
     stem = path.stem
     np.save(output_dir / f"{stem}_class_map.npy", class_map)
     if args.save_probabilities:
       np.save(output_dir / f"{stem}_probabilities.npy",
-              probabilities.astype(np.float32))
+              outputs["probabilities"].numpy()[0].astype(np.float32))
     if args.save_png:
       mpimg.imsave(output_dir / f"{stem}_class_map.png", colourise(class_map))
 
@@ -179,7 +219,7 @@ def main() -> None:
         "tile": stem,
         "height": class_map.shape[0],
         "width": class_map.shape[1],
-        "mean_confidence": float(confidence.mean()),
+        "mean_confidence": mean_confidence,
         "forest_share": forest,
         **{f"share_{name.lower().replace(' ', '_')}": float(value)
            for name, value in zip(data_lib.CLASS_NAMES, shares)},

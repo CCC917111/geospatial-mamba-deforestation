@@ -1,0 +1,149 @@
+{
+  "metadata": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "cpu_count": 5,
+    "thread_settings": {
+      "TF_NUM_INTRAOP_THREADS": "2",
+      "TF_NUM_INTEROP_THREADS": "2",
+      "OMP_NUM_THREADS": null
+    },
+    "logical_devices": [
+      "/device:CPU:0"
+    ],
+    "requested_device": "/CPU:0",
+    "input_devices": {
+      "s2": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "elevation": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "climate": "/job:localhost/replica:0/task:0/device:CPU:0"
+    },
+    "precision": "float32",
+    "seed": 42,
+    "input_shapes": {
+      "s2": [
+        1,
+        4,
+        32,
+        32,
+        10
+      ],
+      "elevation": [
+        1,
+        32,
+        32,
+        3
+      ],
+      "climate": [
+        1,
+        4,
+        14
+      ]
+    },
+    "label_shape": [
+      1,
+      32,
+      32,
+      9
+    ],
+    "model_config": {
+      "num_classes": 9,
+      "d_model": 8,
+      "dropout_rate": 0.2,
+      "d_state_temporal": 8,
+      "d_state_spatial": 16,
+      "bottleneck_channels": 32
+    },
+    "parameters": 3413016,
+    "warmup_steps": 3,
+    "steps": 10,
+    "scope": "Synthetic model compute plus scalar output synchronization; excludes dataset IO, preprocessing, checkpoint loading, graph tracing and output-file writes. No accuracy measurement.",
+    "training_optimizer": {
+      "name": "AdamW",
+      "learning_rate": 0.0002,
+      "weight_decay": 0.005,
+      "global_clipnorm": 1.0,
+      "dynamic_loss_scaling": false
+    },
+    "training_loss": {
+      "name": "combo_loss",
+      "reduction": "sum_over_batch_size",
+      "num_classes": 9,
+      "alpha": 0.4,
+      "label_smoothing": 0.05,
+      "class_weights": [
+        1.0,
+        1.0,
+        3.0,
+        1.0,
+        1.0,
+        1.2,
+        1.0,
+        2.0,
+        1.0
+      ],
+      "smooth": 1e-06
+    },
+    "tensorflow_threading": {
+      "intra_op_parallelism_threads": 0,
+      "inter_op_parallelism_threads": 0
+    },
+    "tensorflow_threading_note": "0 indicates no explicit tf.config.threading override; environment settings are recorded separately."
+  },
+  "results": {
+    "inference_eager": {
+      "latencies_seconds": [
+        0.07709476599995924,
+        0.09115030800001023,
+        0.07345649800004139,
+        0.08970821700006582,
+        0.0802186939999956,
+        0.09492335699997057,
+        0.08946201100002327,
+        0.0823726749999878,
+        0.12612619599997288,
+        0.10940544499999305
+      ],
+      "median_seconds": 0.08958511400004454,
+      "p95_seconds": 0.11860185804998194,
+      "tiles_per_second": 10.941898696275487,
+      "measured_steps": 10
+    },
+    "inference_graph": {
+      "latencies_seconds": [
+        0.01146354299999075,
+        0.014665585999978248,
+        0.014421563000041715,
+        0.012824839000018073,
+        0.015145106999966629,
+        0.01426632300001529,
+        0.010344341999939388,
+        0.013961535999897023,
+        0.014451893000000382,
+        0.014555427000004784
+      ],
+      "median_seconds": 0.014343943000028503,
+      "p95_seconds": 0.014929322549971856,
+      "tiles_per_second": 73.47529990770146,
+      "measured_steps": 10
+    },
+    "training_graph": {
+      "latencies_seconds": [
+        0.048493629999939,
+        0.05910563400004776,
+        0.052739081000027,
+        0.05401598899993587,
+        0.05514286400000401,
+        0.04406573899996147,
+        0.052276312999993024,
+        0.0520804609999459,
+        0.05822749800006477,
+        0.06546316399999341
+      ],
+      "median_seconds": 0.053377534999981435,
+      "p95_seconds": 0.06260227550001786,
+      "tiles_per_second": 18.463457309008408,
+      "measured_steps": 10
+    }
+  }
+}
