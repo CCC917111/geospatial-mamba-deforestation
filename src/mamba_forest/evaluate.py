@@ -28,8 +28,11 @@ def parse_args() -> argparse.Namespace:
   p = argparse.ArgumentParser(description=__doc__,
                               formatter_class=argparse.RawDescriptionHelpFormatter)
   p.add_argument("--weights", required=True, help="Path to a .weights.h5 file")
-  p.add_argument("--gcs-root", default=data_lib.GCS_ROOT,
-                 help="Root of the ForTy v1 TFRecord shards")
+  p.add_argument("--data-root", "--gcs-root", dest="gcs_root",
+                 default=data_lib.GCS_ROOT,
+                 help="Local directory or GCS root of the TFRecord shards")
+  p.add_argument("--total-shards", type=int, default=data_lib.TOTAL_SHARDS,
+                 help="Total shards per split, including the filename suffix")
   p.add_argument("--test-shards", type=int, default=64)
   p.add_argument("--batch-size", type=int, default=16)
   p.add_argument("--d-model", type=int, default=32,
@@ -64,7 +67,7 @@ def main() -> None:
 
   test_ds = data_lib.make_dataset(
       "test", args.test_shards, batch_size=args.batch_size,
-      training=False, gcs_root=args.gcs_root)
+      training=False, gcs_root=args.gcs_root, total_shards=args.total_shards)
 
   model = MambaForestSegmenter(
       num_classes=num_classes, d_model=args.d_model, dropout_rate=args.dropout,
@@ -103,8 +106,10 @@ def main() -> None:
       "gcs_root": args.gcs_root,
       "split": "test",
       "test_shards": args.test_shards,
+      "total_shards_per_split": args.total_shards,
       "shard_paths": data_lib.selected_shard_paths(
-          "test", args.test_shards, gcs_root=args.gcs_root),
+          "test", args.test_shards, gcs_root=args.gcs_root,
+          total_shards=args.total_shards),
       "batch_size": args.batch_size,
       "model_config": model.get_config(),
       "runtime": {

@@ -9,6 +9,7 @@ Run from the repository root:
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 
@@ -81,6 +82,80 @@ def test_alpha_and_weight_validation():
   except ValueError:
     return
   raise AssertionError("a wrong number of class weights must be rejected")
+
+
+def test_numpy_list_and_tuple_weights_preserve_loss_gradients_and_config():
+  labels, prediction = _labels_and_prediction(2, 1, confidence=0.8)
+  expected_loss, expected_gradients = None, None
+  for weights in (DEFAULT_CLASS_WEIGHTS, list(DEFAULT_CLASS_WEIGHTS),
+                  np.asarray(DEFAULT_CLASS_WEIGHTS, dtype=np.float64)):
+    loss = ComboLoss(np.int64(NUM_CLASSES), class_weights=weights)
+    assert loss.class_weights == DEFAULT_CLASS_WEIGHTS
+    assert all(type(weight) is float for weight in loss.class_weights)
+    restored = ComboLoss.from_config(json.loads(json.dumps(loss.get_config())))
+    assert restored.get_config() == loss.get_config()
+    logits = tf.Variable(tf.math.log(prediction))
+    with tf.GradientTape() as tape:
+      value = loss(labels, tf.nn.softmax(logits))
+    gradients = tape.gradient(value, logits).numpy()
+    assert np.isfinite(float(value))
+    assert np.isfinite(gradients).all()
+    assert np.any(gradients != 0)
+    assert np.isclose(float(restored(labels, prediction)),
+                      float(loss(labels, prediction)))
+    if expected_loss is None:
+      expected_loss, expected_gradients = float(value), gradients
+    else:
+      assert float(value) == expected_loss
+      np.testing.assert_array_equal(gradients, expected_gradients)
+
+
+def test_zero_weight_array_is_preserved_and_none_remains_uniform():
+  labels, prediction = _labels_and_prediction(2, 0)
+  zero_weighted = ComboLoss(
+      NUM_CLASSES, alpha=1.0, class_weights=np.zeros(NUM_CLASSES))
+  assert zero_weighted.class_weights == (0.0,) * NUM_CLASSES
+  assert float(zero_weighted(labels, prediction)) == 0.0
+  uniform = ComboLoss(NUM_CLASSES, alpha=1.0, class_weights=None)
+  assert uniform.class_weights is None
+  assert float(uniform(labels, prediction)) > 0.0
+  restored = ComboLoss.from_config(uniform.get_config())
+  assert restored.class_weights is None
+
+
+def test_invalid_loss_configuration_is_rejected_before_tensor_math():
+  invalid = [
+      {"num_classes": 0}, {"num_classes": -1}, {"num_classes": 9.0},
+      {"num_classes": True}, {"num_classes": "9"},
+      {"alpha": float("nan")}, {"alpha": float("inf")},
+      {"label_smoothing": -0.1}, {"label_smoothing": 1.1},
+      {"label_smoothing": float("nan")}, {"label_smoothing": float("inf")},
+      {"smooth": 0.0}, {"smooth": -1e-6},
+      {"smooth": float("nan")}, {"smooth": float("inf")},
+      {"class_weights": np.ones(NUM_CLASSES - 1)},
+      {"class_weights": np.full(NUM_CLASSES, -1.0)},
+      {"class_weights": np.full(NUM_CLASSES, float("nan"))},
+      {"class_weights": np.full(NUM_CLASSES, float("inf"))},
+      {"class_weights": 1.0}, {"class_weights": ["invalid"] * NUM_CLASSES},
+  ]
+  for overrides in invalid:
+    config = {"num_classes": NUM_CLASSES, **overrides}
+    try:
+      ComboLoss(**config)
+    except ValueError:
+      continue
+    raise AssertionError(f"invalid loss configuration accepted: {overrides}")
+
+
+def test_smoothing_boundaries_keep_loss_and_gradients_finite():
+  labels, prediction = _labels_and_prediction(2, 0)
+  for smoothing in (0.0, 1.0):
+    loss = ComboLoss(NUM_CLASSES, label_smoothing=smoothing)
+    logits = tf.Variable(tf.math.log(prediction))
+    with tf.GradientTape() as tape:
+      value = loss(labels, tf.nn.softmax(logits))
+    assert np.isfinite(float(value))
+    assert np.isfinite(tape.gradient(value, logits).numpy()).all()
 
 
 if __name__ == "__main__":

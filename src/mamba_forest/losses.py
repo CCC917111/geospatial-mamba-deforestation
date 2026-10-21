@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import math
+from numbers import Integral, Real
+
 import tensorflow as tf
 
 # Per-class weights of the cross-entropy term. Planted forest is the hardest
@@ -21,11 +24,12 @@ class ComboLoss(tf.keras.losses.Loss):
   accuracy and 60% region overlap.
 
   Args:
-    num_classes: number of segmentation classes.
+    num_classes: positive integer number of segmentation classes.
     alpha: weight of the cross-entropy term, in [0, 1].
-    label_smoothing: label smoothing applied to the cross-entropy term.
-    class_weights: one weight per class, or None for uniform weights.
-    smooth: numerical stabiliser of the Dice quotient.
+    label_smoothing: smoothing in [0, 1] for the cross-entropy term.
+    class_weights: one finite non-negative weight per class, or None for
+      uniform weights. Python and NumPy numerical sequences are supported.
+    smooth: positive finite numerical stabiliser of the Dice quotient.
   """
 
   def __init__(self, num_classes: int, alpha: float = 0.4,
@@ -33,17 +37,32 @@ class ComboLoss(tf.keras.losses.Loss):
                class_weights=DEFAULT_CLASS_WEIGHTS, smooth: float = 1e-6,
                name: str = "combo_loss", **kwargs):
     super().__init__(name=name, **kwargs)
-    if not 0.0 <= alpha <= 1.0:
+    if (not isinstance(num_classes, Integral) or isinstance(num_classes, bool)
+            or num_classes < 1):
+      raise ValueError("num_classes must be a positive integer")
+    if not isinstance(alpha, Real) or not 0.0 <= alpha <= 1.0:
       raise ValueError(f"alpha must be in [0, 1], got {alpha}")
-    if class_weights is not None and len(class_weights) != num_classes:
-      raise ValueError(
-          f"class_weights must have {num_classes} entries, "
-          f"got {len(class_weights)}")
-    self.num_classes = num_classes
-    self.alpha = alpha
-    self.smooth = smooth
-    self.label_smoothing = label_smoothing
-    self.class_weights = tuple(class_weights) if class_weights else None
+    if (not isinstance(label_smoothing, Real)
+            or not 0.0 <= label_smoothing <= 1.0):
+      raise ValueError("label_smoothing must be in [0, 1]")
+    if not isinstance(smooth, Real) or not math.isfinite(smooth) or smooth <= 0:
+      raise ValueError("smooth must be positive and finite")
+    if class_weights is not None:
+      try:
+        class_weights = tuple(float(weight) for weight in class_weights)
+      except (TypeError, ValueError):
+        raise ValueError("class_weights must be a numerical sequence") from None
+      if len(class_weights) != num_classes:
+        raise ValueError(
+            f"class_weights must have {num_classes} entries, "
+            f"got {len(class_weights)}")
+      if any(not math.isfinite(weight) or weight < 0 for weight in class_weights):
+        raise ValueError("class_weights must be finite and non-negative")
+    self.num_classes = int(num_classes)
+    self.alpha = float(alpha)
+    self.smooth = float(smooth)
+    self.label_smoothing = float(label_smoothing)
+    self.class_weights = class_weights
 
   def _weighted_cross_entropy(self, y_true, y_pred):
     """Per-pixel cross-entropy, smoothed and weighted by the true class."""

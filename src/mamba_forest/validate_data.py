@@ -26,7 +26,8 @@ _COORDINATE_KEYS = {"lat", "lon", "latitude", "longitude"}
 def parse_args() -> argparse.Namespace:
   parser = argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
-  parser.add_argument("--gcs-root", default=data_lib.GCS_ROOT,
+  parser.add_argument("--data-root", "--gcs-root", dest="gcs_root",
+                      default=data_lib.GCS_ROOT,
                       help="ForTy shard root; a local directory is also supported")
   parser.add_argument("--train-shards", type=int, default=128)
   parser.add_argument("--val-shards", type=int, default=8)

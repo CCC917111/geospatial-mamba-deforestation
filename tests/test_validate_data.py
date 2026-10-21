@@ -17,6 +17,17 @@ from mamba_forest import data  # noqa: E402
 from mamba_forest import validate_data  # noqa: E402
 
 
+@pytest.mark.parametrize("flag", ["--data-root", "--gcs-root"])
+def test_local_root_alias_preserves_config_key(flag, tmp_path, monkeypatch):
+  monkeypatch.setattr(sys, "argv", [
+      "validate_data", flag, str(tmp_path), "--total-shards", "4",
+      "--train-shards", "2", "--val-shards", "1", "--test-shards", "1",
+  ])
+  args = validate_data.parse_args()
+  assert args.gcs_root == str(tmp_path)
+  assert args.total_shards == 4
+
+
 def _args(tmp_path, **overrides):
   config = dict(gcs_root=str(tmp_path), train_shards=1, val_shards=1,
                 test_shards=1, total_shards=1, seed=42, require_gpu=False,

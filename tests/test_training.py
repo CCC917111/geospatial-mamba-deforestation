@@ -9,6 +9,7 @@ import os
 import sys
 
 import numpy as np
+import pytest
 import tensorflow as tf
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -19,9 +20,18 @@ from mamba_forest.model import MambaForestSegmenter  # noqa: E402
 
 def _subset_args(**overrides):
   args = dict(train_shards=2, val_shards=1, batch_size=2, seed=42,
-              gcs_root="local-records", fixed_train_subset=False)
+              gcs_root="local-records", fixed_train_subset=False, total_shards=4)
   args.update(overrides)
   return argparse.Namespace(**args)
+
+
+@pytest.mark.parametrize("flag", ["--data-root", "--gcs-root"])
+def test_training_data_root_alias_and_shard_count(flag, monkeypatch):
+  monkeypatch.setattr(sys, "argv", [
+      "mamba_forest.train", flag, "local-records", "--total-shards", "4"])
+  args = train.parse_args()
+  assert args.gcs_root == "local-records"
+  assert args.total_shards == 4
 
 
 def test_fixed_and_rotating_manifests_match_dataset_epoch(monkeypatch):
@@ -39,14 +49,14 @@ def test_fixed_and_rotating_manifests_match_dataset_epoch(monkeypatch):
     shard_epoch = 0 if fixed else 3
     assert calls[-1] == (("train", 2), {
         "batch_size": 2, "training": True, "seed": 42,
-        "gcs_root": "local-records", "epoch": shard_epoch,
+        "gcs_root": "local-records", "epoch": shard_epoch, "total_shards": 4,
     })
     assert manifest["epoch"] == 4
     assert manifest["shard_epoch"] == shard_epoch
     assert manifest["training_completed"] is False
     assert manifest["paths"] == data.selected_shard_paths(
         "train", 2, seed=42, epoch=shard_epoch, shuffle_shards=True,
-        gcs_root="local-records")
+        gcs_root="local-records", total_shards=4)
     first = train.training_epoch_manifest(args, epoch=1)
     assert (first["paths"] == manifest["paths"]) == fixed
 
@@ -114,7 +124,8 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
   subset_args = _subset_args(gcs_root=root)
   expected = [train.training_epoch_manifest(subset_args, epoch)
               for epoch in (1, 2)]
-  validation_paths = data.selected_shard_paths("validation", 1, gcs_root=root)
+  validation_paths = data.selected_shard_paths(
+      "validation", 1, gcs_root=root, total_shards=subset_args.total_shards)
   paths = sorted({path for epoch in expected for path in epoch["paths"]}
                  | set(validation_paths))
   for index, path in enumerate(paths):
@@ -122,11 +133,12 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
       writer.write(_small_record(shapes, seed=index))
 
   monkeypatch.setattr(sys, "argv", [
-      "mamba_forest.train", "--gcs-root", root, "--output-dir", str(output),
+      "mamba_forest.train", "--data-root", root, "--total-shards", "4",
+      "--output-dir", str(output),
       "--epochs", "2", "--train-shards", "2", "--val-shards", "1",
       "--batch-size", "2", "--d-model", "4", "--d-state-temporal", "2",
       "--d-state-spatial", "2", "--bottleneck-channels", "8",
-      "--dropout", "0", "--no-mixed-precision", "--patience", "0",
+      "--dropout", "0", "--patience", "0",
   ])
   models = []
 
@@ -135,10 +147,28 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     models.append(model)
     return model
 
+  original_visible_devices = tf.config.get_visible_devices
+
+  def visible_devices(device_type=None):
+    if device_type == "GPU":
+      return []
+    return original_visible_devices(device_type)
+
+  def unexpected_loss_scaling(*args, **kwargs):
+    pytest.fail("automatic CPU training must not construct LossScaleOptimizer")
+
   monkeypatch.setattr(train, "MambaForestSegmenter", build_model)
+  monkeypatch.setattr(tf.config, "get_visible_devices", visible_devices)
+  monkeypatch.setattr(tf.keras.mixed_precision, "LossScaleOptimizer",
+                      unexpected_loss_scaling)
   prior_policy = tf.keras.mixed_precision.global_policy().name
   try:
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
     train.main()
+    config = json.loads((output / "config.json").read_text(encoding="utf-8"))
+    assert config["precision"] == "auto"
+    assert config["resolved_precision"] == "float32"
+    assert models[0].compute_dtype == "float32"
     with open(output / "split_manifest.json", encoding="utf-8") as handle:
       manifest = json.load(handle)
     assert manifest["training_mode"] == "rotating"
@@ -148,7 +178,8 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
         entry["paths"] for entry in expected]
     assert all(entry["training_completed"] for entry in manifest["epochs"])
     assert manifest["completed_unique_train_shards"] == len(paths) - 1
-    assert manifest["total_shards_per_split"] == data.TOTAL_SHARDS
+    assert manifest["total_shards_per_split"] == 4
+    assert all(path.endswith("-of-00004") for path in paths)
 
     with open(output / "training_results.csv", encoding="utf-8") as handle:
       rows = list(csv.DictReader(handle))
@@ -163,7 +194,7 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
           2 / float(row["train_seconds"]), rtol=1e-4)
 
     validation = next(iter(data.make_dataset(
-        "validation", 1, batch_size=1, gcs_root=root)))
+        "validation", 1, batch_size=1, gcs_root=root, total_shards=4)))
     inputs, _ = data.split_inputs_labels(validation)
     reference = models[0](inputs, training=False).numpy()
     for name in ("last.weights.h5", "best.weights.h5"):

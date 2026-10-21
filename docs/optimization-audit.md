@@ -138,6 +138,30 @@ selected paths; `--require-gpu` fails before record IO on a CPU-only runtime.
 Its three inspected records can detect a duplicate inspected ID but cannot
 establish full-split geographic separation.
 
+### Offline follow-up — 2026-10-21
+
+Training and evaluation now accept a local `--data-root` and configurable
+`--total-shards`, with the count propagated to filenames, actual data reads,
+selection manifests and evaluation provenance. Preflight accepts the same root
+alias. The legacy `--gcs-root` and JSON `gcs_root` key remain supported. The
+two-epoch integration test now uses genuine four-shard local filenames rather
+than a sparse set with a 1,024-shard suffix.
+
+Training's default `--precision auto` selects float32 on CPU and mixed float16
+with a visible GPU. Every run resets the policy and records both requested and
+resolved precision. Loss scaling follows the resolved policy. Explicit policies
+and the legacy float32 flag remain available; conflicting flags fail before
+data IO. Device-discovery tests mock GPU visibility without claiming GPU
+execution, while the local training smoke checks actual CPU computation,
+checkpoint reload and the absence of loss scaling.
+
+`ComboLoss` previously used the truth value of `class_weights`, which raised an
+ambiguous-truth-value error for NumPy arrays. Weight sequences now normalize
+to a serializable tuple of Python floats, preserving `None` versus zero-weight
+semantics. Invalid class counts, smoothing settings, stabilizers and weights
+fail during construction. Numerical loss, gradient and serialization checks
+cover NumPy arrays, lists and tuples.
+
 ### Automated checks
 
 The baseline's 17 tests passed before changes. New tests cover local TFRecord
@@ -150,8 +174,9 @@ metrics and reloads both checkpoints; the final checkpoint reproduces the
 trained model's output. Tests use synthetic data and do not replace a real
 ForTy validation run.
 
-Final checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 52 tests passed in
-48.34 seconds, flake8 passed and `git diff --check` passed. The preflight tests
+Final offline checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 72 tests
+passed in 44.57 seconds, flake8 passed and `git diff --check` passed. All 17
+Bash blocks in the user guide and GPU runbook passed syntax checks. The preflight tests
 include malformed raw-feature diagnostics, optional metadata, observed duplicate
 IDs, invalid inputs and the GPU gate before record IO. Keras checkpoint
 serialization emitted 433 NumPy `__array__(copy=...)` deprecation warnings;

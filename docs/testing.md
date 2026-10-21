@@ -85,7 +85,11 @@ suite needs is in `requirements.txt`.
 - `test_evaluation.py` checks confusion-derived metrics, batch invariance,
   empty-data errors and evaluation provenance.
 - `test_training.py` checks fixed/rotating manifests and a two-epoch synthetic
-  training run with checkpoint and timing outputs.
+  training run on a four-shard local dataset, with checkpoints, timings and
+  automatic CPU float32 selection without loss scaling.
+- `test_precision.py` checks compute dtypes, visible-device selection, explicit
+  precision, the legacy float32 flag and early conflict rejection. GPU
+  discovery is mocked in selection tests; these are not GPU execution tests.
 - `test_predict.py` checks graph/eager agreement, dynamic tile sizes and the
   input contract.
 - `test_benchmark.py` checks timing aggregation and warmup accounting.

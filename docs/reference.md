@@ -81,8 +81,10 @@ produce the three `[B, H, W, d_model]` maps; `_encoder_block` and
 | `DEFAULT_CLASS_WEIGHTS` | Per-class weights of the cross-entropy term. |
 | `ComboLoss(num_classes, alpha, label_smoothing, class_weights, smooth)` | `alpha * weighted CE + (1 - alpha) * Dice`. |
 
-`ComboLoss` rejects an `alpha` outside `[0, 1]` and a `class_weights` vector
-whose length differs from `num_classes`; passing `class_weights=None` gives
+`ComboLoss` requires positive integral `num_classes`, `alpha` and
+`label_smoothing` in `[0, 1]`, a positive finite `smooth`, and finite
+non-negative weights of the correct length. NumPy arrays, lists and tuples
+normalize to the same serializable weight tuple; `class_weights=None` gives
 uniform weights. Both `y_true` and `y_pred` are `[B, H, W, num_classes]`, with
 `y_true` one-hot and `y_pred` a probability distribution over the last axis.
 
@@ -94,6 +96,7 @@ for the full list of flags; the defaults reproduce the configuration in
 
 | Function | Purpose |
 |---|---|
+| `configure_precision(precision, no_mixed_precision)` | Resolves auto from visible GPUs and explicitly sets the compute policy. |
 | `build_datasets(args)` | Training and validation datasets from the parsed flags. |
 | `build_train_dataset(args, epoch)` | Explicit training subset for a zero-based epoch. |
 | `training_epoch_manifest(args, epoch)` | Paths and status for a one-based training epoch. |

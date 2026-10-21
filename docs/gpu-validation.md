@@ -115,6 +115,7 @@ mkdir -p "$smoke_dir"
 /usr/bin/time -f '%e' -o "$smoke_dir/train_wall_seconds.txt" \
   python -m mamba_forest.train \
     --gcs-root "$FORTY_ROOT" --seed 42 --fixed-train-subset \
+    --precision mixed_float16 \
     --train-shards 1 --val-shards 1 --batch-size "$GPU_BATCH_SIZE" \
     --epochs 2 --patience 0 \
     --d-model 32 --d-state-temporal 8 --d-state-spatial 16 \
@@ -142,7 +143,8 @@ the formal experiments.
 ## Measure 128×128 GPU compute and calibrate batch size
 
 Measure inference in float32, matching a fresh evaluation/prediction CLI
-process, and training in mixed float16, matching training defaults. These
+process, and training in explicitly selected mixed float16. Auto precision
+also selects mixed float16 on a visible GPU. These
 commands use the full default model. Each mode excludes warmup and records
 30 synchronized samples:
 
@@ -217,6 +219,7 @@ for seed in 42 43 44; do
     /usr/bin/time -f '%e' -o "$run_dir/train_wall_seconds.txt" \
       python -m mamba_forest.train \
         --gcs-root "$FORTY_ROOT" --seed "$seed" --fixed-train-subset \
+        --precision mixed_float16 \
         --train-shards 128 --val-shards 8 --batch-size "$GPU_BATCH_SIZE" \
         --epochs 40 --patience 0 \
         --d-model 32 --d-state-temporal 8 --d-state-spatial 16 \

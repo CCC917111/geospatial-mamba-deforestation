@@ -101,9 +101,19 @@ def test_forest_scores_use_declared_class_indices():
 def _cli_args(tmp_path):
   return argparse.Namespace(
       weights=str(tmp_path / "best.weights.h5"),
-      gcs_root=str(tmp_path / "records"), test_shards=2, batch_size=2,
+      gcs_root=str(tmp_path / "records"), test_shards=2, total_shards=4, batch_size=2,
       d_model=8, dropout=0.0, d_state_temporal=2, d_state_spatial=2,
       bottleneck_channels=8, output_dir=str(tmp_path))
+
+
+@pytest.mark.parametrize("flag", ["--data-root", "--gcs-root"])
+def test_evaluation_data_root_alias_and_shard_count(flag, monkeypatch):
+  monkeypatch.setattr(sys, "argv", [
+      "mamba_forest.evaluate", "--weights", "local.weights.h5", flag,
+      "local-records", "--total-shards", "4"])
+  args = evaluation_cli.parse_args()
+  assert args.gcs_root == "local-records"
+  assert args.total_shards == 4
 
 
 def test_cli_retains_recomputable_metrics_and_checkpoint_provenance(
@@ -115,16 +125,28 @@ def test_cli_retains_recomputable_metrics_and_checkpoint_provenance(
   model.save_weights(args.weights)
   monkeypatch.setattr(evaluation_cli, "parse_args", lambda: args)
   monkeypatch.setattr(evaluation_cli, "MambaForestSegmenter", PredictionModel)
-  monkeypatch.setattr(data_lib, "make_dataset", lambda *a, **kw: dataset)
+  dataset_calls = []
+
+  def make_dataset(*a, **kw):
+    dataset_calls.append((a, kw))
+    return dataset
+
+  monkeypatch.setattr(data_lib, "make_dataset", make_dataset)
   evaluation_cli.main()
 
   metrics = json.loads((tmp_path / "test_metrics.json").read_text())
+  assert dataset_calls == [(("test", 2), {
+      "batch_size": 2, "training": False, "gcs_root": args.gcs_root,
+      "total_shards": 4,
+  })]
   assert metrics["weights_sha256"] == hashlib.sha256(
       (tmp_path / "best.weights.h5").read_bytes()).hexdigest()
   assert metrics["gcs_root"] == args.gcs_root
   assert metrics["split"] == "test"
+  assert metrics["total_shards_per_split"] == 4
   assert metrics["shard_paths"] == data_lib.selected_shard_paths(
-      "test", args.test_shards, gcs_root=args.gcs_root)
+      "test", args.test_shards, gcs_root=args.gcs_root, total_shards=4)
+  assert all(path.endswith("-of-00004") for path in metrics["shard_paths"])
   assert metrics["num_pixels"] == 12
   confusion = np.asarray(metrics["confusion_matrix"])
   assert metrics["pixel_accuracy"] == pytest.approx(

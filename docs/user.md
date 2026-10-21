@@ -52,6 +52,8 @@ The flags worth knowing:
 
 | Flag | Default | Effect |
 |---|---|---|
+| `--data-root` / `--gcs-root` | ForTy GCS root | Local directory or cloud shard root. |
+| `--total-shards` | 1024 | Shards per split; also determines the filename suffix. |
 | `--train-shards` | 128 | Training shards per epoch; 1024 is the full split. |
 | `--fixed-train-subset` | off | Keep the same seeded training subset for every epoch. |
 | `--val-shards` | 8 | Validation shards, fixed across epochs. |
@@ -69,13 +71,14 @@ The flags worth knowing:
 | `--label-smoothing` | 0.05 | Smoothing of the cross-entropy term. |
 | `--no-class-weights` | off | Uniform class weights instead of the defaults. |
 | `--grad-clip` | 1.0 | Global-norm gradient clipping; 0 disables it. |
-| `--no-mixed-precision` | off | Train in float32 instead of mixed float16. |
+| `--precision` | auto | float32 on CPU; mixed float16 with a visible GPU. Explicit policies are also accepted. |
+| `--no-mixed-precision` | off | Legacy alias for `--precision float32`. |
 | `--patience` | 8 | Epochs without improvement before stopping. |
 | `--seed` | 42 | Seed for Python, TensorFlow, Keras, NumPy and shard selection. |
 
 Written to `--output-dir`:
 
-- `config.json` — every resolved flag, so the run can be repeated.
+- `config.json` — requested flags, the resolved precision and TensorFlow version.
 - `split_manifest.json` — exact validation paths and paths for every started
   training epoch, completion flags, and completed unique shard coverage.
 - `training_results.csv` — one row per epoch: loss, pixel accuracy, mean IoU,
@@ -84,6 +87,45 @@ Written to `--output-dir`:
   compilation, and exclude checkpoint writes.
 - `best.weights.h5` — the checkpoint with the best Overall F1.
 - `last.weights.h5` — the most recent checkpoint.
+
+## Local data and offline checks
+
+Once dependencies are installed, code changes, tests, local data preflight,
+training and evaluation do not need a network connection. Run `make test` for
+synthetic tensors and temporary local TFRecords; it does not read the bucket.
+Real-data accuracy still requires real records.
+
+Training, evaluation and preflight accept `--data-root` as an alias for
+`--gcs-root`. For a small local dataset, set `--total-shards` to match the
+filename suffix in every split. A four-shard split uses names such as
+`forty_v1-train.tfrecord-00000-of-00004`; all requested split budgets must be
+between 1 and that total. The default remains 1,024 for official ForTy files.
+The JSON config key remains `gcs_root` for compatibility, even for local paths.
+
+For an existing local four-shard dataset:
+
+```bash
+python -m mamba_forest.validate_data --data-root ./local_forty \
+    --total-shards 4 --train-shards 2 --val-shards 1 --test-shards 1 \
+    --output runs/offline/preflight.json
+
+python -m mamba_forest.train --data-root ./local_forty \
+    --total-shards 4 --train-shards 2 --val-shards 1 --batch-size 1 \
+    --epochs 2 --patience 0 --fixed-train-subset --precision float32 \
+    --d-model 8 --d-state-temporal 4 --d-state-spatial 4 \
+    --bottleneck-channels 32 --output-dir runs/offline
+
+python -m mamba_forest.evaluate --data-root ./local_forty \
+    --total-shards 4 --test-shards 1 --batch-size 1 \
+    --d-model 8 --d-state-temporal 4 --d-state-spatial 4 \
+    --bottleneck-channels 32 --weights runs/offline/best.weights.h5
+```
+
+`--precision auto` selects float32 when no GPU is visible and mixed float16
+otherwise. `config.json` records both the requested and actual policy; loss
+scaling is enabled only for mixed float16. An explicit policy pins controlled
+experiments. `--no-mixed-precision` still selects float32 and conflicts with
+explicit `--precision mixed_float16`.
 
 ## Evaluation
 
@@ -169,10 +211,10 @@ make clean         # build artefacts and __pycache__
 lazily, so an authentication problem surfaces when the first shard is opened
 rather than at start-up. Re-run `gcloud auth application-default login`.
 
-**Out of memory.** Lower `--batch-size` first, then `--d-model`. Leaving mixed
-precision on matters here: `--no-mixed-precision` roughly doubles activation
-memory.
+**Out of memory.** Lower `--batch-size` first, then `--d-model`. On a GPU,
+mixed float16 can reduce activation memory; savings depend on the model and
+runtime. Auto precision uses float32 on CPU.
 
-**Slow epochs.** The input pipeline interleaves and prefetches, so throughput
-is usually bound by the accelerator rather than by the network. Lowering
-`--train-shards` shortens an epoch without changing anything else.
+**Slow epochs.** Inspect the recorded training and validation times. Input IO,
+preprocessing and model compute can each dominate depending on the environment.
+Lowering `--train-shards` reduces the per-epoch read budget.

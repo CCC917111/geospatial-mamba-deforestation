@@ -44,10 +44,13 @@ def parse_args() -> argparse.Namespace:
                               formatter_class=argparse.RawDescriptionHelpFormatter)
   p.add_argument("--output-dir", default="runs/mamba_forest",
                  help="Directory for checkpoints, metrics and the config dump")
-  p.add_argument("--gcs-root", default=data_lib.GCS_ROOT,
-                 help="Root of the ForTy v1 TFRecord shards")
+  p.add_argument("--data-root", "--gcs-root", dest="gcs_root",
+                 default=data_lib.GCS_ROOT,
+                 help="Local directory or GCS root of the TFRecord shards")
+  p.add_argument("--total-shards", type=int, default=data_lib.TOTAL_SHARDS,
+                 help="Total shards per split, including the filename suffix")
   p.add_argument("--train-shards", type=int, default=128,
-                 help="Training shards read per epoch (1024 = full split)")
+                 help="Training shards read per epoch (total-shards = full split)")
   p.add_argument("--fixed-train-subset", action="store_true",
                  help="Reuse the same seeded training shards in every epoch")
   p.add_argument("--val-shards", type=int, default=8,
@@ -75,12 +78,38 @@ def parse_args() -> argparse.Namespace:
                  help="Use uniform class weights in the cross-entropy term")
   p.add_argument("--grad-clip", type=float, default=1.0,
                  help="Clip gradients to this global norm; 0 disables clipping")
+  p.add_argument("--precision", choices=("auto", "float32", "mixed_float16"),
+                 default="auto",
+                 help="auto uses mixed float16 on GPU and float32 on CPU")
   p.add_argument("--no-mixed-precision", action="store_true",
-                 help="Train in float32 instead of mixed float16")
+                 help="Alias for --precision float32")
   p.add_argument("--patience", type=int, default=8,
                  help="Early stopping patience in epochs (0 disables it)")
   p.add_argument("--seed", type=int, default=42)
-  return p.parse_args()
+  args = p.parse_args()
+  if args.no_mixed_precision and args.precision == "mixed_float16":
+    p.error("--no-mixed-precision conflicts with --precision mixed_float16")
+  return args
+
+
+def configure_precision(precision: str = "auto",
+                        no_mixed_precision: bool = False) -> str:
+  """Resolves the compute policy, resets global state and returns its name.
+
+  Auto selects float32 on CPU because half-precision kernels can be slower
+  there. An explicit policy supports controlled hardware measurements.
+  """
+  if precision not in ("auto", "float32", "mixed_float16"):
+    raise ValueError(f"unknown precision policy: {precision}")
+  if no_mixed_precision:
+    if precision == "mixed_float16":
+      raise ValueError("no_mixed_precision conflicts with mixed_float16")
+    precision = "float32"
+  if precision == "auto":
+    precision = ("mixed_float16" if tf.config.get_visible_devices("GPU")
+                 else "float32")
+  tf.keras.mixed_precision.set_global_policy(precision)
+  return precision
 
 
 def build_train_dataset(args, epoch: int = 0):
@@ -88,7 +117,8 @@ def build_train_dataset(args, epoch: int = 0):
   shard_epoch = 0 if args.fixed_train_subset else epoch
   return data_lib.make_dataset(
       "train", args.train_shards, batch_size=args.batch_size,
-      training=True, seed=args.seed, gcs_root=args.gcs_root, epoch=shard_epoch)
+      training=True, seed=args.seed, gcs_root=args.gcs_root, epoch=shard_epoch,
+      total_shards=args.total_shards)
 
 
 def build_datasets(args):
@@ -96,7 +126,7 @@ def build_datasets(args):
   train_ds = build_train_dataset(args)
   val_ds = data_lib.make_dataset(
       "validation", args.val_shards, batch_size=args.batch_size,
-      training=False, gcs_root=args.gcs_root)
+      training=False, gcs_root=args.gcs_root, total_shards=args.total_shards)
   return train_ds, val_ds
 
 
@@ -109,7 +139,8 @@ def training_epoch_manifest(args, epoch: int) -> dict:
       "training_completed": False,
       "paths": data_lib.selected_shard_paths(
           "train", args.train_shards, seed=args.seed, epoch=shard_epoch,
-          shuffle_shards=True, gcs_root=args.gcs_root),
+          shuffle_shards=True, gcs_root=args.gcs_root,
+          total_shards=args.total_shards),
   }
 
 
@@ -227,14 +258,11 @@ def main() -> None:
   if args.epochs < 1:
     raise ValueError("epochs must be positive")
   tf.keras.utils.set_random_seed(args.seed)
+  resolved_precision = configure_precision(args.precision, args.no_mixed_precision)
   os.makedirs(args.output_dir, exist_ok=True)
   with open(os.path.join(args.output_dir, "config.json"), "w") as f:
-    json.dump(vars(args), f, indent=2, default=str)
-
-  # Set both branches explicitly so repeated in-process runs do not inherit
-  # the policy of a preceding experiment.
-  tf.keras.mixed_precision.set_global_policy(
-      "float32" if args.no_mixed_precision else "mixed_float16")
+    json.dump({**vars(args), "resolved_precision": resolved_precision,
+               "tensorflow_version": tf.__version__}, f, indent=2, default=str)
 
   num_classes = data_lib.NUM_CLASSES
   train_ds, val_ds = build_datasets(args)
@@ -243,11 +271,12 @@ def main() -> None:
       "schema_version": 1,
       "selection_protocol": "python-random-seed-plus-epoch-v1",
       "gcs_root": args.gcs_root,
-      "total_shards_per_split": data_lib.TOTAL_SHARDS,
+      "total_shards_per_split": args.total_shards,
       "seed": args.seed,
       "training_mode": "fixed" if args.fixed_train_subset else "rotating",
       "validation_paths": data_lib.selected_shard_paths(
-          "validation", args.val_shards, gcs_root=args.gcs_root),
+          "validation", args.val_shards, gcs_root=args.gcs_root,
+          total_shards=args.total_shards),
       "epochs": [],
   }
   write_split_manifest(manifest_path, manifest)
@@ -266,7 +295,7 @@ def main() -> None:
       learning_rate=args.learning_rate, weight_decay=args.weight_decay,
       global_clipnorm=args.grad_clip if args.grad_clip > 0 else None)
   optimizer = base_optimizer
-  if not args.no_mixed_precision:
+  if resolved_precision == "mixed_float16":
     optimizer = tf.keras.mixed_precision.LossScaleOptimizer(base_optimizer)
 
   train_loss = tf.keras.metrics.Mean()

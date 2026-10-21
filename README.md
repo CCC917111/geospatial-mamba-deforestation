@@ -318,7 +318,12 @@ initial learning rate of 2e-4 under a cosine decay [[14]](#ref-14) down to 10% o
 Gradients are clipped to a global norm of 1.0, and mixed-precision training
 [[15]](#ref-15) keeps the compute-heavy operations in float16 with dynamic loss
 scaling while weights and the output head stay in float32. Its speed and
-numerical effects depend on the hardware; use `--no-mixed-precision` on CPU.
+numerical effects depend on the hardware. The default `--precision auto`
+selects float32 on CPU and mixed float16 when a GPU is visible; an explicit
+policy pins a controlled experiment.
+Local TFRecord datasets can use `--data-root` and `--total-shards`; the
+[offline recipe](docs/user.md#local-data-and-offline-checks) covers preflight,
+small-dataset training and checkpoint evaluation without cloud access.
 Each epoch streams 128
 randomly chosen training shards in batches of 16, as described under
 [Training, Validation and Test Sets](#training-validation-and-test-sets).
