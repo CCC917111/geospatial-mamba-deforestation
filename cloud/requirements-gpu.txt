@@ -1,0 +1,2 @@
+-r requirements-common.txt
+tensorflow[and-cuda,gcs-filesystem]==2.21.0

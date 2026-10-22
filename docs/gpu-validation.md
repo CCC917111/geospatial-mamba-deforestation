@@ -67,6 +67,9 @@ cover environment preparation, calibration and the same experiment protocol.
 
 ## Prepare an appropriate execution environment
 
+The [cloud setup guide](cloud-environment.md) covers preparing a fresh CPU or
+GPU runtime and its network/identity requirements.
+
 Use a GPU-enabled environment with a compatible TensorFlow installation,
 driver and CUDA libraries, and authorized read access to the ForTy source.
 Allow the required Google Cloud Storage destinations through the supported

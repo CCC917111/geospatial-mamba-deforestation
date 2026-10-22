@@ -37,7 +37,7 @@ test:
 	$(PYTHON) -m pytest tests -q
 
 lint:
-	$(PYTHON) -m flake8 src tests scripts --max-line-length 88
+	$(PYTHON) -m flake8 src tests scripts cloud --max-line-length 88
 
 clean:
 	rm -rf build dist *.egg-info .pytest_cache

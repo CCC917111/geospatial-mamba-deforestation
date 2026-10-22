@@ -49,6 +49,7 @@ src/mamba_forest/
   compare.py     verify experiment artifacts and summarize paired differences
 tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper
+cloud/           CPU/GPU dependency profiles and runtime readiness checks
 docs/            these pages and the figures
 results/         benchmark numbers and run configuration
 ```
@@ -81,6 +82,7 @@ and [Programming Reference](reference.md) lists the exact signatures.
 | Change what the model is trained on | `data.py` |
 | Change the objective | `losses.py` |
 | Change the loop, metrics or schedule | `train.py` |
+| Prepare a new cloud runtime | [Cloud environment setup](cloud-environment.md) |
 | Apply the model to new data | `predict.py`, [Mapping Your Own Region](apply.md) |
 | Add a modality or a dataset | [Common Tasks](tasks.md) |
 | Understand why something is built this way | [High-level Design](design.md) |

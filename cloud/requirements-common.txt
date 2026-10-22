@@ -1,0 +1,7 @@
+# Direct dependencies from the validated Python 3.12 CPU runtime.
+# CUDA/GCS transitive versions are resolved and recorded on the target host.
+keras==3.15.1
+numpy==2.5.4
+matplotlib==3.11.2
+pytest==9.1.1
+flake8==7.4.1

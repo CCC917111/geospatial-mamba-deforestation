@@ -245,3 +245,25 @@ Final workflow checks: 183 tests passed in 53.65 seconds; flake8 and
 emitted 865 NumPy deprecation warnings. These checks establish offline workflow
 integrity; real-data accuracy, geographic independence and GPU throughput
 remain unmeasured.
+
+### New environment preparation — 2026-10-22
+
+The [cloud setup guide](cloud-environment.md), CPU/GPU dependency profiles and
+`scripts/setup_cloud_env.sh` prepare a fresh Python 3.12 virtual environment on
+an existing host. The GPU profile installs the CUDA-enabled TensorFlow package
+with its CUDA and GCS extras; the CPU profile omits the CUDA extra. Direct
+dependency versions match the local tested runtime, while target-specific
+dependencies are resolved and retained after installation.
+
+The setup script preserves inherited network/credential settings and rejects
+existing virtual environments after normalizing their paths. Driver failure
+stops GPU installation before environment creation. A standalone readiness
+checker verifies GCS registration and finite convolution gradients on the
+requested device, with CPU fallback disabled for GPU checks.
+
+All 190 tests passed in 59.85 seconds; lint, shell syntax and diff checks
+passed. The standalone checker passed on the current CPU runtime and rejected
+it as a GPU runtime. No new host was created, no target installation was run,
+and no billable resources were provisioned. Provider, account connection and
+budget remain required before deployment; the current environment interface
+exposes inspection only.

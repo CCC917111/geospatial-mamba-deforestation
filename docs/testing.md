@@ -106,6 +106,10 @@ suite needs is in `requirements.txt`.
   preservation without starting long training jobs.
 - `test_comparison.py` checks paired summaries against retained artifact
   contracts and rejects incomplete or inconsistent comparisons.
+- `test_cloud_environment.py` checks installation planning without execution,
+  protection of existing environments including normalized path aliases,
+  driver failure before installation, actual CPU convolution gradients and
+  rejection of missing GPU/GCS support. It installs no packages or cloud resources.
 
 ## What is not covered
 

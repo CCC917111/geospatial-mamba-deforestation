@@ -54,5 +54,5 @@ with the conventions below applied consistently across the package.
 ## Checking
 
 ```bash
-make lint          # python -m flake8 src tests scripts --max-line-length 88
+make lint          # python -m flake8 src tests scripts cloud --max-line-length 88
 ```
