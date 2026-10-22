@@ -32,9 +32,10 @@ flag to reach for first. The encoder and decoder channel schedule lives in the
 `_encoder_block` and `_decoder_block` calls in `__init__` and is deliberately
 explicit, so changing `64 / 128 / 256` is a one-line edit per stage.
 
-Whatever you change, the same value has to be passed to
-`python -m mamba_forest.evaluate --d-model`, since the checkpoint only stores
-weights.
+Evaluation and prediction read those settings from the training `config.json`
+beside the weights. If a checkpoint is moved without that file, pass
+`--config` with the original path or specify matching architecture flags.
+`--no-config` disables discovery when explicitly configuring standalone weights.
 
 ## Change the objective
 

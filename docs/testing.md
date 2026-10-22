@@ -86,12 +86,17 @@ suite needs is in `requirements.txt`.
   empty-data errors and evaluation provenance.
 - `test_training.py` checks fixed/rotating manifests and a two-epoch synthetic
   training run on a four-shard local dataset, with checkpoints, timings and
-  automatic CPU float32 selection without loss scaling.
+  automatic CPU float32 selection without loss scaling. It also verifies that
+  a rejected rerun preserves the previous checkpoint and configuration.
+- `test_checkpoint_config.py` checks configuration precedence, legacy defaults,
+  explicit config selection, opt-out, malformed files, effective-value
+  validation and exclusion of data/precision settings from architecture.
 - `test_precision.py` checks compute dtypes, visible-device selection, explicit
   precision, the legacy float32 flag and early conflict rejection. GPU
   discovery is mocked in selection tests; these are not GPU execution tests.
 - `test_predict.py` checks graph/eager agreement, dynamic tile sizes and the
-  input contract.
+  input contract, plus real nondefault checkpoint loading through adjacent,
+  explicit and standalone configuration paths.
 - `test_benchmark.py` checks timing aggregation and warmup accounting.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure

@@ -88,6 +88,11 @@ Written to `--output-dir`:
 - `best.weights.h5` — the checkpoint with the best Overall F1.
 - `last.weights.h5` — the most recent checkpoint.
 
+Use a fresh `--output-dir` for each training run. A directory containing
+`*.weights.h5` is rejected before configuration writes or dataset access,
+keeping an existing checkpoint paired with its original configuration.
+Training does not resume from those weights automatically.
+
 ## Local data and offline checks
 
 Once dependencies are installed, code changes, tests, local data preflight,
@@ -117,8 +122,7 @@ python -m mamba_forest.train --data-root ./local_forty \
 
 python -m mamba_forest.evaluate --data-root ./local_forty \
     --total-shards 4 --test-shards 1 --batch-size 1 \
-    --d-model 8 --d-state-temporal 4 --d-state-spatial 4 \
-    --bottleneck-channels 32 --weights runs/offline/best.weights.h5
+    --weights runs/offline/best.weights.h5
 ```
 
 `--precision auto` selects float32 when no GPU is visible and mixed float16
@@ -143,14 +147,24 @@ python -m mamba_forest.evaluate \
 This prints pixel accuracy, mean IoU and the benchmark columns — `Overall`
 (macro F1 over the nine classes), `Forests` (mean F1 of the three forest
 types) and `N`, `P`, `TC` (the F1 of natural forest, planted forest and tree
-crops) — and writes `test_metrics.json` next to the weights. A
-checkpoint stores weights and not the architecture, so the four architecture
-flags — `--d-model`, `--d-state-temporal`, `--d-state-spatial` and
-`--bottleneck-channels` — must be given the same values they had during
-training, or `load_weights` will refuse the checkpoint.
+crops) — and writes `test_metrics.json` next to the weights. Evaluation and
+prediction read the five model settings (`d_model`, `dropout`,
+`d_state_temporal`, `d_state_spatial`, `bottleneck_channels`) from `config.json`
+beside the weights. Explicit architecture flags override saved values; missing
+settings fall back to the original model defaults.
+
+When moving a checkpoint, keep its training configuration beside it or pass
+`--config /path/to/training/config.json`. `--no-config` disables automatic
+discovery and uses explicit flags plus defaults. It cannot be combined with
+`--config`. A missing automatically discovered file is allowed; a missing
+explicit file, malformed JSON or an invalid effective model setting is an
+error before data reads. The resolved architecture must still match the
+weights. Automatic loading does not change data roots, split budgets or
+inference precision; those remain controlled by the current command/runtime.
 
 The JSON also records exact test shard paths, checkpoint SHA-256, model and
-runtime settings, pixel count, per-class support and the confusion matrix.
+runtime settings, the training-config path when used, pixel count, per-class
+support and the confusion matrix.
 Mean IoU excludes classes absent from both truth and prediction; macro F1
 includes all nine classes and assigns zero to absent classes. Validation and
 test use the first N shards without augmentation. An empty split is an error.

@@ -36,6 +36,14 @@ OPTICAL_CHANNELS = 10   # Sentinel-2 bands
 ELEVATION_CHANNELS = 3  # elevation, slope, aspect
 CLIMATE_CHANNELS = 14   # climate variables per time step
 
+MODEL_DEFAULTS = {
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+}
+
 
 class MambaForestSegmenter(tf.keras.Model):
   """CNN-Mamba segmenter for multi-modal forest typology mapping.
@@ -49,9 +57,11 @@ class MambaForestSegmenter(tf.keras.Model):
     bottleneck_channels: channel width of the bottleneck feature map.
   """
 
-  def __init__(self, num_classes: int, d_model: int = 32,
-               dropout_rate: float = 0.2, d_state_temporal: int = 8,
-               d_state_spatial: int = 16, bottleneck_channels: int = 512,
+  def __init__(self, num_classes: int, d_model: int = MODEL_DEFAULTS["d_model"],
+               dropout_rate: float = MODEL_DEFAULTS["dropout_rate"],
+               d_state_temporal: int = MODEL_DEFAULTS["d_state_temporal"],
+               d_state_spatial: int = MODEL_DEFAULTS["d_state_spatial"],
+               bottleneck_channels: int = MODEL_DEFAULTS["bottleneck_channels"],
                **kwargs):
     super().__init__(**kwargs)
     self.num_classes = num_classes

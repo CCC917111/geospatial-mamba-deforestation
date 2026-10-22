@@ -444,6 +444,7 @@ on the [Developer Overview](docs/developer.md) page.
 │   ├── data.py               # ForTy v1 streaming, normalisation, augmentation
 │   ├── layers.py             # Mamba block, SASF, dynamic multi-modal fusion
 │   ├── model.py              # CNN-Mamba U-Net segmenter
+│   ├── checkpoint.py         # saved training-config resolution for inference
 │   ├── losses.py             # weighted cross-entropy + Dice objective
 │   ├── train.py              # training loop, metrics, checkpointing
 │   ├── evaluate.py           # test-split evaluation

@@ -86,6 +86,31 @@ def test_split_manifest_counts_only_completed_unique_membership(tmp_path):
   assert saved["epochs"][1]["paths"] == ["b", "c"]
 
 
+@pytest.mark.parametrize("checkpoint_name", ["best.weights.h5", "export.weights.h5"])
+def test_existing_checkpoint_and_config_survive_rejected_training_rerun(
+      tmp_path, monkeypatch, checkpoint_name):
+  run = tmp_path / "run"
+  run.mkdir()
+  config_bytes = b'{"d_model": 4, "dropout": 0.1}'
+  checkpoint_bytes = b"previous checkpoint contents"
+  (run / "config.json").write_bytes(config_bytes)
+  (run / checkpoint_name).write_bytes(checkpoint_bytes)
+  monkeypatch.setattr(sys, "argv", [
+      "train", "--output-dir", str(run), "--d-model", "8"])
+
+  def unexpected_training_io(*args, **kwargs):
+    pytest.fail("existing checkpoint must be protected before dataset access")
+
+  monkeypatch.setattr(train, "build_datasets", unexpected_training_io)
+  previous_policy = tf.keras.mixed_precision.global_policy().name
+  with pytest.raises(FileExistsError, match="choose a new --output-dir"):
+    train.main()
+  assert (run / "config.json").read_bytes() == config_bytes
+  assert (run / checkpoint_name).read_bytes() == checkpoint_bytes
+  assert {path.name for path in run.iterdir()} == {"config.json", checkpoint_name}
+  assert tf.keras.mixed_precision.global_policy().name == previous_policy
+
+
 def _small_record(shapes, seed):
   rng = np.random.default_rng(seed)
   features = {}

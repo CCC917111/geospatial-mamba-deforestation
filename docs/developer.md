@@ -37,6 +37,7 @@ src/mamba_forest/
   data.py        ForTy v1 streaming, normalisation, augmentation, batching
   layers.py      MambaBlock, StructureAwareStateFusion, DynamicMultiModalFusion
   model.py       MambaForestSegmenter, the five-stage network
+  checkpoint.py  shared architecture defaults and saved-config resolution
   losses.py      ComboLoss, weighted cross-entropy plus soft Dice
   train.py       training loop, metrics, checkpointing, CLI
   evaluate.py    test-split evaluation, CLI

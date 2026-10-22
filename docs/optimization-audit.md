@@ -162,6 +162,31 @@ semantics. Invalid class counts, smoothing settings, stabilizers and weights
 fail during construction. Numerical loss, gradient and serialization checks
 cover NumPy arrays, lists and tuples.
 
+### Checkpoint configuration follow-up — 2026-10-22
+
+Evaluation and prediction now restore the five architecture settings from the
+flat training `config.json` beside the weights. Explicit CLI values take
+precedence; absent settings use shared, unchanged model defaults. `--config`
+selects a moved checkpoint's training configuration, and `--no-config` disables
+automatic discovery. Only architecture fields are read; dataset paths and
+runtime precision are not inherited. Malformed configurations and invalid
+effective values fail before dataset or tile IO.
+
+Training previously wrote a new `config.json` before attempting to read data.
+A failed rerun in a directory with old weights could therefore pair those
+weights with the new configuration. Training now rejects an output directory
+containing `*.weights.h5` before writing configuration or changing precision.
+Preflight-only directories remain usable, and existing checkpoints are not
+implicitly resumed. A fresh output directory is required for a new run.
+
+Integration tests save actual nondefault model weights and reload them without
+manual architecture flags. Evaluation reproduces the original model's confusion
+matrix on local synthetic TFRecords. Prediction reproduces the original eager
+probabilities through adjacent-config, explicit-config and standalone/manual
+paths. Regression tests also preserve existing weight/config bytes after a
+rejected training rerun. These checks verify configuration and checkpoint
+integrity, not real-data accuracy or GPU performance.
+
 ### Automated checks
 
 The baseline's 17 tests passed before changes. New tests cover local TFRecord
@@ -174,10 +199,11 @@ metrics and reloads both checkpoints; the final checkpoint reproduces the
 trained model's output. Tests use synthetic data and do not replace a real
 ForTy validation run.
 
-Final offline checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 72 tests
-passed in 44.57 seconds, flake8 passed and `git diff --check` passed. All 17
-Bash blocks in the user guide and GPU runbook passed syntax checks. The preflight tests
+Final offline checks on TensorFlow CPU 2.21.0 / Python 3.12.14: all 136 tests
+passed in 57.87 seconds, flake8 passed and `git diff --check` passed. All 19
+Bash blocks in the user guide, prediction guide and GPU runbook passed syntax
+checks. The preflight tests
 include malformed raw-feature diagnostics, optional metadata, observed duplicate
 IDs, invalid inputs and the GPU gate before record IO. Keras checkpoint
-serialization emitted 433 NumPy `__array__(copy=...)` deprecation warnings;
+serialization emitted 757 NumPy `__array__(copy=...)` deprecation warnings;
 checkpoint reload and prediction-equivalence checks passed despite them.

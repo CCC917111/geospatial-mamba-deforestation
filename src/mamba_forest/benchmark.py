@@ -25,7 +25,7 @@ import tensorflow as tf
 
 from mamba_forest import data as data_lib
 from mamba_forest.losses import ComboLoss
-from mamba_forest.model import MambaForestSegmenter
+from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
 from mamba_forest.train import scale_loss, unscale_gradients
 
 
@@ -45,11 +45,14 @@ def parse_args(argv=None) -> argparse.Namespace:
   parser.add_argument("--steps", type=int, default=10)
   parser.add_argument("--warmup", type=int, default=3)
   parser.add_argument("--seed", type=int, default=42)
-  parser.add_argument("--d-model", type=int, default=32)
-  parser.add_argument("--d-state-temporal", type=int, default=8)
-  parser.add_argument("--d-state-spatial", type=int, default=16)
-  parser.add_argument("--bottleneck-channels", type=int, default=512)
-  parser.add_argument("--dropout", type=float, default=0.2)
+  parser.add_argument("--d-model", type=int, default=MODEL_DEFAULTS["d_model"])
+  parser.add_argument("--d-state-temporal", type=int,
+                      default=MODEL_DEFAULTS["d_state_temporal"])
+  parser.add_argument("--d-state-spatial", type=int,
+                      default=MODEL_DEFAULTS["d_state_spatial"])
+  parser.add_argument("--bottleneck-channels", type=int,
+                      default=MODEL_DEFAULTS["bottleneck_channels"])
+  parser.add_argument("--dropout", type=float, default=MODEL_DEFAULTS["dropout_rate"])
   parser.add_argument("--output", type=Path, help="Optional JSON output path")
   args = parser.parse_args(argv)
   for name in ("tile_size", "batch_size", "steps", "warmup", "d_model",

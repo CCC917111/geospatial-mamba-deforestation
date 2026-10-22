@@ -36,6 +36,7 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
+from mamba_forest import checkpoint
 from mamba_forest import data as data_lib
 from mamba_forest.model import MambaForestSegmenter
 
@@ -69,16 +70,13 @@ def parse_args() -> argparse.Namespace:
                  help="Also write a colour-mapped PNG next to each class map")
   p.add_argument("--save-probabilities", action="store_true",
                  help="Also write the full per-class probability tensor per tile")
-  p.add_argument("--d-model", type=int, default=32,
-                 help="Must match the value used for training")
-  p.add_argument("--dropout", type=float, default=0.2)
-  p.add_argument("--d-state-temporal", type=int, default=8,
-                 help="Must match the value used for training")
-  p.add_argument("--d-state-spatial", type=int, default=16,
-                 help="Must match the value used for training")
-  p.add_argument("--bottleneck-channels", type=int, default=512,
-                 help="Must match the value used for training")
-  return p.parse_args()
+  checkpoint.add_model_arguments(p)
+  args = p.parse_args()
+  try:
+    checkpoint.resolve_model_arguments(args)
+  except (ValueError, OSError) as error:
+    p.error(str(error))
+  return args
 
 
 def load_tile(path: Path) -> dict[str, np.ndarray]:

@@ -20,6 +20,7 @@ import os
 import tensorflow as tf
 
 from mamba_forest import data as data_lib
+from mamba_forest.checkpoint import add_model_arguments, resolve_model_arguments
 from mamba_forest.model import MambaForestSegmenter
 from mamba_forest.train import evaluate, forest_scores
 
@@ -35,19 +36,15 @@ def parse_args() -> argparse.Namespace:
                  help="Total shards per split, including the filename suffix")
   p.add_argument("--test-shards", type=int, default=64)
   p.add_argument("--batch-size", type=int, default=16)
-  p.add_argument("--d-model", type=int, default=32,
-                 help="Must match the value used for training")
-  p.add_argument("--dropout", type=float, default=0.2)
-  p.add_argument("--d-state-temporal", type=int, default=8,
-                 help="Must match the value used for training")
-  p.add_argument("--d-state-spatial", type=int, default=16,
-                 help="Must match the value used for training")
-  p.add_argument("--bottleneck-channels", type=int, default=512,
-                 help="Must match the value used for training")
+  add_model_arguments(p)
   p.add_argument("--output-dir", default=None,
                  help="Where to write test_metrics.json "
                       "(defaults to the directory of the weights)")
-  return p.parse_args()
+  args = p.parse_args()
+  try:
+    return resolve_model_arguments(args)
+  except (ValueError, OSError) as error:
+    p.error(str(error))
 
 
 def weights_sha256(path: str) -> str:
@@ -103,6 +100,7 @@ def main() -> None:
   metrics = {
       "weights": args.weights,
       "weights_sha256": checkpoint_sha256,
+      "training_config_path": getattr(args, "training_config_path", None),
       "gcs_root": args.gcs_root,
       "split": "test",
       "test_shards": args.test_shards,

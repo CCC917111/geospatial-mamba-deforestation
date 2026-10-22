@@ -20,6 +20,7 @@ import argparse
 import json
 import math
 import os
+from pathlib import Path
 import time
 
 import numpy as np
@@ -27,7 +28,7 @@ import tensorflow as tf
 
 from mamba_forest import data as data_lib
 from mamba_forest.losses import DEFAULT_CLASS_WEIGHTS, ComboLoss
-from mamba_forest.model import MambaForestSegmenter
+from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
 
 BASE_COLUMNS = [
     "epoch", "train_loss", "val_accuracy", "val_mean_iou",
@@ -62,14 +63,17 @@ def parse_args() -> argparse.Namespace:
   p.add_argument("--lr-alpha", type=float, default=0.1,
                  help="Final learning rate as a fraction of the initial one")
   p.add_argument("--weight-decay", type=float, default=5e-3)
-  p.add_argument("--d-model", type=int, default=32,
+  p.add_argument("--d-model", type=int, default=MODEL_DEFAULTS["d_model"],
                  help="Channel width after modality projection and fusion")
-  p.add_argument("--dropout", type=float, default=0.2)
-  p.add_argument("--d-state-temporal", type=int, default=8,
+  p.add_argument("--dropout", type=float, default=MODEL_DEFAULTS["dropout_rate"])
+  p.add_argument("--d-state-temporal", type=int,
+                 default=MODEL_DEFAULTS["d_state_temporal"],
                  help="State dimension of the temporal Mamba block")
-  p.add_argument("--d-state-spatial", type=int, default=16,
+  p.add_argument("--d-state-spatial", type=int,
+                 default=MODEL_DEFAULTS["d_state_spatial"],
                  help="State dimension of the spatial Mamba block")
-  p.add_argument("--bottleneck-channels", type=int, default=512,
+  p.add_argument("--bottleneck-channels", type=int,
+                 default=MODEL_DEFAULTS["bottleneck_channels"],
                  help="Channel width of the bottleneck feature map")
   p.add_argument("--combo-alpha", type=float, default=0.4,
                  help="Weight of the cross-entropy term against the Dice term")
@@ -110,6 +114,16 @@ def configure_precision(precision: str = "auto",
                  else "float32")
   tf.keras.mixed_precision.set_global_policy(precision)
   return precision
+
+
+def prepare_output_directory(output_dir: str) -> None:
+  """Creates a fresh run directory without relabeling existing checkpoints."""
+  directory = Path(output_dir)
+  if any(directory.glob("*.weights.h5")):
+    raise FileExistsError(
+        f"{directory} already contains checkpoint weights; "
+        "choose a new --output-dir to keep its config.json paired with its weights")
+  directory.mkdir(parents=True, exist_ok=True)
 
 
 def build_train_dataset(args, epoch: int = 0):
@@ -257,9 +271,9 @@ def main() -> None:
   args = parse_args()
   if args.epochs < 1:
     raise ValueError("epochs must be positive")
+  prepare_output_directory(args.output_dir)
   tf.keras.utils.set_random_seed(args.seed)
   resolved_precision = configure_precision(args.precision, args.no_mixed_precision)
-  os.makedirs(args.output_dir, exist_ok=True)
   with open(os.path.join(args.output_dir, "config.json"), "w") as f:
     json.dump({**vars(args), "resolved_precision": resolved_precision,
                "tensorflow_version": tf.__version__}, f, indent=2, default=str)

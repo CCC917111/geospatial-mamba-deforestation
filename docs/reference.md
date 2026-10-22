@@ -97,6 +97,7 @@ for the full list of flags; the defaults reproduce the configuration in
 | Function | Purpose |
 |---|---|
 | `configure_precision(precision, no_mixed_precision)` | Resolves auto from visible GPUs and explicitly sets the compute policy. |
+| `prepare_output_directory(output_dir)` | Creates a run directory; rejects existing checkpoint weights before config writes. |
 | `build_datasets(args)` | Training and validation datasets from the parsed flags. |
 | `build_train_dataset(args, epoch)` | Explicit training subset for a zero-based epoch. |
 | `training_epoch_manifest(args, epoch)` | Paths and status for a one-based training epoch. |
@@ -116,11 +117,27 @@ Outputs written to `--output-dir`: `config.json` with the resolved flags,
 
 Command-line entry point, `python -m mamba_forest.evaluate --weights ...`. It
 rebuilds the network, restores a checkpoint, evaluates the test split and
-writes `test_metrics.json` next to the weights. Run it with `--help` for the
-full list of flags; the four architecture flags — `--d-model`,
-`--d-state-temporal`, `--d-state-spatial` and `--bottleneck-channels` — have to
-match the values the checkpoint was trained with, since a checkpoint stores
-weights and not the architecture.
+writes `test_metrics.json` next to the weights, including the resolved model
+config and training-config path when used. Architecture flags override the
+training `config.json` beside the checkpoint; unspecified values come from
+that file or the original model defaults. The resolved values must match the
+weights. `--config` selects a different local training-config path and
+`--no-config` disables discovery. Neither option inherits data paths or
+runtime precision.
+
+## `mamba_forest.checkpoint`
+
+| Name | Purpose |
+|---|---|
+| `add_model_arguments(parser)` | Adds architecture flags and mutually exclusive `--config` / `--no-config`. |
+| `resolve_model_arguments(args)` | Resolves CLI, saved config and defaults in that order; validates effective values and returns the updated namespace. |
+
+The resolver preserves the legacy `args.dropout` name and records
+`args.training_config_path`. It only reads the five recognized architecture
+settings from a flat training JSON object. A missing implicit sidecar uses
+defaults; explicit missing files, malformed JSON and invalid effective values
+raise an error. Positive integer capacities and finite dropout in `[0, 1)`
+are required. `model.MODEL_DEFAULTS` is the shared source of model defaults.
 
 ## `mamba_forest.predict`
 
@@ -139,7 +156,7 @@ the outputs.
 | `colourise(class_map)` | `[H, W]` class indices to an `[H, W, 3]` `uint8` image. |
 | `class_shares(class_map, num_classes)` | Pixel fraction per class. |
 
-The same four architecture flags as `evaluate` apply, for the same reason.
+The same architecture/config resolution as `evaluate` applies.
 
 ## `scripts/plot_results.py`
 

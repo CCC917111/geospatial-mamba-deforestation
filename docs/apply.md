@@ -84,9 +84,14 @@ python -m mamba_forest.predict \
     --save-png
 ```
 
-The four architecture flags (`--d-model`, `--d-state-temporal`,
-`--d-state-spatial`, `--bottleneck-channels`) have to match the values the
-checkpoint was trained with; the defaults match `make train`.
+Prediction automatically reads model settings from `config.json` beside the
+weights. Keep that file when moving a trained checkpoint, or pass
+`--config /path/to/training/config.json`. Explicit architecture flags override
+saved settings; absent settings use the original defaults. `--no-config`
+disables discovery for a standalone checkpoint. The resolved architecture
+must match the weights. Invalid configuration errors occur before tile reads.
+Only architecture is inherited; input/output paths and runtime precision
+remain controlled by the current command/runtime.
 
 ## What you get back
 
