@@ -72,20 +72,19 @@ both objectives with the same seed, fixed subset, model, precision, batch size,
 epoch limit and validation/test paths:
 
 ```bash
-python -m mamba_forest.train --seed 42 --fixed-train-subset \
-    --output-dir runs/combo
-python -m mamba_forest.train --seed 42 --fixed-train-subset \
-    --combo-alpha 1 --no-class-weights --label-smoothing 0 \
-    --output-dir runs/unweighted_ce
-python -m mamba_forest.evaluate --weights runs/combo/best.weights.h5
-python -m mamba_forest.evaluate --weights runs/unweighted_ce/best.weights.h5
+python -m mamba_forest.experiment --run-root runs/objective-pair
+# Review plan.json, then run the same settings on the prepared GPU environment.
+python -m mamba_forest.experiment --run-root runs/objective-pair --execute
+python -m mamba_forest.compare --run-root runs/objective-pair
 ```
 
-Compare manifests and test support before comparing metrics. Checkpoint
-selection uses the same validation macro F1 rule in both runs. Repeat with
-several paired seeds, report the actual epochs and training time, and evaluate
-the full test split (`--test-shards 1024`) for comparison with full-benchmark
-results. Isolate one loss setting at a time when attributing its effect.
+The default plan uses three seeds, fixed 128/8 training/validation shards,
+40 epochs with early stopping disabled, and all 1,024 test shards. All training
+finishes before evaluation starts. The comparator checks manifests, example
+budgets, test support, model settings, checkpoint hashes, exact best validation
+epochs and confusion-derived scores before reporting paired differences and
+timings. Plain CE changes Dice, weighting and smoothing together; isolate one
+loss setting at a time when attributing its effect.
 
 The [GPU validation runbook](../docs/gpu-validation.md) expands this into a
 real-record preflight, smoke run, paired three-seed protocol and full-test
@@ -98,6 +97,10 @@ evaluation. These experiments have not run in the current CPU environment.
   steps after two warmups; eager median 316.54 ms, graph median 149.01 ms.
 - `forty_gpu_preflight.json`: the GPU requirement failed on this CPU runtime;
   no source records were opened and no real-data validation result is implied.
+- `paired_pipeline_smoke.json`: both objectives completed two CPU epochs on
+  one synthetic 128×128 tile per split, reloaded saved configurations and
+  passed all seven workflow stages and paired artifact checks. Its coverage
+  refers to the one-shard synthetic fixture. No real-data score is reported.
 
 The timing artifacts contain raw synchronized CPU timings and configuration. They
 exclude source IO and measure fixed-shape model compute, so they do not report

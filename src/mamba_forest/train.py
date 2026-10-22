@@ -27,6 +27,7 @@ import numpy as np
 import tensorflow as tf
 
 from mamba_forest import data as data_lib
+from mamba_forest.checkpoint import weights_sha256
 from mamba_forest.losses import DEFAULT_CLASS_WEIGHTS, ComboLoss
 from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
 
@@ -232,6 +233,8 @@ def evaluate(model, dataset, num_classes: int, return_confusion: bool = False):
   @tf.function(reduce_retracing=True)
   def accumulate(inputs, labels):
     predictions = model(inputs, training=False)
+    predictions = tf.debugging.assert_all_finite(
+        predictions, "evaluation predictions contain non-finite values")
     y_true = tf.argmax(labels, axis=-1)
     y_pred = tf.argmax(predictions, axis=-1)
     confusion.assign_add(tf.math.confusion_matrix(
@@ -395,13 +398,29 @@ def main() -> None:
     with open(results_path, "w") as f:
       f.write(",".join(columns) + "\n")
       for r in history:
-        f.write(f"{r[0]}," + ",".join(f"{v:.6f}" for v in r[1:]) + "\n")
+        # Preserve the exact selection scores, including improvements that
+        # would tie after rounding to six decimal places.
+        f.write(f"{r[0]}," + ",".join(f"{v:.17g}" for v in r[1:]) + "\n")
 
     model.save_weights(os.path.join(args.output_dir, "last.weights.h5"))
     if scores["overall_f1"] > best_score:
       best_score = scores["overall_f1"]
       epochs_without_improvement = 0
       model.save_weights(os.path.join(args.output_dir, "best.weights.h5"))
+      selection_path = os.path.join(args.output_dir, "checkpoint_selection.json")
+      with open(selection_path + ".tmp", "w") as handle:
+        json.dump({
+            "schema_version": 1,
+            "criterion": "validation_overall_f1",
+            "mode": "max",
+            "tie_break": "first",
+            "epoch": epoch,
+            "score": best_score,
+            "weights": "best.weights.h5",
+            "weights_sha256": weights_sha256(
+                os.path.join(args.output_dir, "best.weights.h5")),
+        }, handle, indent=2)
+      os.replace(selection_path + ".tmp", selection_path)
       print(f"  new best overall F1: {best_score:.4f}")
     else:
       epochs_without_improvement += 1

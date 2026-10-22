@@ -34,16 +34,19 @@ reported number comes from it.
 
 ```
 src/mamba_forest/
+  constants.py   framework-free dataset metadata and architecture defaults
   data.py        ForTy v1 streaming, normalisation, augmentation, batching
   layers.py      MambaBlock, StructureAwareStateFusion, DynamicMultiModalFusion
   model.py       MambaForestSegmenter, the five-stage network
-  checkpoint.py  shared architecture defaults and saved-config resolution
+  checkpoint.py  saved-config resolution and weight-file identity
   losses.py      ComboLoss, weighted cross-entropy plus soft Dice
   train.py       training loop, metrics, checkpointing, CLI
   evaluate.py    test-split evaluation, CLI
   predict.py     apply a checkpoint to your own tiles, CLI
   validate_data.py  inspect actual source records and GPU availability, CLI
   benchmark.py   synchronized synthetic model-compute measurements, CLI
+  experiment.py  plan and execute fixed-split paired objective experiments
+  compare.py     verify experiment artifacts and summarize paired differences
 tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper
 docs/            these pages and the figures

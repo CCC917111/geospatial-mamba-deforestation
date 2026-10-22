@@ -8,12 +8,13 @@ read; data paths, precision and all other training configuration stay separate.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import numbers
 from pathlib import Path
 
-from mamba_forest.model import MODEL_DEFAULTS
+from mamba_forest.constants import MODEL_DEFAULTS
 
 _ARGUMENT_TO_MODEL_KEY = {
     "d_model": "d_model",
@@ -22,6 +23,15 @@ _ARGUMENT_TO_MODEL_KEY = {
     "d_state_spatial": "d_state_spatial",
     "bottleneck_channels": "bottleneck_channels",
 }
+
+
+def weights_sha256(path: str | Path) -> str:
+  """Identifies checkpoint bytes without loading the whole file into memory."""
+  digest = hashlib.sha256()
+  with open(path, "rb") as checkpoint:
+    for chunk in iter(lambda: checkpoint.read(1024 * 1024), b""):
+      digest.update(chunk)
+  return digest.hexdigest()
 
 
 def add_model_arguments(parser: argparse.ArgumentParser) -> None:

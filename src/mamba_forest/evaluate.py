@@ -13,7 +13,6 @@ Example:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 
@@ -21,6 +20,7 @@ import tensorflow as tf
 
 from mamba_forest import data as data_lib
 from mamba_forest.checkpoint import add_model_arguments, resolve_model_arguments
+from mamba_forest.checkpoint import weights_sha256
 from mamba_forest.model import MambaForestSegmenter
 from mamba_forest.train import evaluate, forest_scores
 
@@ -45,15 +45,6 @@ def parse_args() -> argparse.Namespace:
     return resolve_model_arguments(args)
   except (ValueError, OSError) as error:
     p.error(str(error))
-
-
-def weights_sha256(path: str) -> str:
-  """Identifies a local checkpoint without loading its bytes into memory."""
-  digest = hashlib.sha256()
-  with open(path, "rb") as checkpoint:
-    for chunk in iter(lambda: checkpoint.read(1024 * 1024), b""):
-      digest.update(chunk)
-  return digest.hexdigest()
 
 
 def main() -> None:

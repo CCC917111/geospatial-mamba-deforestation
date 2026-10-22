@@ -89,6 +89,14 @@ def test_empty_and_zero_pixel_datasets_are_rejected():
     evaluate(PredictionModel(), empty_pixels, 4)
 
 
+def test_non_finite_predictions_are_rejected_before_confusion_updates():
+  model = PredictionModel()
+  model.offset.assign(float("nan"))
+  with pytest.raises(tf.errors.InvalidArgumentError,
+                     match="evaluation predictions contain non-finite"):
+    evaluate(model, _dataset(*_examples()), 4)
+
+
 def test_forest_scores_use_declared_class_indices():
   f1 = np.arange(data_lib.NUM_CLASSES, dtype=np.float64) / 10
   scores = forest_scores(f1)

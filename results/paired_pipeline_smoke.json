@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "validation_kind": "synthetic_cpu_pipeline",
+  "date_utc": "2026-10-22",
+  "status": "passed",
+  "scope": "Offline workflow integrity only; no real ForTy accuracy or GPU performance measurement.",
+  "fixture": {
+    "kind": "synthetic",
+    "examples_per_split": 1,
+    "total_shards_per_split": 1,
+    "tile_shape": [
+      128,
+      128
+    ],
+    "all_nine_classes_present": true,
+    "manifest_sha256": "180d5c9d875910f2939c73614a5027143bfe85859287c93cf97ce27b85cad2db"
+  },
+  "configuration": {
+    "seeds": [
+      42
+    ],
+    "epochs_per_arm": 2,
+    "batch_size": 1,
+    "training_precision": "float32",
+    "evaluation_precision": "float32",
+    "d_model": 4,
+    "d_state_temporal": 2,
+    "d_state_spatial": 2,
+    "bottleneck_channels": 8,
+    "dropout": 0.0
+  },
+  "stages": [
+    {
+      "id": "runtime_probe",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "preflight_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "train_combo_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "train_plain_ce_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "evaluate_combo_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "evaluate_plain_ce_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "compare",
+      "state": "completed",
+      "returncode": 0
+    }
+  ],
+  "runs": [
+    {
+      "objective": "combo",
+      "epochs_completed": 2,
+      "training_examples_total": 2,
+      "best_validation_epoch": 1,
+      "selected_checkpoint_sha256": "f3fcd6449ffe062009e01f0c4b2797e99947503b43962ace54c8488fc0940a7a",
+      "test_pixels": 16384,
+      "saved_architecture_restored": true
+    },
+    {
+      "objective": "plain_ce",
+      "epochs_completed": 2,
+      "training_examples_total": 2,
+      "best_validation_epoch": 2,
+      "selected_checkpoint_sha256": "ff539fa6466eed500c2f86ce9ef574324c4f36ce252c22491ad3f09fa9319922",
+      "test_pixels": 16384,
+      "saved_architecture_restored": true
+    }
+  ],
+  "paired_artifact_validation": "passed",
+  "single_seed_sample_standard_deviation": null,
+  "default_gpu_gate": {
+    "status": "failed_as_expected",
+    "failure_stage": "runtime_probe",
+    "data_preflight_started": false
+  },
+  "local_artifacts": "runs/paired-pipeline-smoke-final",
+  "limitations": [
+    "Synthetic fixture covers one record per split.",
+    "Full coverage refers only to this one-shard synthetic fixture.",
+    "No real-data objective ranking or geographic split validation."
+  ]
+}

@@ -207,3 +207,41 @@ include malformed raw-feature diagnostics, optional metadata, observed duplicate
 IDs, invalid inputs and the GPU gate before record IO. Keras checkpoint
 serialization emitted 757 NumPy `__array__(copy=...)` deprecation warnings;
 checkpoint reload and prediction-equivalence checks passed despite them.
+
+### Paired experiment workflow — 2026-10-22
+
+`mamba_forest.experiment` now generates a framework-free plan and executes
+paired fixed-subset ComboLoss/plain-CE runs in fresh directories. It preserves
+commands, source/package metadata, stage status, logs and process wall times.
+The GPU probe and per-seed data preflight precede training, and all training
+artifacts are checked before test evaluation starts. CPU execution is an
+explicit option for small offline checks.
+
+`mamba_forest.compare` checks complete training budgets, seeded memberships,
+objective settings, effective model/runtime conditions, class support and
+checkpoint hashes. It recomputes test scores from confusion matrices before
+reporting paired differences in percentage points and sample standard
+deviations. It reports coverage and timing scopes alongside the scores.
+Shard paths and class support do not establish source-content identity or
+geographic independence.
+
+Checkpoint selection formerly used unrounded validation scores while the CSV
+rounded them to six decimals. Two different scores could therefore appear
+tied in the retained history. Training now writes round-trip precision and
+an atomic `checkpoint_selection.json` with the exact best epoch, score and
+checkpoint SHA-256. The selection, evaluation and current weight hashes must
+agree, so replacing a selected checkpoint invalidates the comparison.
+The training regression covers improvements hidden by six-decimal rounding.
+
+The retained [pipeline report](../results/paired_pipeline_smoke.json) records
+two CPU epochs per objective on a synthetic 128×128 fixture, followed by saved
+configuration reload, test evaluation and verified paired summarization. All
+seven stages passed. A separate invocation without `--allow-cpu` failed at the
+GPU operation probe before any data preflight. The evaluation graph also now
+rejects non-finite predictions before argmax can turn them into class indices.
+
+Final workflow checks: 183 tests passed in 53.65 seconds; flake8 and
+`git diff --check` passed; all 25 Bash examples passed syntax checks. Keras
+emitted 865 NumPy deprecation warnings. These checks establish offline workflow
+integrity; real-data accuracy, geographic independence and GPU throughput
+remain unmeasured.

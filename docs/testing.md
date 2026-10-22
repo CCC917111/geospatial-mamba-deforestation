@@ -83,11 +83,12 @@ suite needs is in `requirements.txt`.
 - `test_data.py` writes local TFRecords to check split isolation, explicit
   epoch membership, warmup stability, label validation and augmentation alignment.
 - `test_evaluation.py` checks confusion-derived metrics, batch invariance,
-  empty-data errors and evaluation provenance.
+  empty-data errors, non-finite predictions and evaluation provenance.
 - `test_training.py` checks fixed/rotating manifests and a two-epoch synthetic
   training run on a four-shard local dataset, with checkpoints, timings and
   automatic CPU float32 selection without loss scaling. It also verifies that
-  a rejected rerun preserves the previous checkpoint and configuration.
+  a rejected rerun preserves the previous checkpoint and configuration, and
+  that sub-six-decimal improvements retain the exact selected epoch and hash.
 - `test_checkpoint_config.py` checks configuration precedence, legacy defaults,
   explicit config selection, opt-out, malformed files, effective-value
   validation and exclusion of data/precision settings from architecture.
@@ -101,6 +102,10 @@ suite needs is in `requirements.txt`.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.
+- `test_experiment.py` checks command planning, execution ordering and failure
+  preservation without starting long training jobs.
+- `test_comparison.py` checks paired summaries against retained artifact
+  contracts and rejects incomplete or inconsistent comparisons.
 
 ## What is not covered
 

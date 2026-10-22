@@ -79,6 +79,8 @@ The flags worth knowing:
 Written to `--output-dir`:
 
 - `config.json` — requested flags, the resolved precision and TensorFlow version.
+- `checkpoint_selection.json` — exact validation score, epoch and SHA-256 of
+  the best checkpoint; CSV scores retain full precision for selection checks.
 - `split_manifest.json` — exact validation paths and paths for every started
   training epoch, completion flags, and completed unique shard coverage.
 - `training_results.csv` — one row per epoch: loss, pixel accuracy, mean IoU,

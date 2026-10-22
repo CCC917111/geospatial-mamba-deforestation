@@ -12,6 +12,59 @@ and no cloud identities are configured. The retained CPU measurements and
 synthetic tests do not establish real-data accuracy, GPU throughput or dataset
 compatibility. No GPU duration or memory estimate is available.
 
+## Automated paired experiment
+
+The experiment CLI implements the primary comparison below. First generate
+the commands and settings without importing TensorFlow or reading the source:
+
+```bash
+python -m mamba_forest.experiment --run-root runs/objective-pair
+```
+
+Review `runs/objective-pair/plan.json`, then execute with the same flags:
+
+```bash
+python -m mamba_forest.experiment --run-root runs/objective-pair --execute
+```
+
+The default plan uses seeds 42, 43 and 44, 128 fixed training shards, eight
+validation shards, 40 epochs, batch size one, mixed float16 training and all
+1,024 test shards. Each seed trains ComboLoss and plain cross-entropy. A strict
+GPU operation probe runs before source access; each seed is preflighted before
+training. All six training jobs must finish before test evaluation starts.
+Evaluation processes use float32 and restore architecture from each run's
+configuration.
+
+Use `--data-root /path/to/forty` for a local mirror. Flags also control shard
+counts, seeds, epochs, batch size, precision and architecture; `--help` lists
+them. Choose a fresh run root for every execution. A failed execution retains
+its status, commands and logs and cannot silently restart or overwrite earlier
+checkpoints. Plan generation can be repeated with identical settings.
+
+The runner saves source and package metadata, subprocess logs and wall times.
+After evaluation it runs the comparator automatically. Recompute a summary
+from retained artifacts with:
+
+```bash
+python -m mamba_forest.compare --run-root runs/objective-pair
+```
+
+The comparator requires complete, matching fixed-split training budgets,
+expected objectives, identical test memberships and class support, consistent
+model/runtime settings, and the SHA-256 of each actual best checkpoint. It
+recomputes metrics from confusion matrices and verifies checkpoint selection
+against full-precision training scores and `checkpoint_selection.json`.
+The checkpoint hash saved during selection must match both the evaluated
+checkpoint hash and the current weight file.
+`comparison.json` contains per-seed scores, paired percentage-point changes,
+their mean and sample standard deviation, and training/evaluation timing.
+One seed produces no sample standard deviation.
+
+`--allow-cpu` enables small offline pipeline checks and selects float32 by
+default. Synthetic inputs verify this workflow only; their scores must remain
+labeled synthetic and separate from real-data results. The manual steps below
+cover environment preparation, calibration and the same experiment protocol.
+
 ## Prepare an appropriate execution environment
 
 Use a GPU-enabled environment with a compatible TensorFlow installation,
@@ -256,7 +309,7 @@ for seed in 42 43 44; do
         --test-shards 1024 --batch-size "$GPU_BATCH_SIZE" \
         --d-model 32 --d-state-temporal 8 --d-state-spatial 16 \
         --bottleneck-channels 512 --dropout 0.2 \
-        --output-dir "$run_dir/test_full" \
+        --output-dir "$run_dir/test" \
         2>&1 | tee "$run_dir/evaluate_full.log"
   done
 done
@@ -268,6 +321,12 @@ counts, matching model configurations and the same metric conventions. Check
 that each recorded checkpoint SHA-256 corresponds to that run's chosen best
 checkpoint. Selected paths are not content hashes; preserve a source release
 identifier or object versions/checksums when available.
+
+The automatic check for the directory layout above is:
+
+```bash
+python -m mamba_forest.compare --run-root "$RUN_ROOT" --seeds 42 43 44
+```
 
 For each seed, report `Combo - plain CE` for Overall F1, Forests F1 and each
 forest class, plus the actual epochs, best validation epoch, total train wall

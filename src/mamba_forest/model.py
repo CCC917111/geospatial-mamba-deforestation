@@ -28,6 +28,7 @@ from __future__ import annotations
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from mamba_forest.constants import MODEL_DEFAULTS
 from mamba_forest.layers import (DynamicMultiModalFusion, MambaBlock,
                                  StructureAwareStateFusion)
 
@@ -35,14 +36,6 @@ from mamba_forest.layers import (DynamicMultiModalFusion, MambaBlock,
 OPTICAL_CHANNELS = 10   # Sentinel-2 bands
 ELEVATION_CHANNELS = 3  # elevation, slope, aspect
 CLIMATE_CHANNELS = 14   # climate variables per time step
-
-MODEL_DEFAULTS = {
-    "d_model": 32,
-    "dropout_rate": 0.2,
-    "d_state_temporal": 8,
-    "d_state_spatial": 16,
-    "bottleneck_channels": 512,
-}
 
 
 class MambaForestSegmenter(tf.keras.Model):

@@ -21,36 +21,18 @@ import random
 
 import tensorflow as tf
 
-GCS_ROOT = "gs://forest_typology/forty_v1/1.0.0"
-TOTAL_SHARDS = 1024
+from mamba_forest import constants
+from mamba_forest.constants import FEATURE_SHAPES
+from mamba_forest.constants import GCS_ROOT
+from mamba_forest.constants import NUM_CLASSES
+from mamba_forest.constants import TOTAL_SHARDS
 
-NUM_CLASSES = 9
-
-# Class order of the ForTy v1 segmentation labels.
-CLASS_NAMES = (
-    "Unknown",
-    "Natural Forest",
-    "Planted Forest",
-    "Tree Crops",
-    "Other Vegetation",
-    "Water",
-    "Ice",
-    "Bare Ground",
-    "Built Areas",
-)
-
-# The three forest types the benchmark aggregates into its "Forests" metric.
-FOREST_CLASS_INDICES = (1, 2, 3)
-NATURAL_FOREST_INDEX = 1
-PLANTED_FOREST_INDEX = 2
-TREE_CROPS_INDEX = 3
-
-FEATURE_SHAPES = {
-    "s2": (4, 128, 128, 10),
-    "elevation": (128, 128, 3),
-    "climate": (4, 14),
-    "segmentation_labels": (128, 128),
-}
+# Preserve the existing data module's public metadata exports.
+CLASS_NAMES = constants.CLASS_NAMES
+FOREST_CLASS_INDICES = constants.FOREST_CLASS_INDICES
+NATURAL_FOREST_INDEX = constants.NATURAL_FOREST_INDEX
+PLANTED_FOREST_INDEX = constants.PLANTED_FOREST_INDEX
+TREE_CROPS_INDEX = constants.TREE_CROPS_INDEX
 
 _FEATURE_DESCRIPTION = {
     "s2": tf.io.FixedLenFeature([4 * 128 * 128 * 10], tf.float32),

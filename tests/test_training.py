@@ -186,6 +186,19 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
   monkeypatch.setattr(tf.config, "get_visible_devices", visible_devices)
   monkeypatch.setattr(tf.keras.mixed_precision, "LossScaleOptimizer",
                       unexpected_loss_scaling)
+  original_evaluate = train.evaluate
+  selection_scores = [0.12345671, 0.12345674]
+  evaluated_epochs = []
+
+  def close_validation_scores(*args, **kwargs):
+    accuracy, mean_iou, _ = original_evaluate(*args, **kwargs)
+    score = selection_scores[len(evaluated_epochs)]
+    evaluated_epochs.append(score)
+    return accuracy, mean_iou, np.full(data.NUM_CLASSES, score)
+
+  # Both scores round to the same six-decimal CSV value. The second epoch
+  # must still be recoverable as the checkpoint selected during training.
+  monkeypatch.setattr(train, "evaluate", close_validation_scores)
   prior_policy = tf.keras.mixed_precision.global_policy().name
   try:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
@@ -209,6 +222,17 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     with open(output / "training_results.csv", encoding="utf-8") as handle:
       rows = list(csv.DictReader(handle))
     assert [int(row["epoch"]) for row in rows] == [1, 2]
+    assert [float(row["overall_f1"]) for row in rows] == [
+        float(np.mean(np.full(data.NUM_CLASSES, score)))
+        for score in selection_scores]
+    selection = json.loads(
+        (output / "checkpoint_selection.json").read_text(encoding="utf-8"))
+    assert selection["epoch"] == 2
+    assert selection["score"] == float(rows[1]["overall_f1"])
+    assert selection["criterion"] == "validation_overall_f1"
+    assert selection["weights"] == "best.weights.h5"
+    assert selection["weights_sha256"] == train.weights_sha256(
+        output / "best.weights.h5")
     for row in rows:
       assert all(np.isfinite(float(value)) for value in row.values())
       assert float(row["train_examples"]) == 2
@@ -231,7 +255,6 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
       predictions = restored(inputs, training=False).numpy()
       assert np.all(np.isfinite(predictions))
       assert np.allclose(predictions.sum(axis=-1), 1, atol=1e-5)
-      if name == "last.weights.h5":
-        assert np.allclose(predictions, reference, rtol=1e-5, atol=1e-6)
+      assert np.allclose(predictions, reference, rtol=1e-5, atol=1e-6)
   finally:
     tf.keras.mixed_precision.set_global_policy(prior_policy)
