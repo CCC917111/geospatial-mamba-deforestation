@@ -28,6 +28,31 @@ Three properties of the task drive every design decision.
 The network answers these with, respectively, a selective state-space model, a
 content-dependent fusion mechanism, and a region-level term in the loss.
 
+## Inputs and preprocessing
+
+Each ForTy tile provides a four-season Sentinel-2 array `[4, 128, 128, 10]`,
+terrain `[128, 128, 3]` and climate `[4, 14]` after parsing. The terrain
+channels are elevation, slope and aspect. Each modality is normalized
+according to its physical units:
+
+| Input | Normalization |
+|---|---|
+| Optical reflectance | Divide by 5000 and subtract 1 |
+| Elevation | Subtract 2000 m and divide by 3000 m |
+| Slope | Divide by 45 degrees and subtract 1 |
+| Aspect | Divide by 180 degrees and subtract 1 |
+| Climate | Z-score each variable over the sample's time axis |
+
+Labels become nine-channel one-hot masks. During training, horizontal and
+vertical flips are drawn once per sample and applied together to optical
+imagery, terrain and labels. Brightness jitter, with maximum delta 0.1,
+applies only to the optical input. Validation and test inputs are not
+augmented. Shard interleaving and prefetching are configured with `AUTOTUNE`.
+
+Prediction calls the same `normalize()` function as training. The
+[application guide](apply.md#input-format) defines the raw, unnormalized tile
+contract, and the [usage guide](user.md) documents dataset selection.
+
 ## Selective state-space blocks
 
 A state-space model keeps a hidden state and updates it along a sequence.

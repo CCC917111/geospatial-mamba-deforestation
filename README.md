@@ -1,550 +1,187 @@
-Multi-Modal CNN-Mamba for Forest Type Segmentation
-=============
-Welcome to the CNN-Mamba forest typology project main page!
-This page is about how to run this software.
+# Multi-Modal Forest Type Segmentation (CNN-Mamba)
 
 **Project lead: Yike Chen.**
 
-Multi-modal forest type segmentation with convolutional encoders and a
-**Mamba-inspired selective state-space model**. CNN-Mamba is the project name
-for this custom TensorFlow adaptation, which uses a shared low-rank state
-projection and `tf.scan`.
+Course project at the Chinese University of Hong Kong, Shenzhen, with
+Qianhua Wan, Cherng Khai Hng and Jiawei Li.
 
-#### Setup
+This project combines convolutional encoders with a **Mamba-inspired selective
+state-space model** to map forest types from Sentinel-2 seasonal imagery,
+climate variables and terrain. It includes a TensorFlow segmentation model,
+training and evaluation tools, and a predictor for prepared satellite tiles.
 
-Python 3.10 to 3.12. TensorFlow publishes stable releases for a limited
-range of Python versions; on a newer interpreter such as 3.14, pip finds only a
-release candidate and `make install` stops. If your default `python3` is newer,
-create the environment with a 3.12 interpreter (`python3.12 -m venv .venv`, or
-`uv venv --python 3.12 --seed .venv` with [uv](https://docs.astral.sh/uv/)).
-The test suite passes on Python 3.12 with TensorFlow 2.21.
+[Project brief](docs/project-summary.md) · [Usage](docs/user.md) ·
+[Design](docs/design.md) · [Results and evidence](results/README.md)
 
-The dependencies are listed in
-[`requirements.txt`](requirements.txt) — TensorFlow 2.15 or newer, NumPy and
-matplotlib, plus pytest and flake8 for the tests and style checks — and
-`make install` installs them together with the package itself
-(`pip install -r requirements.txt && pip install -e .`). A single GPU is enough
-for training; with the default 128 shards per epoch the input pipeline streams
-the data from Google Cloud Storage, so nothing has to be downloaded first.
-Reading the bucket needs application-default credentials
-(`gcloud auth application-default login`).
+## Problem
 
-#### Install
+Natural forest, planted forest and tree crops can have similar canopy cover,
+yet represent different land uses. ForTy v1 [[1]](#ref-1) frames this distinction
+as pixel-level classification across nine land-cover classes. The model uses
+four seasonal optical composites together with climate and terrain to represent
+both seasonal patterns and spatial context.
 
-```bash
-python3.12 -m venv .venv && source .venv/bin/activate   # Python 3.10-3.12
-make install                      # pip install -r requirements.txt && pip install -e .
-```
-
-#### Train
-
-```bash
-# Defaults: 128 training shards per epoch, 8 validation shards, batch size 16
-make train
-# or with explicit settings
-python -m mamba_forest.train \
-    --train-shards 128 --val-shards 8 --epochs 40 \
-    --output-dir runs/mamba_forest
-```
-
-#### Evaluate
-
-```bash
-make eval
-# or
-python -m mamba_forest.evaluate \
-    --weights runs/mamba_forest/best.weights.h5 --test-shards 64
-```
-
-#### Predict on Your Own Tiles
-
-```bash
-# Forest-type map per tile plus a table of class shares
-make predict TILES=my_tiles OUT=predictions
-```
-
-#### Run Tests
-
-```bash
-make test                         # python -m pytest tests -q
-```
-
-#### Check Style
-
-```bash
-make lint                         # flake8, 88 columns
-```
-
-#### Clean the Project
-
-```bash
-make clean
-```
-
-The full usage guide, with every flag and the files each command writes, is in
-[`docs/user.md`](docs/user.md).
-
-----------------
-
-User page
-=============
-Welcome to the CNN-Mamba forest typology project user main page!
-
-This deep-learning course project at the Chinese University of Hong Kong,
-Shenzhen was led by **Yike Chen**, working with Qianhua Wan, Cherng Khai Hng
-and Jiawei Li. We developed a forest type mapping
-model for satellite time series, combining convolutional encoders with a
-Mamba-inspired selective state-space model. It integrates Sentinel-2 optical
-time series, climate variables and elevation for pixel-level forest type
-segmentation using the ForTy v1 dataset format. Historical ForTy scores and
-current validation scope are documented in [Results](#results).
-The project contains two parts. The segmentation model comes with the
-input pipeline that streams the dataset from Google Cloud Storage, the training
-objective designed for the class imbalance of the task, and the training and
-evaluation entry points; the prediction tool applies a trained model to your
-own tiles and maps the forest types in them.
-
-# Forest Type Segmentation Abstract
-
-Accurate forest type classification is critical for environmental monitoring
-and sustainable management. Distinguishing natural forest from planted forest
-and tree crops, rather than merely separating "forest" from "non-forest", is
-the part of the problem that matters for policy and the part that current
-models are worst at [[1]](#ref-1). Formulated as pixel-level semantic segmentation,
-it requires modelling spatial structure, seasonal dynamics and heterogeneous
-information from several sensors at once, and multi-temporal, multi-modal
-observations are known to improve forest mapping substantially [[1]](#ref-1).
-
-This project implements a multi-modal segmentation framework combining
-convolutional encoders with a **Mamba-inspired selective state-space model**
-[[2]](#ref-2), applied along temporal and spatial axes. The custom blocks use
-input-dependent state updates, a shared low-rank state projection and
-TensorFlow's `tf.scan`. A dynamic MLP-based fusion mechanism integrates the
-modalities per sample, and a U-Net-style encoder-decoder [[3]](#ref-3) with a
-selective-SSM bottleneck reconstructs high-resolution segmentation maps.
-The [design page](docs/design.md#selective-state-space-blocks) describes the
-adaptation and its implementation limits. The historical ForTy scores below
-use a training read budget of 128 shards per epoch. Published UNet3D
-[[4]](#ref-4), UTAE [[5]](#ref-5) and
-MTSViT [[1]](#ref-1) scores provide context; their training and evaluation
-protocols differ, so the table does not establish model or data efficiency.
-
-![Architecture](docs/figures/architecture.svg)
-
-The network has five stages: **(1)** each modality is normalised on its own
-terms and the training tiles are flipped synchronously with their labels;
-**(2)** the three modalities are encoded in parallel — a Temporal Mamba block
-for the Sentinel-2 series, a convolutional stack for terrain and an MLP for
-climate; **(3)** a dynamic fusion layer weights the modalities per sample and a
-U-Net encoder downsamples the fused map to 16 × 16; **(4)** a Spatial Mamba
-block with Structure-Aware State Fusion (SASF) models global context at the
-bottleneck; **(5)** a decoder with skip connections restores full resolution
-and a softmax head predicts one of nine classes per pixel, trained with a
-weighted cross-entropy plus Dice objective.
-
-## Dataset
-
-[ForTy v1](https://console.cloud.google.com/storage/browser/forest_typology)
-[[1]](#ref-1) is a public forest-typology benchmark of about 200,000 globally
-sampled 128 x 128 pixel tiles. The tiles are partitioned by geographically
-distinct 100 x 100 km blocks in an 8:1:1 ratio into a training split of about
-160,000 tiles, a validation split of about 19,000 and a test split of about
-20,000. Geographic blocking reduces leakage risk but does not establish the
-absence of spatial autocorrelation across boundaries. This package preserves
-the published split namespaces; its parsed records do not include coordinates
-or block IDs, so it cannot independently verify geographic separation. Each
-split is published as 1,024 TFRecord shards. Each tile provides:
-
-- **Sentinel-2 optical imagery** [[6]](#ref-6) — 10 bands at 10-20 m resolution, as
-  four seasonal composites.
-- **Climate variables** — 14 TerraClimate [[7]](#ref-7) monthly metrics at ~4 km
-  resolution.
-- **Topographic data** — FABDEM [[8]](#ref-8) elevation, slope and aspect at 30 m
-  resolution.
-- **Segmentation labels** — a per-pixel class index over nine land-cover
-  classes, of which the three forest types (natural forest, planted forest,
-  tree crops) are the classes of interest.
-
-### Training, Validation and Test Sets
-
-The default run limits the shards read per epoch and evaluates subsets:
-
-| Split | Shards used | Share of the split | Used for |
-|---|---|---:|---|
-| Training | 128 of 1,024, resampled each epoch | 12.5% per epoch | fitting the weights |
-| Validation | 8 of 1,024, the same 8 every epoch | 0.8% | monitoring training and choosing the checkpoint |
-| Test | 64 of 1,024 | 6.25% | the reported numbers only |
-
-The training loop uses only the training namespace for fitting and validation
-for checkpoint selection; the test namespace is read by the evaluation CLI.
-Rotating the training subset means 12.5% is not the total unique coverage:
-40 independent draws would cover about 99.5% of shards in expectation.
-Historical run coverage is unknown because no shard manifest was retained.
-New runs save exact per-epoch paths in `split_manifest.json`; use
-`--fixed-train-subset` to reuse the same seeded subset throughout a run.
-Validation and test retain the first N shards, which can be unrepresentative
-if shard ordering correlates with geography. Nothing is downloaded up front: the
-pipeline streams the shards straight from Google Cloud Storage. These are the
-defaults of `make train` and `make eval`; `--train-shards 1024` trains on the
-full split.
-
-## Preprocessing
-
-Because the modalities have different physical units and ranges, each is
-normalised on its own terms: Sentinel-2 reflectance is scaled to [-1, 1] with a
-factor of 5000, elevation is centred at 2000 m and scaled by 3000, slope by 45
-degrees and aspect by 180 degrees, and each climate variable is z-scored over
-the time axis of the sample. The integer masks are one-hot encoded to
-128 x 128 x 9 for the categorical objective.
-
-Augmentation is applied to the training split only. Satellite imagery is
-acquired from nadir, so land-cover classes are invariant to mirroring:
-horizontal and vertical flips are each applied with probability 0.5, drawn once
-per sample and applied synchronously to the optical series, the elevation map
-and the label mask so that the pixel-wise correspondence is preserved.
-Brightness jitter with a maximum delta of 0.1 simulates illumination and
-atmospheric variation and is applied to the optical modality only, since
-perturbing elevation or climate would change the physical meaning of those
-measurements instead of modelling sensor noise. Shards are interleaved in
-parallel and prefetched with `AUTOTUNE` so the input pipeline keeps up with the
-accelerator.
+The implemented task is **forest type segmentation**. Comparing maps across
+years is a potential extension requiring independent temporal validation.
 
 ## Model
 
-Here is an introduction to the five stages the network is built from.
+![Forest type segmentation architecture](docs/figures/architecture.svg)
 
-### Parallel Modality Encoders
+1. **Encode each modality.** A temporal selective-SSM block summarizes the
+   four-season optical sequence at each pixel; a convolutional encoder handles
+   terrain, and an MLP embeds climate variables.
+2. **Fuse the inputs.** A learned, sample-dependent weighting combines the
+   three modality embeddings before a U-Net-style encoder [[3]](#ref-3).
+3. **Aggregate spatial context.** A second selective-SSM block scans the
+   16 × 16 bottleneck in raster order. Structure-Aware State Fusion
+   [[10]](#ref-10) mixes local neighbours after the scan.
+4. **Recover the segmentation map.** A decoder with skip connections produces
+   nine-class pixel probabilities. Training combines weighted cross-entropy
+   and soft Dice loss to address class imbalance.
 
-The three modalities are encoded in parallel, each in the way that suits its
-structure. The optical time series of shape `[B, T, H, W, C]` is folded into
-one sequence per spatial location, `[B*H*W, T, C]`, so the temporal block sees
-the four seasons of a single pixel and the spatial structure is left
-untouched. A **Temporal Mamba block** [[2]](#ref-2) then compresses the phenological
-dynamics into a compact representation: a separable convolution extracts
-short-range temporal patterns, small learned projections generate the
-input-dependent SSM parameters that govern how much of the state is kept or
-overwritten at each step, and the output is gated and projected back to the
-channel width. The last state is reshaped back to `[B, H, W, C]`, giving a
-temporally enriched optical feature map.
+CNN-Mamba is the project name for a custom TensorFlow adaptation inspired by
+Mamba [[2]](#ref-2). Its shared low-rank state projection and `tf.scan`
+recurrence are described in the [design document](docs/design.md#selective-state-space-blocks).
+The sequential recurrence has device-dependent overhead; its complexity alone
+does not establish an efficiency advantage over attention.
 
-Elevation is treated as a spatial modality: a stack of 2D convolutions with
-growing channel width projects the terrain map into the shared feature space
-while preserving resolution. Climate variables are low-dimensional and have no
-spatial extent, so a small MLP turns them into a modality embedding that is
-broadcast over space to `[B, H, W, d_model]`, letting the climatic context
-influence every pixel at negligible cost.
+## What the repository implements
 
-### Dynamic Multi-Modal Fusion
+- **Training and evaluation:** seeded shard selection, per-epoch split
+  manifests, validation-selected checkpoints, confusion-derived F1 metrics and
+  saved model configuration.
+- **Experiment integrity:** paired objective plans and artifact checks bind
+  comparisons to exact data paths, training budgets and checkpoint hashes.
+- **Tile prediction:** shared preprocessing, automatic checkpoint architecture
+  restoration, optional colour maps and a CSV of predicted class shares.
+- **Local development:** local TFRecord support, CPU float32 selection,
+  synthetic integration checks and synchronized compute benchmarks.
 
-Instead of concatenating the three feature maps, the model computes fusion
-weights from their content. Each modality is pooled to a global descriptor, the
-descriptors are concatenated and passed through a lightweight MLP, and a
-softmax produces one weight per modality *per sample*. The weights are
-broadcast spatially, applied to their feature maps, and the weighted sum is
-refined by 1 x 1 convolutions and layer normalisation. A cloudy tile can
-therefore lean on terrain and climate, while a clear tile leans on the optical
-series.
-
-### U-Net Encoder
-
-The hierarchical encoder is a U-Net-style [[3]](#ref-3) downsampling path of three
-stages, following the use of U-Net encoders around Mamba blocks in
-Mamba-UNet [[9]](#ref-9).
-Each stage applies two 3 x 3 convolutions with ReLU activation and dropout,
-followed by 2 x 2 max pooling. Starting from the fused map at 128 x 128, the
-spatial resolution goes 128 -> 64 -> 32 -> 16 while the channel width grows
-32 -> 64 -> 128 -> 256, so the encoder learns increasingly abstract spatial
-representations while keeping the hierarchy available for the decoder.
-
-### Spatial Mamba Bottleneck with SASF
-
-At the 16 x 16 bottleneck the feature map is projected to 512 channels and
-flattened row by row into a sequence of 256 positions, each standing for an
-8 x 8 pixel patch of the tile. A selective state-space model with
-`d_state = 16` scans that sequence once [[2]](#ref-2): at every step it decides
-from the input how much of its 16-dimensional state to keep and how much to
-overwrite, so the state at a position summarises the patches before it in scan
-order, and a forest patch in the top rows can inform one at the bottom of the
-tile. The pass costs time linear in the sequence length, where self-attention
-would cost quadratic — this is the global context that Mamba-UNet
-[[9]](#ref-9) brings to medical image segmentation. The scan runs in one
-direction, so a position sees only what precedes it; the SASF step below and
-the decoder's convolutions carry information back locally, and a
-multi-directional scan is the natural extension.
-
-Flattening a 2D map into a 1D sequence loses vertical adjacency: two pixels
-that are neighbours in the image are a full row apart in scan order.
-**Structure-Aware State Fusion (SASF)**, introduced in Spatial-Mamba
-[[10]](#ref-10), repairs this. After the scan the sequence is reshaped back to
-16 x 16 and the state of each pixel is fused over its five-point neighbourhood
-— the pixel itself and its up, down, left and right neighbours:
-
-```math
-h_i^{\mathrm{fused}} = h_i + \sum_{n \in \mathcal{N}(i)} w_n \odot h_n ,
-```
-
-where $`\mathcal{N}(i)`$ is the five-point neighbourhood of pixel *i*, and each
-of the five neighbour positions has its own learned weight vector
-*w<sub>n</sub>* with one entry per channel, shared by all pixels; ⊙ is the
-channel-wise product, and a neighbour outside the map contributes zero. The
-centre weight starts at zero and the four neighbour weights at 0.05, so the
-layer starts close to the identity. This re-introduces a 2D
-inductive bias, so the linear sequence model stays aware of the physical
-spatial structure.
-
-### Multi-Stage Decoder
-
-The decoder reconstructs 16 -> 32 -> 64 -> 128 in three stages. Each begins
-with a transposed convolution of stride 2, concatenates the matching encoder
-feature map — `enc2`, `enc1` and the fused map respectively — and refines the
-result with two 3 x 3 convolutions with dropout. The skip connections return
-the fine spatial detail lost to pooling. A convolutional head with a softmax
-activation produces the per-pixel class probabilities at the full 128 x 128
-resolution; the head is kept in float32 so the softmax and the loss stay stable
-under mixed-precision training.
-
-## Training
-
-The objective is a convex combination of a weighted categorical cross-entropy
-and a Dice loss,
-
-```math
-\mathcal{L} = \alpha \mathcal{L}_{\mathrm{WCCE}} + (1-\alpha) \mathcal{L}_{\mathrm{Dice}},
-\qquad
-\mathcal{L}_{\mathrm{Dice}} = 1 - \frac{2 \lvert A \cap B \rvert}{\lvert A \rvert + \lvert B \rvert},
-\qquad \alpha = 0.4,
-```
-
-where *A* and *B* are the predicted and the ground-truth mask of a class. This
-puts 40% of the weight on pixel-wise supervision and 60% on region-level
-overlap. The cross-entropy term uses label smoothing [[11]](#ref-11) of 0.05 and a
-per-class weight vector, `[1.0, 1.0, 3.0, 1.0, 1.0, 1.2, 1.0, 2.0, 1.0]`, that
-raises the cost of the rare classes, planted forest most of all. The Dice term
-[[12]](#ref-12) is computed per class and averaged over the classes present in the
-batch, so a class that appears in neither the labels nor the prediction cannot
-score a free perfect overlap.
-
-Parameters are optimised with AdamW [[13]](#ref-13), weight decay 5e-3, from an
-initial learning rate of 2e-4 under a cosine decay [[14]](#ref-14) down to 10% of it.
-Gradients are clipped to a global norm of 1.0, and mixed-precision training
-[[15]](#ref-15) keeps the compute-heavy operations in float16 with dynamic loss
-scaling while weights and the output head stay in float32. Its speed and
-numerical effects depend on the hardware. The default `--precision auto`
-selects float32 on CPU and mixed float16 when a GPU is visible; an explicit
-policy pins a controlled experiment.
-Local TFRecord datasets can use `--data-root` and `--total-shards`; the
-[offline recipe](docs/user.md#local-data-and-offline-checks) covers preflight,
-small-dataset training and checkpoint evaluation without cloud access.
-Each epoch streams 128
-randomly chosen training shards in batches of 16, as described under
-[Training, Validation and Test Sets](#training-validation-and-test-sets).
+These are implementation and software-validation capabilities. The next
+research question is whether the selective-SSM modules improve segmentation
+over a matched CNN control; that experiment has not been run here.
 
 ## Results
 
-All numbers are F1 scores in percent, computed over pixels. For one class,
-*precision* is the share of the pixels predicted as that class that really
-belong to it, *recall* is the share of the class's pixels that are found, and
-*F1* is their harmonic mean, 2 · precision · recall / (precision + recall).
-**Overall F1** is the macro average over all nine classes and **Forest mean
-F1** the average over the three forest types; the last three columns are the
-F1 of each forest type.
+The repository retains several kinds of evidence with different scopes:
 
-| Model | Overall F1 | Forest mean F1 | Natural forest F1 | Planted forest F1 | Tree crops F1 |
-|---|---:|---:|---:|---:|---:|
-| UNet3D [[4]](#ref-4) | 32.4 | 24.2 | 56.2 | 7.5 | 8.8 |
-| UTAE [[5]](#ref-5) | 49.4 | 37.7 | 71.4 | 13.8 | 27.8 |
-| MTSViT [[1]](#ref-1) | 81.1 | 74.9 | 82.8 | 62.9 | 78.9 |
-| **CNN-Mamba (this repository)** | **56.89** | **48.81** | **64.67** | **27.64** | **54.12** |
+| Evidence | Retained result | Scope |
+|---|---|---|
+| Historical ForTy scores | Overall macro F1 **56.89%**; forest mean F1 **48.81%** | Historical report; source logs and trained checkpoint are not retained |
+| Synthetic CPU workflow | Both objectives completed two epochs; all seven workflow stages passed | Checks training, checkpoint reload, evaluation and artifact comparison on local synthetic records |
+| Default-model CPU compute | Eager median **316.54 ms**; graph median **149.01 ms** | Synthetic 128 × 128 inference, batch 1; three samples per mode after two warmups |
+| Automated checks | **202 tests passed** in the last retained check record | CPU software checks; not a real-data accuracy study |
 
-The baseline numbers are published benchmark results [[1]](#ref-1), trained
-on the full training split. The historical CNN-Mamba scores used a rotating
-128-shard per-epoch budget and a 64-shard test subset. Its natural-forest F1
-is lower than UTAE (64.67 versus 71.4); the other displayed scores are higher.
-Different test membership, training budgets and modalities prevent a controlled
-ranking. No historical checkpoint, run logs or objective ablation artifacts are
-retained here, so these scores and the effect of the weighted Dice objective
-cannot be independently reproduced from the repository alone.
+The historical scores used a rotating 128-shard training budget and a 64-shard
+test subset. Published UNet3D, UTAE and MTSViT scores use different training and
+evaluation protocols, so they provide context rather than a controlled ranking.
+Historical scores cannot be independently reproduced from the retained files.
+The CPU timings exclude dataset IO, preprocessing, checkpoint loading and
+output-file writes. No new real ForTy training, full-test evaluation or GPU
+performance measurement has been completed in the current environment.
 
-More detail, including the training configuration and how to run controlled
-new experiments, is in [`results/README.md`](results/README.md). The
-[optimization audit](docs/optimization-audit.md) describes protocol fixes and
-the synthetic performance measurement.
-The [GPU validation runbook](docs/gpu-validation.md) provides the real-record
-preflight, two-epoch smoke run, paired objective experiments and full-test
-evaluation commands. Those real-data/GPU runs still require an appropriate
-execution environment.
+[Results](results/README.md) contains the historical table and experiment
+protocol. Raw [CPU timings](results/performance_cpu_128.json),
+[workflow checks](results/paired_pipeline_smoke.json) and the
+[optimization audit](docs/optimization-audit.md) document the retained evidence.
 
-# Forest Map Prediction Abstract
+## Dataset
 
-The prediction tool applies a trained model to imagery of your own region. The
-benchmark says how good the model is; this is how you point it at your own
-tiles.
+[ForTy v1](https://github.com/google-deepmind/forest_typology/tree/main/forty_v1)
+[[1]](#ref-1) contains about 200,000 globally sampled 128 × 128 tiles. Each
+split is published as 1,024 TFRecord shards.
+
+| Input | Per-tile shape | Role |
+|---|---|---|
+| Sentinel-2 | `(4, 128, 128, 10)` | Four seasonal optical composites |
+| Terrain | `(128, 128, 3)` | Elevation, slope and aspect |
+| Climate | `(4, 14)` after parsing | Seasonal climate variables |
+| Labels | `(128, 128)` | Nine classes, including the three forest types |
+
+The benchmark describes geographically blocked train/validation/test splits
+in an 8:1:1 ratio. This package preserves the published split namespaces; the
+model inputs do not retain coordinates or block IDs, so geographic separation
+has not been independently verified here.
+
+### Training, Validation and Test Sets
+
+| Split | Default shard budget | Use |
+|---|---|---|
+| Training | 128 of 1,024, resampled each epoch | Fit model weights |
+| Validation | 8 of 1,024, fixed | Select the checkpoint |
+| Test | 64 of 1,024 | Evaluate the selected checkpoint |
+
+The 12.5% training share is a **per-epoch read budget**, not total unique data
+usage. New runs save exact paths in `split_manifest.json`;
+`--fixed-train-subset` keeps training membership fixed. Validation and test
+use the first N shards by default, which may be unrepresentative if shard
+order correlates with geography. Full-split evaluation uses
+`--test-shards 1024`.
+
+## Setup
+
+Use Python **3.10–3.12**; the retained checks used Python 3.12 and TensorFlow
+2.21. A stable TensorFlow release may not be available for a newer interpreter.
+The dependencies and editable package installation are handled by `make install`.
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+make install
+make test
+make lint
+```
+
+The tests use CPU computation, synthetic tensors and temporary local TFRecords;
+they require neither a GPU nor access to the ForTy bucket. A pinned CPU
+installation recipe is also available in the
+[environment guide](docs/cloud-environment.md#install-into-a-new-virtual-environment).
+
+## Training
+
+Default-scale training assumes a suitable GPU and authorized read access to
+the ForTy bucket. Configure application-default credentials on that host, for
+example with `gcloud auth application-default login`. The repository ships
+code and diagnostics; trained model weights must be produced separately.
+
+```bash
+make train
+make eval
+```
+
+These commands write to `runs/mamba_forest` by default. Training selects
+`best.weights.h5` using validation F1; evaluation reads the test split.
+The [usage guide](docs/user.md) lists all flags and outputs, including
+`--data-root` and `--total-shards` for
+[local-data workflows](docs/user.md#local-data-and-offline-checks).
 
 ## Mapping Your Own Region
 
-Give it a directory of tiles and it returns a forest-type map per tile
-plus a table of what is in them:
+Prepare `.npz` tiles containing the optical, terrain and climate arrays, and
+keep the trained checkpoint together with its `config.json`.
 
 ```bash
 make predict TILES=my_tiles OUT=predictions
 ```
 
-Each tile is one `.npz` file holding three unnormalised arrays — `s2`
-`(4, H, W, 10)` Sentinel-2 seasonal composites, `elevation` `(H, W, 3)` in
-metres and degrees, and `climate` `(4, 14)` — with `H = W` divisible by 8.
-`predict.py` applies exactly the same normalisation as the training pipeline,
-so there is no second copy of the scaling constants to drift.
+Prediction writes class maps, optional PNGs and a CSV of class shares.
+[The application guide](docs/apply.md) specifies array shapes, units, band
+order and output interpretation. Reliable mapping of a new region requires
+validation on representative labelled imagery from that region.
 
-You get back `<tile>_class_map.npy` with the nine class indices per pixel, an
-optional colour-coded PNG, and `predictions.csv` with the pixel share of every
-class per tile plus the combined `forest_share`. These shares summarize the
-predicted forest composition of a region. Comparing maps across years is a
-potential extension requiring co-registration and independent temporal
-validation; deforestation change detection has not been validated here.
+## Documentation
 
-The full contract — array shapes, units, band order, what each output file
-holds, and how to retarget the model to a different taxonomy — is in
-[`docs/apply.md`](docs/apply.md).
+| Read about | Guide |
+|---|---|
+| Project context, team and evidence | [Technical brief](docs/project-summary.md) |
+| Running the software | [Usage](docs/user.md) · [Tile prediction](docs/apply.md) |
+| Architecture and preprocessing | [Design](docs/design.md) |
+| Code layout and APIs | [Developer overview](docs/developer.md) · [Reference](docs/reference.md) |
+| Extending and checking the code | [Common tasks](docs/tasks.md) · [Testing](docs/testing.md) · [Style](docs/coding.md) |
+| Experiments and retained evidence | [Results](results/README.md) · [Optimization audit](docs/optimization-audit.md) |
+| Preparing a later real-data run | [Validation runbook](docs/gpu-validation.md) · [Environment setup](docs/cloud-environment.md) · [Colab recipe](docs/colab-free.md) |
 
-----------------
-
-Developer page
-=============
-Welcome to the CNN-Mamba forest typology project developer main page!
-
-----------------
-## Abstract
-
-This deep-learning course project at the Chinese University of Hong Kong,
-Shenzhen was led by **Yike Chen**, working with Qianhua Wan, Cherng Khai Hng
-and Jiawei Li. We developed a forest type mapping
-model for satellite time series, combining convolutional encoders with a
-Mamba-inspired selective state-space model. It integrates Sentinel-2 optical
-time series, climate variables and elevation for pixel-level forest type
-segmentation using the ForTy v1 dataset format. Historical ForTy scores and
-current validation scope are documented in [Results](#results).
-The project contains two parts. The segmentation model comes with the
-input pipeline that streams the dataset from Google Cloud Storage, the training
-objective designed for the class imbalance of the task, and the training and
-evaluation entry points; the prediction tool applies a trained model to your
-own tiles and maps the forest types in them.
-
-For more information about the software, select the following pages.
-
-----------------
-## [Programming Reference](docs/reference.md)
-
-The repository is organised as a small installable package plus two entry
-points. `src/mamba_forest/` holds the TensorFlow implementation: `data.py`
-streams and preprocesses ForTy v1, `layers.py` holds the three building blocks
-(the selective state-space block, SASF and the dynamic fusion layer),
-`model.py` assembles them into the segmentation network, `losses.py` defines
-the training objective, and `train.py` and `evaluate.py` are the command-line
-entry points, with `predict.py` applying a checkpoint to your own tiles.
-`tests/` covers the blocks, the network and the objective, and `docs/` holds
-the pages below.
-
-The main code of the project is laid out as follows; every public class and
-function, its arguments and the tensor shapes it expects are on the
-Programming Reference page, and the path a batch takes through the package is
-on the [Developer Overview](docs/developer.md) page.
-
-```
-.
-├── src/mamba_forest/         # TensorFlow implementation
-│   ├── data.py               # ForTy v1 streaming, normalisation, augmentation
-│   ├── layers.py             # Mamba block, SASF, dynamic multi-modal fusion
-│   ├── model.py              # CNN-Mamba U-Net segmenter
-│   ├── checkpoint.py         # saved training-config resolution for inference
-│   ├── losses.py             # weighted cross-entropy + Dice objective
-│   ├── train.py              # training loop, metrics, checkpointing
-│   ├── evaluate.py           # test-split evaluation
-│   └── predict.py            # apply a checkpoint to your own tiles
-├── tests/                    # unit tests for the blocks, the network, the objective
-├── docs/                     # developer documentation and figures
-├── scripts/plot_results.py   # training curves from the metrics CSV
-├── results/                  # benchmark numbers and run configuration
-├── requirements.txt          # Python dependencies
-├── pyproject.toml            # package metadata (pip install -e .)
-└── Makefile                  # install / train / eval / predict / test / lint
-```
-
-## [High-level Design](docs/design.md)
-
-In this project, three properties of the task shape the architecture.
-
-1. The signal is temporal but the sequence is short: telling planted forest
-   from natural forest depends on how the canopy changes between seasons, and
-   each sample has only four composites. A selective state-space block models
-   that sequence in linear time.
-2. The modalities are heterogeneous: optical imagery is a spatial time series,
-   terrain a static map and climate a few numbers per season. Each gets its
-   own encoder, and a content-dependent fusion layer weights them per sample.
-3. The classes of interest are rare: planted forest and tree crops cover under
-   20% of the labelled pixels, so the objective adds a region-level Dice term
-   and class weights to the cross-entropy.
-
-The design page gives the equations of the selective state-space recurrence,
-the reasoning behind the fusion and the bottleneck, and the data flow diagram.
-
-## [Coding Style](docs/coding.md)
-
-We followed the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-with the conventions below.
-
-- Two-space indentation, 80 columns for code and prose and 88 as the hard
-  limit, checked with `make lint`.
-- Every public class and function has a docstring that states its intent, its
-  arguments and the tensor shapes it expects and returns, written as
-  `[B, T, H, W, C]`.
-- Comments explain intent rather than mechanics, and anything a future reader
-  would find surprising gets a comment.
-- Arguments are validated where a wrong value would otherwise fail deep inside
-  a framework call, randomness comes from a single `--seed` flag, and every
-  configuration is saved next to its checkpoints.
-- No credentials, absolute paths or machine-specific settings in the source;
-  the dataset root, the output directory and every hyper-parameter are flags
-  with defaults.
-
-## [Common Tasks](docs/tasks.md)
-
-This page gives you the recipes for the changes people most often want to make.
-
-1. Add a fourth modality, such as the Sentinel-1 radar ForTy v1 also ships:
-   read and normalise it in `data.py`, give it an encoder in `model.py`, and
-   raise the number of modalities in the fusion layer.
-2. Change the capacity of the network with `--d-model` and the channel
-   schedule of the encoder and decoder.
-3. Change the objective through `ComboLoss`: `--combo-alpha`,
-   `--no-class-weights` or a new class-weight vector.
-4. Run on a different dataset by adapting the data module, the class list and
-   the colour map.
-5. Train on the full dataset with `--train-shards 1024`.
-
-## [Testing](docs/testing.md)
-
-The suite runs on CPU and needs neither a GPU nor the
-dataset: every test builds a small model on synthetic tensors.
-
-```bash
-make test                          # python -m pytest tests -q
-```
-
-- `tests/test_layers.py` checks shape preservation, recurrent directionality
-  outside the convolution's local neighbourhood and state propagation in the
-  selective-SSM block, that SASF stays local, and that the fusion layer uses
-  every modality.
-- `tests/test_model.py` checks that the network returns valid probabilities at
-  the input resolution, that every modality and the season order change the
-  prediction, and that gradients are finite.
-- `tests/test_losses.py` checks that the loss ranks predictions correctly,
-  weights the classes exactly as configured, excludes absent classes from the
-  Dice term and rejects invalid settings.
-
-The data module talks to Google Cloud Storage, so it is exercised by running a
-training job rather than by a unit test.
-
-----------------
 ## References
 
 1. <a id="ref-1"></a>Y. Jiang and M. Neumann. Not every tree is a forest:
