@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "validation_kind": "synthetic_cpu_pipeline",
+  "date_utc": "2026-10-23",
+  "comparison": "architecture",
+  "status": "completed",
+  "scope": "Software integration only on generated ForTy-format records; no real-data architecture ranking, geographic generalization or GPU validation.",
+  "source": {
+    "base_commit": "43515379f36dc3c06b64019c656ff009fdd46ed6",
+    "working_tree_modified": true,
+    "file_sha256": {
+      "src/mamba_forest/model.py": "47e6ed91b0504480d9f053ac35acd2d96428052793e49119be83859626904fdc",
+      "src/mamba_forest/constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790",
+      "src/mamba_forest/train.py": "1974a1363459e124e77812042c86a20141ef15ef134e3ad7003ed0c878a063d1",
+      "src/mamba_forest/evaluate.py": "9cc0d70033cc9b391beb07f08b8387fee09f73723d307b768d9804d022b135b4",
+      "src/mamba_forest/predict.py": "aef08fdd24aa2832d6fe07b4465d073fe0817e20d217475756f1bfc2e2a96c53",
+      "src/mamba_forest/checkpoint.py": "3e6a5bf93fbae83a69d91ac23397c1bdc700c6e67800bc1f1dab579968b7ead9",
+      "src/mamba_forest/benchmark.py": "4e044235db505f7fc7d045f58c9c4e5efe4e7348262199c9433ead8fb00fd227",
+      "src/mamba_forest/experiment.py": "dfbce9f9b5a1f1e6ace823f34dee2999152629a524a3b2ac666de7f42063c3b9",
+      "src/mamba_forest/compare.py": "468346fc61891fe66d70aca3b6d5050244231cbf92dc413a10a9300debb45cd7"
+    }
+  },
+  "fixture": {
+    "data_kind": "synthetic",
+    "tile_shape": [
+      128,
+      128
+    ],
+    "examples_per_split": {
+      "train": 4,
+      "validation": 2,
+      "test": 2
+    },
+    "manifest_sha256": "672b302b361a35f8c9b0ced159719b82fac4e8106ad193dc1aeb121f768369a4",
+    "shards_sha256": {
+      "train": "3280bc64d2f419f2af7f977acc39ba94c7e443d518857a08124a822a019c99f9",
+      "validation": "2ab70a37f94dc6d735b38e88bde524fcb092261cbd243a85d1ddf3d3c91ae246",
+      "test": "9f93ce2986c4130242ec2526ce28cfb33b71138f98dfce9e3091152743bf9ea6"
+    },
+    "total_shards_per_split": 1
+  },
+  "configuration": {
+    "seeds": [
+      42
+    ],
+    "epochs": 2,
+    "batch_size": 2,
+    "precision": "float32",
+    "evaluation_precision": "float32",
+    "d_model": 4,
+    "d_state_temporal": 2,
+    "d_state_spatial": 2,
+    "bottleneck_channels": 8,
+    "dropout": 0.0
+  },
+  "stages": [
+    {
+      "id": "runtime_probe",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "preflight_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "train_cnn_ssm_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "train_cnn_only_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "evaluate_cnn_ssm_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "evaluate_cnn_only_42",
+      "state": "completed",
+      "returncode": 0
+    },
+    {
+      "id": "compare",
+      "state": "completed",
+      "returncode": 0
+    }
+  ],
+  "runs": [
+    {
+      "model_variant": "cnn_ssm",
+      "epochs_completed": 2,
+      "parameters": 3311968,
+      "training_examples_total": 8,
+      "best_validation_epoch": 1,
+      "checkpoint_sha256": "2a526ebade8f3bb4775a96e41cc1bd126ada4c4fc5c225b511bc039591f63ee1",
+      "test_pixels": 32768,
+      "restored_model_variant": "cnn_ssm",
+      "objective": {
+        "combo_alpha": 0.4,
+        "label_smoothing": 0.05,
+        "no_class_weights": false
+      }
+    },
+    {
+      "model_variant": "cnn_only",
+      "epochs_completed": 2,
+      "parameters": 3309724,
+      "training_examples_total": 8,
+      "best_validation_epoch": 2,
+      "checkpoint_sha256": "6a2744b673b72685d779b16ce4d47cb78e2e28a00f42484e392fafe1007d5ee7",
+      "test_pixels": 32768,
+      "restored_model_variant": "cnn_only",
+      "objective": {
+        "combo_alpha": 0.4,
+        "label_smoothing": 0.05,
+        "no_class_weights": false
+      }
+    }
+  ],
+  "paired_artifact_validation": "passed",
+  "single_seed_sample_standard_deviation": null,
+  "architecture_scope": "CNN-only uses temporal mean pooling and omits both selective SSM blocks; parameter budgets are not matched.",
+  "local_artifacts": "runs/architecture-pipeline-smoke",
+  "limitations": [
+    "Inputs and labels are synthetic.",
+    "Parameter counts differ; optical temporal order is removed along with the SSM blocks.",
+    "One seed and two epochs exercise the pipeline only.",
+    "No new real-data accuracy, GPU latency or peak-memory measurements."
+  ]
+}

@@ -1,4 +1,4 @@
-"""Plan or execute a paired, fixed-split ComboLoss versus plain-CE experiment.
+"""Plan or execute paired, fixed-split objective or architecture experiments.
 
 Planning writes argv lists without importing TensorFlow or opening data. Repeat
 the same arguments with --execute to run that reviewed plan. Existing execution
@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 
-from mamba_forest.compare import validate_training_run
+from mamba_forest.compare import COMPARISON_ARMS, validate_training_run
 from mamba_forest.constants import GCS_ROOT, MODEL_DEFAULTS, TOTAL_SHARDS
 
 ARMS = ("combo", "plain_ce")
@@ -48,6 +48,10 @@ def parse_args(argv=None):
   parser = argparse.ArgumentParser(description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument("--run-root", required=True, type=Path)
+  parser.add_argument("--comparison", choices=tuple(COMPARISON_ARMS),
+                      default="objective",
+                      help="objective: ComboLoss/plain CE; "
+                           "architecture: CNN+SSM/CNN-only")
   parser.add_argument("--execute", action="store_true")
   parser.add_argument("--allow-cpu", action="store_true")
   parser.add_argument("--data-root", "--gcs-root", dest="data_root", default=GCS_ROOT)
@@ -95,6 +99,7 @@ def make_plan(args):
   if precision == "auto":
     precision = "float32" if args.allow_cpu else "mixed_float16"
   config = {
+      "comparison": args.comparison,
       "run_root": str(root), "data_root": data_root,
       "total_shards": args.total_shards, "train_shards": args.train_shards,
       "val_shards": args.val_shards, "test_shards": args.test_shards,
@@ -104,6 +109,7 @@ def make_plan(args):
       **{key: getattr(args, key) for key in _MODEL_KEYS},
   }
   python = sys.executable
+  arms = COMPARISON_ARMS[args.comparison]
   model_flags = [value for key in _MODEL_KEYS for value in (
       "--" + key.replace("_", "-"), str(config[key]))]
   source_flags = ["--data-root", data_root, "--total-shards", str(args.total_shards)]
@@ -121,12 +127,12 @@ def make_plan(args):
                  *([] if args.allow_cpu else ["--require-gpu"])],
         "artifact": str(root / f"preflight_{seed}.json"),
     })
-    for arm in ARMS:
+    for arm in arms:
       run_dir = root / f"{arm}_{seed}"
       objective = (["--combo-alpha", "0.4", "--label-smoothing", "0.05"]
-                   if arm == "combo" else ["--combo-alpha", "1",
-                                           "--no-class-weights",
-                                           "--label-smoothing", "0"])
+                   if arm != "plain_ce" else [
+                       "--combo-alpha", "1", "--no-class-weights",
+                       "--label-smoothing", "0"])
       steps.append({
           "id": f"train_{arm}_{seed}", "phase": "train", "seed": seed, "arm": arm,
           "argv": [python, "-m", "mamba_forest.train", *source_flags, *model_flags,
@@ -134,11 +140,13 @@ def make_plan(args):
                    str(args.train_shards), "--val-shards", str(args.val_shards),
                    "--batch-size", str(args.batch_size), "--epochs", str(args.epochs),
                    "--patience", "0", "--precision", precision, *objective,
+                   "--model-variant", arm if args.comparison == "architecture"
+                   else "cnn_ssm",
                    "--output-dir", str(run_dir)],
           "wall_seconds_path": str(run_dir / "train_wall_seconds.txt"),
       })
   for seed in args.seeds:
-    for arm in ARMS:
+    for arm in arms:
       run_dir = root / f"{arm}_{seed}"
       steps.append({
           "id": f"evaluate_{arm}_{seed}", "phase": "evaluate",
@@ -152,6 +160,7 @@ def make_plan(args):
   steps.append({
       "id": "compare", "phase": "compare",
       "argv": [python, "-m", "mamba_forest.compare", "--run-root", str(root),
+               "--comparison", args.comparison,
                "--seeds", *[str(seed) for seed in args.seeds],
                "--output", str(root / "comparison.json")],
       "artifact": str(root / "comparison.json"),
@@ -161,7 +170,7 @@ def make_plan(args):
   return {
       "schema_version": 1, "config": config, "steps": steps,
       "test_coverage": "full" if args.test_shards == args.total_shards else "subset",
-      "scope": ("Paired combined-objective comparison; preflight inspects only "
+      "scope": (f"Paired {args.comparison} comparison; preflight inspects only "
                 "record 0 of one selected shard per split. CPU checks and reduced "
                 "splits do not establish full-benchmark or GPU results."),
       "before_evaluation": "Verify all training artifacts and paired fixed memberships",
@@ -215,6 +224,7 @@ def _verify_run(config, seed, arm):
       raise ValueError(f"Missing or empty training artifact {path}")
   training = validate_training_run(directory, arm, seed)
   observed = training["config"]
+  comparison = config.get("comparison", "objective")
   expected = {
       "gcs_root": config["data_root"], "total_shards": config["total_shards"],
       "train_shards": config["train_shards"], "val_shards": config["val_shards"],
@@ -223,11 +233,13 @@ def _verify_run(config, seed, arm):
       "precision": config["precision"], "resolved_precision": config["precision"],
       "no_mixed_precision": False,
       **{key: config[key] for key in _MODEL_KEYS},
-      "combo_alpha": 0.4 if arm == "combo" else 1.0,
-      "label_smoothing": 0.05 if arm == "combo" else 0.0,
+      "combo_alpha": 1.0 if arm == "plain_ce" else 0.4,
+      "label_smoothing": 0.0 if arm == "plain_ce" else 0.05,
       "no_class_weights": arm == "plain_ce",
+      "model_variant": arm if comparison == "architecture" else "cnn_ssm",
   }
-  if any(observed.get(key) != value for key, value in expected.items()):
+  normalized = {**observed, "model_variant": observed.get("model_variant", "cnn_ssm")}
+  if any(normalized.get(key) != value for key, value in expected.items()):
     raise ValueError(f"Training configuration differs from plan: {directory}")
   manifest = training["manifest"]
   return manifest["epochs"][0]["paths"], manifest["validation_paths"]
@@ -235,10 +247,11 @@ def _verify_run(config, seed, arm):
 
 def _verify_training(plan):
   config = plan["config"]
+  arms = COMPARISON_ARMS[config.get("comparison", "objective")]
   for seed in config["seeds"]:
-    combo = _verify_run(config, seed, "combo")
-    plain = _verify_run(config, seed, "plain_ce")
-    if combo != plain:
+    left = _verify_run(config, seed, arms[0])
+    right = _verify_run(config, seed, arms[1])
+    if left != right:
       raise ValueError(f"Paired split memberships differ for seed {seed}")
 
 

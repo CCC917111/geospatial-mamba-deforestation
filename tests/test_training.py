@@ -129,8 +129,9 @@ def _small_record(shapes, seed):
       features=tf.train.Features(feature=features)).SerializeToString()
 
 
+@pytest.mark.parametrize("model_variant", ["cnn_ssm", "cnn_only"])
 def test_training_main_two_epochs_saves_reusable_checkpoints(
-        tmp_path, monkeypatch):
+        tmp_path, monkeypatch, model_variant):
   shapes = {
       "s2": (4, 16, 16, 10), "elevation": (16, 16, 3),
       "climate": (4, 14), "segmentation_labels": (16, 16),
@@ -164,6 +165,7 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
       "--batch-size", "2", "--d-model", "4", "--d-state-temporal", "2",
       "--d-state-spatial", "2", "--bottleneck-channels", "8",
       "--dropout", "0", "--patience", "0",
+      "--model-variant", model_variant,
   ])
   models = []
 
@@ -206,6 +208,7 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     config = json.loads((output / "config.json").read_text(encoding="utf-8"))
     assert config["precision"] == "auto"
     assert config["resolved_precision"] == "float32"
+    assert config["model_variant"] == model_variant
     assert models[0].compute_dtype == "float32"
     with open(output / "split_manifest.json", encoding="utf-8") as handle:
       manifest = json.load(handle)
@@ -249,7 +252,8 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     for name in ("last.weights.h5", "best.weights.h5"):
       restored = MambaForestSegmenter(
           num_classes=data.NUM_CLASSES, d_model=4, dropout_rate=0,
-          d_state_temporal=2, d_state_spatial=2, bottleneck_channels=8)
+          d_state_temporal=2, d_state_spatial=2, bottleneck_channels=8,
+          model_variant=model_variant)
       restored(inputs, training=False)
       restored.load_weights(str(output / name))
       predictions = restored(inputs, training=False).numpy()

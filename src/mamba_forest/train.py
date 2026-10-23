@@ -28,6 +28,7 @@ import tensorflow as tf
 
 from mamba_forest import data as data_lib
 from mamba_forest.checkpoint import weights_sha256
+from mamba_forest.constants import DEFAULT_MODEL_VARIANT, MODEL_VARIANTS
 from mamba_forest.losses import DEFAULT_CLASS_WEIGHTS, ComboLoss
 from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
 
@@ -76,6 +77,9 @@ def parse_args() -> argparse.Namespace:
   p.add_argument("--bottleneck-channels", type=int,
                  default=MODEL_DEFAULTS["bottleneck_channels"],
                  help="Channel width of the bottleneck feature map")
+  p.add_argument("--model-variant", choices=MODEL_VARIANTS,
+                 default=DEFAULT_MODEL_VARIANT,
+                 help="cnn_only averages optical time steps and omits both SSMs")
   p.add_argument("--combo-alpha", type=float, default=0.4,
                  help="Weight of the cross-entropy term against the Dice term")
   p.add_argument("--label-smoothing", type=float, default=0.05)
@@ -302,7 +306,8 @@ def main() -> None:
       num_classes=num_classes, d_model=args.d_model, dropout_rate=args.dropout,
       d_state_temporal=args.d_state_temporal,
       d_state_spatial=args.d_state_spatial,
-      bottleneck_channels=args.bottleneck_channels)
+      bottleneck_channels=args.bottleneck_channels,
+      model_variant=args.model_variant)
   loss_fn = ComboLoss(
       num_classes, alpha=args.combo_alpha,
       label_smoothing=args.label_smoothing,

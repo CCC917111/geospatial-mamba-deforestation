@@ -1,7 +1,7 @@
 """Resolve checkpoint architecture settings without importing run data settings.
 
 An explicit architecture flag overrides its flat training-config value, which
-overrides the legacy model default. Only the five architecture settings are
+overrides the legacy model default. Only the architecture settings are
 read; data paths, precision and all other training configuration stay separate.
 """
 
@@ -14,7 +14,8 @@ import math
 import numbers
 from pathlib import Path
 
-from mamba_forest.constants import MODEL_DEFAULTS
+from mamba_forest.constants import (DEFAULT_MODEL_VARIANT, MODEL_DEFAULTS,
+                                    MODEL_VARIANTS)
 
 _ARGUMENT_TO_MODEL_KEY = {
     "d_model": "d_model",
@@ -41,6 +42,8 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
         "--" + name.replace("_", "-"), default=None,
         type=float if name == "dropout" else int,
         help="Override the checkpoint configuration's " + name.replace("_", " "))
+  parser.add_argument("--model-variant", choices=MODEL_VARIANTS, default=None,
+                      help="Override the checkpoint's CNN/SSM architecture variant")
   source = parser.add_mutually_exclusive_group()
   source.add_argument("--config", help="Read architecture from this training JSON")
   source.add_argument(
@@ -87,7 +90,7 @@ def _validate(name, value):
 
 
 def resolve_model_arguments(args: argparse.Namespace) -> argparse.Namespace:
-  """Resolves five architecture fields and records the config path on ``args``.
+  """Resolves architecture fields and records the config path on ``args``.
 
   Reads ``args.config`` when explicitly selected, otherwise ``config.json``
   beside ``args.weights`` unless ``args.no_config`` is true. A missing adjacent
@@ -102,6 +105,12 @@ def resolve_model_arguments(args: argparse.Namespace) -> argparse.Namespace:
     fallback = config.get(name, MODEL_DEFAULTS[model_key])
     value = explicit if explicit is not None else fallback
     resolved[name] = _validate(name, value)
+  explicit_variant = getattr(args, "model_variant", None)
+  variant = (explicit_variant if explicit_variant is not None
+             else config.get("model_variant", DEFAULT_MODEL_VARIANT))
+  if not isinstance(variant, str) or variant not in MODEL_VARIANTS:
+    raise ValueError(f"model_variant must be one of {MODEL_VARIANTS}")
+  resolved["model_variant"] = variant
   for name, value in resolved.items():
     setattr(args, name, value)
   args.training_config_path = path

@@ -10,14 +10,18 @@ Run from the repository root:
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import sys
+import tempfile
 
 import numpy as np
+import pytest
 import tensorflow as tf
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from mamba_forest.model import MambaForestSegmenter  # noqa: E402
+from mamba_forest.layers import MambaBlock  # noqa: E402
 
 NUM_CLASSES = 9
 
@@ -105,6 +109,75 @@ def test_gradients_are_finite():
     if gradient is None:
       continue
     assert np.all(np.isfinite(gradient.numpy())), variable.name
+
+
+def _variant_model(variant="cnn_only"):
+  return MambaForestSegmenter(
+      num_classes=NUM_CLASSES, d_model=4, dropout_rate=0.0,
+      d_state_temporal=2, d_state_spatial=2, bottleneck_channels=8,
+      model_variant=variant)
+
+
+def test_cnn_only_has_no_ssm_layers_and_fewer_parameters():
+  inputs = _inputs(batch=1, size=8)
+  baseline = _variant_model()
+  probabilities = baseline(inputs, training=False).numpy()
+  assert probabilities.shape == (1, 8, 8, NUM_CLASSES)
+  assert np.isfinite(probabilities).all() and (probabilities >= 0).all()
+  np.testing.assert_allclose(probabilities.sum(axis=-1), 1.0, atol=1e-6)
+  assert not any(isinstance(layer, MambaBlock)
+                 for layer in baseline._flatten_layers(recursive=True))
+  full = _variant_model("cnn_ssm")
+  full(inputs, training=False)
+  assert sum(isinstance(layer, MambaBlock)
+             for layer in full._flatten_layers(recursive=True)) == 2
+  assert baseline.count_params() < full.count_params()
+
+
+def test_cnn_only_temporal_mean_ignores_optical_season_order():
+  model, inputs = _variant_model(), _inputs(batch=1, size=8)
+  reference = model(inputs, training=False).numpy()
+  reordered = dict(inputs, s2=tf.gather(inputs["s2"], [2, 0, 3, 1], axis=1))
+  np.testing.assert_allclose(
+      model(reordered, training=False).numpy(), reference, atol=1e-6)
+
+
+def test_cnn_only_all_trainable_weights_have_finite_gradients():
+  model, inputs = _variant_model(), _inputs(batch=1, size=8)
+  labels = tf.one_hot(
+      tf.random.uniform((1, 8, 8), maxval=NUM_CLASSES, dtype=tf.int32),
+      NUM_CLASSES)
+  with tf.GradientTape() as tape:
+    predictions = model(inputs, training=True)
+    loss = -tf.reduce_mean(
+        tf.reduce_sum(labels * tf.math.log(predictions + 1e-7), axis=-1))
+  gradients = tape.gradient(loss, model.trainable_variables)
+  assert np.isfinite(loss.numpy())
+  assert gradients
+  for gradient, variable in zip(gradients, model.trainable_variables):
+    assert gradient is not None, variable.name
+    assert np.isfinite(gradient.numpy()).all(), variable.name
+
+
+def test_cnn_only_config_and_checkpoint_roundtrip_preserve_predictions():
+  model, inputs = _variant_model(), _inputs(batch=1, size=8)
+  expected = model(inputs, training=False).numpy()
+  assert model.get_config()["model_variant"] == "cnn_only"
+  restored = MambaForestSegmenter.from_config(model.get_config())
+  restored(inputs, training=False)
+  with tempfile.TemporaryDirectory() as directory:
+    path = Path(directory) / "best.weights.h5"
+    model.save_weights(path)
+    restored.load_weights(path)
+  assert restored.model_variant == "cnn_only"
+  np.testing.assert_allclose(restored(inputs, training=False), expected, atol=1e-7)
+
+
+def test_model_variant_defaults_to_ssm_and_rejects_unknown_names():
+  assert _model().get_config()["model_variant"] == "cnn_ssm"
+  for variant in ("unknown", "", None, True, 7):
+    with pytest.raises(ValueError, match="model_variant"):
+      _variant_model(variant)
 
 
 if __name__ == "__main__":

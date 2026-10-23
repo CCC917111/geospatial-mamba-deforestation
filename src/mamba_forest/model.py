@@ -21,6 +21,10 @@ context modelling:
   5. Multi-stage decoder. Three decoder stages return to 128x128, each
      concatenating the matching encoder feature map, followed by a
      convolutional classification head with softmax.
+
+The optional ``cnn_only`` variant is a component ablation: it uses temporal
+mean pooling and removes both SSM blocks while retaining normalization, fusion,
+SASF and the CNN encoder/decoder. Its parameter count is consequently lower.
 """
 
 from __future__ import annotations
@@ -28,7 +32,8 @@ from __future__ import annotations
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from mamba_forest.constants import MODEL_DEFAULTS
+from mamba_forest.constants import (DEFAULT_MODEL_VARIANT, MODEL_DEFAULTS,
+                                    MODEL_VARIANTS)
 from mamba_forest.layers import (DynamicMultiModalFusion, MambaBlock,
                                  StructureAwareStateFusion)
 
@@ -48,6 +53,10 @@ class MambaForestSegmenter(tf.keras.Model):
     d_state_temporal: state dimension of the temporal Mamba block.
     d_state_spatial: state dimension of the spatial Mamba block.
     bottleneck_channels: channel width of the bottleneck feature map.
+    model_variant: ``cnn_ssm`` uses selective state-space blocks; ``cnn_only``
+      averages optical observations over time and omits both SSM blocks. Both
+      variants retain normalization, fusion, SASF and the CNN encoder/decoder.
+      This is a component ablation with different parameter counts.
   """
 
   def __init__(self, num_classes: int, d_model: int = MODEL_DEFAULTS["d_model"],
@@ -55,8 +64,12 @@ class MambaForestSegmenter(tf.keras.Model):
                d_state_temporal: int = MODEL_DEFAULTS["d_state_temporal"],
                d_state_spatial: int = MODEL_DEFAULTS["d_state_spatial"],
                bottleneck_channels: int = MODEL_DEFAULTS["bottleneck_channels"],
+               model_variant: str = DEFAULT_MODEL_VARIANT,
                **kwargs):
     super().__init__(**kwargs)
+    if not isinstance(model_variant, str) or model_variant not in MODEL_VARIANTS:
+      raise ValueError(f"model_variant must be one of {MODEL_VARIANTS}")
+    self.model_variant = model_variant
     self.num_classes = num_classes
     self.d_model = d_model
     self.dropout_rate = dropout_rate
@@ -65,9 +78,9 @@ class MambaForestSegmenter(tf.keras.Model):
     self.bottleneck_channels = bottleneck_channels
 
     # --- Temporal encoder ---------------------------------------------------
-    self.temporal_mamba = MambaBlock(
+    self.temporal_mamba = (MambaBlock(
         d_model=OPTICAL_CHANNELS, d_state=d_state_temporal, expand=2,
-        dropout_rate=dropout_rate)
+        dropout_rate=dropout_rate) if model_variant == "cnn_ssm" else None)
     self.temporal_norm = layers.LayerNormalization(axis=-1)
 
     # --- Per-modality projections -------------------------------------------
@@ -103,9 +116,9 @@ class MambaForestSegmenter(tf.keras.Model):
     # --- Spatial Mamba bottleneck with SASF ---------------------------------
     self.bottleneck_conv = layers.Conv2D(
         bottleneck_channels, 3, activation="relu", padding="same")
-    self.spatial_mamba = MambaBlock(
+    self.spatial_mamba = (MambaBlock(
         d_model=bottleneck_channels, d_state=d_state_spatial, expand=2,
-        dropout_rate=dropout_rate)
+        dropout_rate=dropout_rate) if model_variant == "cnn_ssm" else None)
     self.spatial_norm = layers.LayerNormalization(axis=-1)
     self.sasf = StructureAwareStateFusion(name="sasf")
     self.bottleneck_dropout = layers.Dropout(dropout_rate)
@@ -151,6 +164,11 @@ class MambaForestSegmenter(tf.keras.Model):
 
   def _encode_optical(self, x, training: bool):
     """[B, T, H, W, C] -> [B, H, W, d_model]."""
+    if self.model_variant == "cnn_only":
+      # Keep the same optical channels and downstream CNN. Pooling removes
+      # optical season ordering and introduces no replacement sequence weights.
+      spatial = self.temporal_norm(tf.reduce_mean(x, axis=1))
+      return self.optical_proj(spatial, training=training)
     shape = tf.shape(x)
     batch, time, height, width = shape[0], shape[1], shape[2], shape[3]
     channels = x.shape[-1]  # static, needed by the dense layers
@@ -209,21 +227,20 @@ class MambaForestSegmenter(tf.keras.Model):
     e2 = self.enc2(e1, training=training)   # [B, H/4,  W/4,  128]
     e3 = self.enc3(e2, training=training)   # [B, H/8,  W/8,  256]
 
-    # Bottleneck: flatten the grid into a sequence so the Mamba block can mix
-    # information across the whole tile in linear time, then restore the 2D
-    # neighbourhood with SASF.
+    # The SSM variant mixes the flattened grid globally. The CNN-only variant
+    # passes the convolutional grid directly to normalization and local SASF.
     b = self.bottleneck_conv(e3)            # [B, H/8, W/8, 512]
     b_shape = tf.shape(b)
     bh, bw = b_shape[1], b_shape[2]
     bc = b.shape[-1]  # static, required by the Mamba block
     b_seq = tf.reshape(b, [-1, bh * bw, bc])
     b_seq.set_shape([None, None, bc])
-    b_seq = self.spatial_norm(self.spatial_mamba(b_seq, training=training))
+    if self.spatial_mamba is not None:
+      b_seq = self.spatial_mamba(b_seq, training=training)
+    b_seq = self.spatial_norm(b_seq)
     b_map = tf.reshape(b_seq, [-1, bh, bw, bc])
     b_map.set_shape([None, None, None, bc])
-    # SASF already keeps the state of each patch as its own leading term, and
-    # the Mamba block carries the convolutional features through its residual,
-    # so no further skip is needed here.
+    # SASF keeps each patch as its own leading term; no further skip is used.
     b = self.bottleneck_dropout(self.sasf(b_map), training=training)
 
     d1 = self.dec1(tf.concat([self.up1(b), e2], axis=-1), training=training)
@@ -242,5 +259,6 @@ class MambaForestSegmenter(tf.keras.Model):
         "d_state_temporal": self.d_state_temporal,
         "d_state_spatial": self.d_state_spatial,
         "bottleneck_channels": self.bottleneck_channels,
+        "model_variant": self.model_variant,
     })
     return config

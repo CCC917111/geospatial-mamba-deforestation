@@ -32,6 +32,10 @@ FEATURE_SHAPES = {
     "segmentation_labels": (128, 128),
 }
 
+MODEL_VARIANTS = ("cnn_ssm", "cnn_only")
+DEFAULT_MODEL_VARIANT = "cnn_ssm"
+
+# Numeric architecture defaults are kept separate from the categorical variant.
 MODEL_DEFAULTS = {
     "d_model": 32,
     "dropout_rate": 0.2,

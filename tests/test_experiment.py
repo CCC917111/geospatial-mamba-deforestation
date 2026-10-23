@@ -38,9 +38,11 @@ def _train_artifacts(plan, step, changed_paths=False):
       "gcs_root": config["data_root"], "resolved_precision": config["precision"],
       "precision": config["precision"], "no_mixed_precision": False,
       "seed": step["seed"], "patience": 0, "fixed_train_subset": True,
-      "combo_alpha": 0.4 if step["arm"] == "combo" else 1.0,
-      "label_smoothing": 0.05 if step["arm"] == "combo" else 0.0,
+      "combo_alpha": 1.0 if step["arm"] == "plain_ce" else 0.4,
+      "label_smoothing": 0.0 if step["arm"] == "plain_ce" else 0.05,
       "no_class_weights": step["arm"] == "plain_ce",
+      "model_variant": (step["arm"] if config["comparison"] == "architecture"
+                        else "cnn_ssm"),
   }
   _json(directory / "config.json", training)
   paths = ["train/a" if not changed_paths else "train/different"]
@@ -81,7 +83,8 @@ def _fake_subprocess(monkeypatch, plan, fail=None, changed_pair=False, missing=F
       return subprocess.CompletedProcess(argv, 7)
     if step["phase"] == "train":
       directory = _train_artifacts(
-          plan, step, changed_paths=changed_pair and step["arm"] == "plain_ce")
+          plan, step, changed_paths=changed_pair and step["arm"] in (
+              "plain_ce", "cnn_only"))
       if missing:
         (directory / "best.weights.h5").unlink()
     elif step["phase"] == "preflight":
@@ -132,6 +135,55 @@ def test_plan_commands_fix_pair_conditions_and_separate_final_test(tmp_path):
   reduced_args = _arguments(tmp_path, "--total-shards", "4", "--test-shards", "1")
   reduced = experiment.make_plan(reduced_args)
   assert reduced["test_coverage"] == "subset"
+
+
+def test_architecture_plan_pairs_variants_with_identical_objective(tmp_path):
+  plan = experiment.make_plan(_arguments(tmp_path, "--comparison", "architecture"))
+  assert plan["config"]["comparison"] == "architecture"
+  training = [step for step in plan["steps"] if step["phase"] == "train"]
+  assert [step["arm"] for step in training] == ["cnn_ssm", "cnn_only"]
+  controls = []
+  for step in training:
+    argv = step["argv"]
+    assert argv[argv.index("--model-variant") + 1] == step["arm"]
+    assert argv[argv.index("--combo-alpha") + 1] == "0.4"
+    assert argv[argv.index("--label-smoothing") + 1] == "0.05"
+    assert "--no-class-weights" not in argv
+    ignored = {argv.index("--model-variant") + 1, argv.index("--output-dir") + 1}
+    controls.append([value for index, value in enumerate(argv) if index not in ignored])
+  assert controls[0] == controls[1]
+  comparison = plan["steps"][-1]["argv"]
+  assert comparison[comparison.index("--comparison") + 1] == "architecture"
+  phases = [step["phase"] for step in plan["steps"]]
+  assert max(i for i, value in enumerate(phases) if value == "train") < phases.index(
+      "evaluate")
+
+
+def test_architecture_execution_checks_training_and_preserves_paired_memberships(
+      tmp_path, monkeypatch):
+  plan = experiment.make_plan(_arguments(tmp_path, "--comparison", "architecture"))
+  calls = _fake_subprocess(monkeypatch, plan, changed_pair=True)
+  with pytest.raises(ValueError, match="Paired split memberships differ"):
+    experiment.execute_plan(plan)
+  assert calls[-1] == "train_cnn_only_42"
+  assert not any(name.startswith("evaluate") for name in calls)
+
+
+def test_architecture_plan_rejects_swapped_variant_before_evaluation(tmp_path):
+  plan = experiment.make_plan(_arguments(tmp_path, "--comparison", "architecture"))
+  step = next(item for item in plan["steps"] if item["id"] == "train_cnn_only_42")
+  directory = _train_artifacts(plan, step)
+  config = json.loads((directory / "config.json").read_text())
+  config["model_variant"] = "cnn_ssm"
+  _json(directory / "config.json", config)
+  # The shared comparator validator needs full artifacts; isolate the planner
+  # contract here and cover actual validation with complete comparator fixtures.
+  from unittest.mock import patch
+  with patch.object(experiment, "validate_training_run", return_value={
+      "config": config, "manifest": json.loads(
+          (directory / "split_manifest.json").read_text())}):
+    with pytest.raises(ValueError, match="differs from plan"):
+      experiment._verify_run(plan["config"], 42, "cnn_only")
 
 
 def test_plan_only_writes_reviewable_commands_and_identical_plan_reusable(

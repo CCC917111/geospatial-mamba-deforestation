@@ -63,8 +63,9 @@ def test_graph_prediction_agrees_with_eager_without_retracing_sizes():
 
 
 @pytest.mark.parametrize("configuration", ["sidecar", "manual", "moved_config"])
+@pytest.mark.parametrize("model_variant", ["cnn_ssm", "cnn_only"])
 def test_prediction_cli_saves_consistent_outputs(
-        tmp_path, monkeypatch, configuration):
+        tmp_path, monkeypatch, configuration, model_variant):
   tf.keras.utils.set_random_seed(42)
   tiles = tmp_path / "tiles"
   tiles.mkdir()
@@ -73,10 +74,11 @@ def test_prediction_cli_saves_consistent_outputs(
   architecture = {
       "d_model": 4, "dropout": 0.1, "d_state_temporal": 2,
       "d_state_spatial": 3, "bottleneck_channels": 8,
+      "model_variant": model_variant,
   }
   model = MambaForestSegmenter(
       9, d_model=4, dropout_rate=0.1, d_state_temporal=2,
-      d_state_spatial=3, bottleneck_channels=8)
+      d_state_spatial=3, bottleneck_channels=8, model_variant=model_variant)
   expected = model(predict.preprocess_tile(tile), training=False).numpy()[0]
   weights_dir = tmp_path / "moved" if configuration == "moved_config" else tmp_path
   weights_dir.mkdir(exist_ok=True)

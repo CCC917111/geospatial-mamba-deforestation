@@ -42,6 +42,7 @@ import tensorflow as tf
 from mamba_forest import checkpoint
 from mamba_forest import data as data_lib
 from mamba_forest.model import MambaForestSegmenter
+from mamba_forest.constants import DEFAULT_MODEL_VARIANT
 
 REQUIRED_ARRAYS = ("s2", "elevation", "climate")
 
@@ -194,7 +195,8 @@ def _runtime_metadata(args, sources):
       "save_options": {"png": args.save_png, "probabilities": args.save_probabilities},
       "model_config": {name: getattr(args, name) for name in (
           "d_model", "dropout", "d_state_temporal", "d_state_spatial",
-          "bottleneck_channels")},
+          "bottleneck_channels")} | {
+              "model_variant": getattr(args, "model_variant", DEFAULT_MODEL_VARIANT)},
       "tensorflow_version": tf.__version__, "python_version": platform.python_version(),
       "platform": platform.platform(), "cpu_count": os.cpu_count(),
       "devices": [{"name": device.name, "type": device.device_type}
@@ -240,7 +242,8 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
       num_classes=num_classes, d_model=args.d_model, dropout_rate=args.dropout,
       d_state_temporal=args.d_state_temporal,
       d_state_spatial=args.d_state_spatial,
-      bottleneck_channels=args.bottleneck_channels)
+      bottleneck_channels=args.bottleneck_channels,
+      model_variant=getattr(args, "model_variant", DEFAULT_MODEL_VARIANT))
   # Synchronize the eager build before stopping its timer or loading weights.
   tf.reduce_sum(model(first_inputs, training=False)).numpy()
   model.load_weights(args.weights)

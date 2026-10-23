@@ -219,8 +219,9 @@ def test_evaluation_sidecar_does_not_restore_data_or_precision(tmp_path, monkeyp
   assert tf.keras.mixed_precision.global_policy().name == before_policy
 
 
+@pytest.mark.parametrize("model_variant", ["cnn_ssm", "cnn_only"])
 def test_cli_reloads_nondefault_checkpoint_using_sidecar_and_local_records(
-      tmp_path, monkeypatch):
+      tmp_path, monkeypatch, model_variant):
   shapes = {
       "s2": (4, 16, 16, 10), "elevation": (16, 16, 3), "climate": (4, 14),
       "segmentation_labels": (16, 16),
@@ -252,12 +253,13 @@ def test_cli_reloads_nondefault_checkpoint_using_sidecar_and_local_records(
     writer.write(example.SerializeToString())
 
   config = {"d_model": 6, "dropout": 0.0, "d_state_temporal": 2,
-            "d_state_spatial": 3, "bottleneck_channels": 8}
+            "d_state_spatial": 3, "bottleneck_channels": 8,
+            "model_variant": model_variant}
   model = MambaForestSegmenter(
       num_classes=data_lib.NUM_CLASSES, d_model=config["d_model"],
       dropout_rate=config["dropout"], d_state_temporal=config["d_state_temporal"],
       d_state_spatial=config["d_state_spatial"],
-      bottleneck_channels=config["bottleneck_channels"])
+      bottleneck_channels=config["bottleneck_channels"], model_variant=model_variant)
   dataset = data_lib.make_dataset(
       "test", 1, batch_size=1, training=False,
       gcs_root=str(records_root), total_shards=1)
@@ -282,6 +284,8 @@ def test_cli_reloads_nondefault_checkpoint_using_sidecar_and_local_records(
   assert metrics["shard_paths"] == [record_path]
   assert metrics["num_pixels"] == 16 * 16
   assert metrics["model_config"]["dropout_rate"] == config["dropout"]
+  assert metrics["model_config"]["model_variant"] == model_variant
+  assert metrics["parameters"] == model.count_params()
   for key in ("d_model", "d_state_temporal", "d_state_spatial", "bottleneck_channels"):
     assert metrics["model_config"][key] == config[key]
   np.testing.assert_array_equal(metrics["confusion_matrix"], expected_confusion)

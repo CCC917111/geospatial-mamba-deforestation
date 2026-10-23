@@ -147,3 +147,49 @@ def test_nonfinite_cli_dropout_rejected(tmp_path, value):
   args = _arguments(tmp_path, "--dropout=" + value)
   with pytest.raises(ValueError, match="dropout must be a finite number"):
     resolve_model_arguments(args)
+
+
+def test_model_variant_defaults_for_missing_and_legacy_configs(tmp_path):
+  assert resolve_model_arguments(_arguments(tmp_path)).model_variant == "cnn_ssm"
+  _write_config(tmp_path, {"d_model": 4})
+  args = resolve_model_arguments(_arguments(tmp_path))
+  assert args.model_variant == "cnn_ssm" and args.d_model == 4
+
+
+def test_model_variant_restores_checkpoint_and_explicit_override(tmp_path):
+  _write_config(tmp_path, {"model_variant": "cnn_only"})
+  assert resolve_model_arguments(_arguments(tmp_path)).model_variant == "cnn_only"
+  args = _arguments(tmp_path, "--model-variant", "cnn_ssm")
+  assert resolve_model_arguments(args).model_variant == "cnn_ssm"
+  explicit = _write_config(tmp_path, {"model_variant": "cnn_ssm"}, "chosen.json")
+  args = _arguments(tmp_path, "--config", str(explicit))
+  assert resolve_model_arguments(args).model_variant == "cnn_ssm"
+
+
+def test_no_config_does_not_inherit_cnn_only_variant(tmp_path):
+  _write_config(tmp_path, {"model_variant": "cnn_only"})
+  args = _arguments(tmp_path, "--no-config")
+  assert resolve_model_arguments(args).model_variant == "cnn_ssm"
+  args = _arguments(tmp_path, "--no-config", "--model-variant", "cnn_only")
+  assert resolve_model_arguments(args).model_variant == "cnn_only"
+
+
+@pytest.mark.parametrize("value", ["unknown", "", None, True, 4, ["cnn_only"]])
+def test_invalid_checkpoint_model_variant_fails_atomically(tmp_path, value):
+  _write_config(tmp_path, {"model_variant": value, "d_model": 4})
+  args = _arguments(tmp_path)
+  with pytest.raises(ValueError, match="model_variant"):
+    resolve_model_arguments(args)
+  assert args.d_model is None and args.model_variant is None
+
+
+def test_explicit_model_variant_overrides_invalid_saved_value(tmp_path):
+  _write_config(tmp_path, {"model_variant": "invalid"})
+  args = _arguments(tmp_path, "--model-variant", "cnn_only")
+  assert resolve_model_arguments(args).model_variant == "cnn_only"
+
+
+def test_unknown_model_variant_cli_value_is_rejected(tmp_path):
+  with pytest.raises(SystemExit) as error:
+    _arguments(tmp_path, "--model-variant", "not-a-model")
+  assert error.value.code == 2

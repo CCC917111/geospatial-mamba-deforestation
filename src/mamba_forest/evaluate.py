@@ -21,6 +21,7 @@ import tensorflow as tf
 from mamba_forest import data as data_lib
 from mamba_forest.checkpoint import add_model_arguments, resolve_model_arguments
 from mamba_forest.checkpoint import weights_sha256
+from mamba_forest.constants import DEFAULT_MODEL_VARIANT
 from mamba_forest.model import MambaForestSegmenter
 from mamba_forest.train import evaluate, forest_scores
 
@@ -61,7 +62,8 @@ def main() -> None:
       num_classes=num_classes, d_model=args.d_model, dropout_rate=args.dropout,
       d_state_temporal=args.d_state_temporal,
       d_state_spatial=args.d_state_spatial,
-      bottleneck_channels=args.bottleneck_channels)
+      bottleneck_channels=args.bottleneck_channels,
+      model_variant=getattr(args, "model_variant", DEFAULT_MODEL_VARIANT))
   # Build the variables before loading the weights.
   built = False
   for batch in test_ds.take(1):
@@ -101,6 +103,7 @@ def main() -> None:
           total_shards=args.total_shards),
       "batch_size": args.batch_size,
       "model_config": model.get_config(),
+      "parameters": model.count_params(),
       "runtime": {
           "tensorflow_version": tf.__version__,
           "precision_policy": tf.keras.mixed_precision.global_policy().name,

@@ -1,0 +1,60 @@
+name: CPU checks
+
+on:
+  push:
+    branches: [main, codex/reproducible-evaluation-performance]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cpu:
+    name: Tests and lint (Python 3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TF_CPP_MIN_LOG_LEVEL: "2"
+      TF_NUM_INTRAOP_THREADS: "2"
+      TF_NUM_INTEROP_THREADS: "2"
+      OMP_NUM_THREADS: "2"
+      MPLBACKEND: Agg
+      MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
+      KERAS_HOME: ${{ runner.temp }}/keras
+      XDG_CACHE_HOME: ${{ runner.temp }}/cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            cloud/requirements-cpu.txt
+            cloud/requirements-common.txt
+            pyproject.toml
+      - name: Install the pinned CPU environment
+        run: |
+          python -m pip install -r cloud/requirements-cpu.txt
+          python -m pip install --no-deps -e .
+      - name: Record the environment and check CPU execution
+        run: |
+          mkdir -p ci-artifacts
+          python -m pip freeze > ci-artifacts/packages.txt
+          python cloud/check_runtime.py --cpu --output ci-artifacts/runtime.json
+      - name: Lint
+        run: make lint
+      - name: Run the offline test suite
+        run: python -m pytest tests -q --junitxml=ci-artifacts/pytest.xml
+      - name: Retain check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-check-results
+          path: ci-artifacts/
+          if-no-files-found: ignore

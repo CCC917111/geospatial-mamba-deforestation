@@ -1,10 +1,12 @@
-"""Validate and summarize paired ComboLoss/plain-cross-entropy experiments.
+"""Validate and summarize paired objective or architecture experiments.
 
 Each seed requires complete runs in ``RUN_ROOT/combo_SEED`` and
 ``RUN_ROOT/plain_ce_SEED``, including test/test_metrics.json and the checkpoint
 selection record. This command reads local artifacts only and imports no ML
-framework. Scores are percentages; paired deltas are ComboLoss minus plain CE
-in percentage points. One seed has no sample standard deviation.
+framework. The default compares ComboLoss minus plain CE. With --comparison
+architecture, use cnn_ssm_SEED and cnn_only_SEED and compare CNN+SSM minus CNN-only
+under one ComboLoss objective. Scores and deltas are percentages and percentage
+points, respectively. One seed has no sample standard deviation.
 """
 
 from __future__ import annotations
@@ -22,6 +24,8 @@ from mamba_forest.constants import CLASS_NAMES, FOREST_CLASS_INDICES, NUM_CLASSE
 
 SCORE_KEYS = ("overall_f1", "forests_f1", "natural_forest_f1",
               "planted_forest_f1", "tree_crops_f1")
+COMPARISON_ARMS = {"objective": ("combo", "plain_ce"),
+                   "architecture": ("cnn_ssm", "cnn_only")}
 _OBJECTIVE_KEYS = {"combo_alpha", "label_smoothing", "no_class_weights"}
 _MODEL_KEYS = ("d_model", "d_state_temporal", "d_state_spatial", "bottleneck_channels")
 _CONVENTIONS = {
@@ -33,6 +37,12 @@ _CONVENTIONS = {
 def _check(condition, message):
   if not condition:
     raise ValueError(message)
+
+
+def _model_variant(config):
+  variant = config.get("model_variant", "cnn_ssm")
+  _check(variant in COMPARISON_ARMS["architecture"], "unknown model variant")
+  return variant
 
 
 def _number(value, label, minimum=None, maximum=None):
@@ -172,6 +182,8 @@ def _validate_metrics(metrics, config, checkpoint):
            f"F1 {name} differs from confusion matrix")
   model = metrics["model_config"]
   _check(model["num_classes"] == NUM_CLASSES, "model class count mismatch")
+  _check(_model_variant(model) == _model_variant(config),
+         "test model variant differs from training")
   for key in _MODEL_KEYS:
     _check(model[key] == config[key], f"test model {key} differs from training")
   _check(model["dropout_rate"] == config["dropout"],
@@ -190,8 +202,12 @@ def _validate_config(config, variant, seed):
   }
   _check(required <= set(config),
          f"missing training condition keys: {sorted(required - set(config))}")
-  _check(variant in ("combo", "plain_ce"), "unknown objective variant")
-  expected = (0.4, 0.05, False) if variant == "combo" else (1.0, 0.0, True)
+  _check(variant in (*COMPARISON_ARMS["objective"],
+                     *COMPARISON_ARMS["architecture"]), "unknown comparison arm")
+  expected_model = variant if variant in COMPARISON_ARMS["architecture"] else "cnn_ssm"
+  _check(_model_variant(config) == expected_model,
+         f"{variant} model variant is incorrect")
+  expected = (1.0, 0.0, True) if variant == "plain_ce" else (0.4, 0.05, False)
   actual = tuple(config[key] for key in
                  ("combo_alpha", "label_smoothing", "no_class_weights"))
   _check(isinstance(config["no_class_weights"], bool) and actual == expected,
@@ -268,12 +284,15 @@ def validate_training_run(directory, variant, seed) -> dict:
     raise ValueError(f"{directory}: {error}") from error
 
 
-def _read_run(directory, variant, seed):
+def _read_run(directory, variant, seed, score_keys=SCORE_KEYS):
   training = validate_training_run(directory, variant, seed)
   config, rows, best = training["config"], training["rows"], training["best"]
   try:
     metrics = _read_json(directory / "test" / "test_metrics.json")
     _validate_metrics(metrics, config, directory / "best.weights.h5")
+    parameters = metrics.get("parameters")
+    if parameters is not None:
+      _integer(parameters, "parameter_count", 1)
     train_seconds = sum(row["train_seconds"] for row in rows)
     train_examples = sum(row["train_examples"] for row in rows)
     later_seconds = sum(row["train_seconds"] for row in rows[1:])
@@ -283,7 +302,8 @@ def _read_run(directory, variant, seed):
                 "run_dir": str(directory), "epochs_completed": len(rows),
                 "best_validation_epoch": int(best["epoch"]),
                 "best_validation_overall_f1": best["overall_f1"],
-                "scores_percent": {key: 100 * metrics[key] for key in SCORE_KEYS},
+                "scores_percent": {key: 100 * metrics[key] for key in score_keys},
+                "parameter_count": parameters,
                 "train_seconds": train_seconds,
                 "validation_seconds": sum(row["validation_seconds"] for row in rows),
                 "train_examples": train_examples,
@@ -308,19 +328,26 @@ def _read_run(directory, variant, seed):
     raise ValueError(f"{directory}: {error}") from error
 
 
-def _effective_config(config):
-  ignored = _OBJECTIVE_KEYS | {"output_dir", "precision", "no_mixed_precision"}
-  return {key: value for key, value in config.items() if key not in ignored}
+def _effective_config(config, comparison="objective"):
+  ignored = {"output_dir", "precision", "no_mixed_precision"}
+  ignored |= _OBJECTIVE_KEYS if comparison == "objective" else {"model_variant"}
+  normalized = {**config, "model_variant": _model_variant(config)}
+  return {key: value for key, value in normalized.items() if key not in ignored}
 
 
-def _test_protocol(metrics):
+def _test_protocol(metrics, comparison="objective"):
+  ignored = {"name"}
+  if comparison == "architecture":
+    ignored.add("model_variant")
+  model = {**metrics["model_config"],
+           "model_variant": _model_variant(metrics["model_config"])}
   return {
       **{key: metrics[key] for key in (
           "gcs_root", "total_shards_per_split", "test_shards", "shard_paths",
           "batch_size", "class_support", "num_pixels", "metric_conventions",
           "confusion_axes")},
-      "model_config": {key: value for key, value in metrics["model_config"].items()
-                       if key != "name"},
+      "model_config": {key: value for key, value in model.items()
+                       if key not in ignored},
       "runtime": {key: metrics["runtime"][key]
                   for key in ("tensorflow_version", "precision_policy")},
   }
@@ -331,45 +358,55 @@ def _stats(values):
           "sample_sd": statistics.stdev(values) if len(values) > 1 else None}
 
 
-def summarize_runs(run_root, seeds=(42, 43, 44)) -> dict:
+def summarize_runs(run_root, seeds=(42, 43, 44), comparison="objective") -> dict:
   """Rejects unmatched/incomplete local artifacts and summarizes paired scores."""
   seeds = list(seeds)
+  _check(comparison in COMPARISON_ARMS, "unknown comparison")
+  arms = COMPARISON_ARMS[comparison]
+  score_keys = SCORE_KEYS + (("mean_iou",) if comparison == "architecture" else ())
   _check(seeds and len(set(seeds)) == len(seeds), "provide at least one unique seed")
   for seed in seeds:
     _integer(seed, "seed", 0)
   root = Path(run_root)
   pairs, reference_config, reference_protocol = [], None, None
   for seed in seeds:
-    combo = _read_run(root / f"combo_{seed}", "combo", seed)
-    plain = _read_run(root / f"plain_ce_{seed}", "plain_ce", seed)
-    config = _effective_config(combo["config"])
-    protocol = _test_protocol(combo["metrics"])
-    _check(config == _effective_config(plain["config"]),
+    left = _read_run(root / f"{arms[0]}_{seed}", arms[0], seed, score_keys)
+    right = _read_run(root / f"{arms[1]}_{seed}", arms[1], seed, score_keys)
+    config = _effective_config(left["config"], comparison)
+    protocol = _test_protocol(left["metrics"], comparison)
+    _check(config == _effective_config(right["config"], comparison),
            f"seed {seed}: training config mismatch")
-    _check(combo["manifest"] == plain["manifest"],
+    _check(left["manifest"] == right["manifest"],
            f"seed {seed}: split manifests mismatch")
-    _check(protocol == _test_protocol(plain["metrics"]),
+    _check(protocol == _test_protocol(right["metrics"], comparison),
            f"seed {seed}: test protocol mismatch")
-    _check([row["train_examples"] for row in combo["rows"]]
-           == [row["train_examples"] for row in plain["rows"]],
+    _check([row["train_examples"] for row in left["rows"]]
+           == [row["train_examples"] for row in right["rows"]],
            f"seed {seed}: training example budgets mismatch")
+    if comparison == "objective":
+      _check(left["summary"]["parameter_count"] == right["summary"]["parameter_count"],
+             f"seed {seed}: model parameter counts mismatch")
     across_seeds = {key: value for key, value in config.items() if key != "seed"}
     if reference_config is None:
       reference_config, reference_protocol = across_seeds, protocol
     _check(across_seeds == reference_config, "training conditions differ across seeds")
     _check(protocol == reference_protocol, "test conditions differ across seeds")
     pairs.append({
-        "seed": seed, "combo": combo["summary"], "plain_ce": plain["summary"],
+        "seed": seed, arms[0]: left["summary"], arms[1]: right["summary"],
         "paired_delta_percentage_points": {
-            key: 100 * (combo["metrics"][key] - plain["metrics"][key])
-            for key in SCORE_KEYS},
+            key: 100 * (left["metrics"][key] - right["metrics"][key])
+            for key in score_keys},
     })
   summary = {}
-  for variant in ("combo", "plain_ce"):
+  for variant in arms:
+    counts = [pair[variant]["parameter_count"] for pair in pairs]
+    _check(all(count == counts[0] for count in counts),
+           f"{variant}: parameter counts differ across seeds")
     summary[variant] = {
         "scores_percent": {key: _stats([pair[variant]["scores_percent"][key]
                                        for pair in pairs])
-                           for key in SCORE_KEYS},
+                           for key in score_keys},
+        "parameter_count": counts[0],
         **{key: _stats([pair[variant][key] for pair in pairs])
            for key in ("train_seconds", "validation_seconds", "train_examples")},
         "train_examples_per_second": (
@@ -381,9 +418,11 @@ def summarize_runs(run_root, seeds=(42, 43, 44)) -> dict:
     }
   summary["paired_delta_percentage_points"] = {
       key: _stats([pair["paired_delta_percentage_points"][key] for pair in pairs])
-      for key in SCORE_KEYS}
+      for key in score_keys}
   return {"schema_version": 1, "run_root": str(root), "seeds": seeds,
-          "delta_direction": "combo_minus_plain_ce", "pairs": pairs, "summary": summary,
+          "comparison": comparison,
+          "delta_direction": f"{arms[0]}_minus_{arms[1]}",
+          "pairs": pairs, "summary": summary,
           "test_coverage": {
               "shards": reference_protocol["test_shards"],
               "total_shards": reference_protocol["total_shards_per_split"],
@@ -391,17 +430,23 @@ def summarize_runs(run_root, seeds=(42, 43, 44)) -> dict:
                              == reference_protocol["total_shards_per_split"]),
           },
           "timing_scope": "Reported epoch training/validation time; excludes "
-                          "model build and checkpoint I/O."}
+                          "model build and checkpoint I/O.",
+          "architecture_scope": ("CNN-only uses temporal mean pooling and omits "
+                                 "both selective SSM blocks; parameter budgets "
+                                 "are not matched."
+                                 if comparison == "architecture" else None)}
 
 
 def main() -> None:
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument("--run-root", required=True)
+  parser.add_argument("--comparison", choices=tuple(COMPARISON_ARMS),
+                      default="objective")
   parser.add_argument("--seeds", type=int, nargs="+", default=[42, 43, 44])
   parser.add_argument("--output", help="Defaults to RUN_ROOT/comparison.json")
   args = parser.parse_args()
   try:
-    report = summarize_runs(args.run_root, args.seeds)
+    report = summarize_runs(args.run_root, args.seeds, args.comparison)
     output = (Path(args.output) if args.output
               else Path(args.run_root) / "comparison.json")
     output.parent.mkdir(parents=True, exist_ok=True)

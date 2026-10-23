@@ -36,11 +36,12 @@ def test_measure_excludes_warmup_and_rejects_invalid_outputs():
     benchmark.measure(lambda: tf.constant(np.nan), 1, 1, 1)
 
 
-def test_benchmark_train_and_infer_with_metadata():
+@pytest.mark.parametrize("model_variant", ["cnn_ssm", "cnn_only"])
+def test_benchmark_train_and_infer_with_metadata(model_variant):
   args = benchmark.parse_args([
       "--mode", "both", "--tile-size", "8", "--batch-size", "1",
       "--d-model", "4", "--bottleneck-channels", "8", "--steps", "2",
-      "--warmup", "1", "--device", "/CPU:0"])
+      "--warmup", "1", "--device", "/CPU:0", "--model-variant", model_variant])
   policy = tf.keras.mixed_precision.global_policy().name
   result = benchmark.run_benchmark(args)
   assert tf.keras.mixed_precision.global_policy().name == policy
@@ -54,6 +55,7 @@ def test_benchmark_train_and_infer_with_metadata():
   assert metadata["input_shapes"]["s2"] == [1, 4, 8, 8, 10]
   assert metadata["precision"] == "float32"
   assert metadata["parameters"] > 0
+  assert metadata["model_config"]["model_variant"] == model_variant
   assert metadata["cpu_count"] is None or metadata["cpu_count"] > 0
   assert "TF_NUM_INTRAOP_THREADS" in metadata["thread_settings"]
   assert set(metadata["tensorflow_threading"]) == {

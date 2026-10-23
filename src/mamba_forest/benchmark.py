@@ -24,6 +24,7 @@ import numpy as np
 import tensorflow as tf
 
 from mamba_forest import data as data_lib
+from mamba_forest.constants import DEFAULT_MODEL_VARIANT, MODEL_VARIANTS
 from mamba_forest.losses import ComboLoss
 from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
 from mamba_forest.train import scale_loss, unscale_gradients
@@ -53,6 +54,8 @@ def parse_args(argv=None) -> argparse.Namespace:
   parser.add_argument("--bottleneck-channels", type=int,
                       default=MODEL_DEFAULTS["bottleneck_channels"])
   parser.add_argument("--dropout", type=float, default=MODEL_DEFAULTS["dropout_rate"])
+  parser.add_argument("--model-variant", choices=MODEL_VARIANTS,
+                      default=DEFAULT_MODEL_VARIANT)
   parser.add_argument("--output", type=Path, help="Optional JSON output path")
   args = parser.parse_args(argv)
   for name in ("tile_size", "batch_size", "steps", "warmup", "d_model",
@@ -127,6 +130,7 @@ def run_benchmark(args) -> dict:
       "dropout_rate": args.dropout, "d_state_temporal": args.d_state_temporal,
       "d_state_spatial": args.d_state_spatial,
       "bottleneck_channels": args.bottleneck_channels,
+      "model_variant": getattr(args, "model_variant", DEFAULT_MODEL_VARIANT),
   }
   results = {}
   try:

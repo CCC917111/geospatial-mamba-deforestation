@@ -42,10 +42,12 @@ def _write_run(root, variant, seed, correct=7,
       "grad_clip": 1.0, "patience": 0, "precision": "auto",
       "resolved_precision": "float32", "no_mixed_precision": False,
       "tensorflow_version": "2.21.0",
-      "combo_alpha": 0.4 if variant == "combo" else 1.0,
-      "label_smoothing": 0.05 if variant == "combo" else 0.0,
+      "combo_alpha": 1.0 if variant == "plain_ce" else 0.4,
+      "label_smoothing": 0.0 if variant == "plain_ce" else 0.05,
       "no_class_weights": variant == "plain_ce",
   }
+  if variant in ("cnn_ssm", "cnn_only"):
+    config["model_variant"] = variant
   _write_json(directory / "config.json", config)
 
   def paths(split):
@@ -110,6 +112,9 @@ def _write_run(root, variant, seed, correct=7,
       "per_class_f1": dict.fromkeys(CLASS_NAMES, score),
       **dict.fromkeys(compare.SCORE_KEYS, score),
   }
+  if variant in ("cnn_ssm", "cnn_only"):
+    metrics["model_config"]["model_variant"] = variant
+    metrics["parameters"] = 120 if variant == "cnn_ssm" else 100
   (directory / "test").mkdir()
   _write_json(directory / "test" / "test_metrics.json", metrics)
   return directory
@@ -118,6 +123,69 @@ def _write_run(root, variant, seed, correct=7,
 def _pair(root, seed=42, combo=7, plain=6, **kwargs):
   return (_write_run(root, "combo", seed, combo, **kwargs),
           _write_run(root, "plain_ce", seed, plain, **kwargs))
+
+
+def _architecture_pair(root, seed=42, cnn_ssm=7, cnn_only=6):
+  return (_write_run(root, "cnn_ssm", seed, cnn_ssm),
+          _write_run(root, "cnn_only", seed, cnn_only))
+
+
+def test_architecture_scores_include_miou_and_unmatched_parameter_budgets(tmp_path):
+  _architecture_pair(tmp_path, 42)
+  _architecture_pair(tmp_path, 43, cnn_ssm=8, cnn_only=6)
+  report = compare.summarize_runs(tmp_path, [42, 43], comparison="architecture")
+  assert report["comparison"] == "architecture"
+  assert report["delta_direction"] == "cnn_ssm_minus_cnn_only"
+  assert report["summary"]["cnn_ssm"]["parameter_count"] == 120
+  assert report["summary"]["cnn_only"]["parameter_count"] == 100
+  assert report["pairs"][0]["cnn_ssm"]["scores_percent"]["mean_iou"] == pytest.approx(
+      100 * 7 / 13)
+  assert report["summary"]["paired_delta_percentage_points"]["overall_f1"][
+      "mean"] == pytest.approx(15)
+  assert "not matched" in report["architecture_scope"]
+
+
+@pytest.mark.parametrize("filename,change,message", [
+    ("config.json", lambda value: value.update(combo_alpha=1.0), "objective"),
+    ("config.json", lambda value: value.update(learning_rate=0.01), "config mismatch"),
+    ("config.json", lambda value: value.update(model_variant="cnn_ssm"),
+     "model variant"),
+    ("config.json", lambda value: value.pop("model_variant"), "model variant"),
+    ("test/test_metrics.json",
+     lambda value: value["model_config"].update(model_variant="cnn_ssm"),
+     "model variant differs"),
+    ("test/test_metrics.json", lambda value: value.update(parameters=-1),
+     "parameter_count"),
+])
+def test_architecture_comparison_rejects_changed_controls_or_variants(
+      tmp_path, filename, change, message):
+  _, baseline = _architecture_pair(tmp_path)
+  _change_json(baseline / filename, change)
+  with pytest.raises(ValueError, match=message):
+    compare.summarize_runs(tmp_path, [42], comparison="architecture")
+
+
+def test_objective_comparison_rejects_architecture_change_and_accepts_legacy_default(
+      tmp_path):
+  combo, plain = _pair(tmp_path)
+  _change_json(combo / "config.json",
+               lambda value: value.update(model_variant="cnn_ssm"))
+  _change_json(combo / "test" / "test_metrics.json", lambda value: value[
+      "model_config"].update(model_variant="cnn_ssm"))
+  assert compare.summarize_runs(tmp_path, [42])["comparison"] == "objective"
+  _change_json(plain / "config.json",
+               lambda value: value.update(model_variant="cnn_only"))
+  with pytest.raises(ValueError, match="model variant"):
+    compare.summarize_runs(tmp_path, [42])
+
+
+def test_architecture_comparison_rejects_parameter_count_changes_across_seeds(tmp_path):
+  _architecture_pair(tmp_path, 42)
+  _, baseline = _architecture_pair(tmp_path, 43)
+  _change_json(baseline / "test" / "test_metrics.json",
+               lambda value: value.update(parameters=101))
+  with pytest.raises(ValueError, match="parameter counts differ across seeds"):
+    compare.summarize_runs(tmp_path, [42, 43], comparison="architecture")
 
 
 def test_single_seed_scores_deltas_selection_and_timing_are_auditable(tmp_path):
