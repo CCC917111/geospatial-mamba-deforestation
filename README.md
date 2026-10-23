@@ -104,12 +104,31 @@ device-dependent overhead are documented separately from measured performance.
 
 - **Auditable experiments:** seeded data selection, per-epoch split manifests,
   validation-selected checkpoints and confusion-derived F1 metrics.
-- **Verified comparisons:** paired objective plans check data paths, training
+- **Verified comparisons:** paired architecture and objective plans check data paths, training
   budgets, saved configurations and checkpoint hashes.
 - **Practical prediction:** shared preprocessing, saved-architecture restoration,
   class maps and a CSV of predicted class shares.
 - **Local inspection:** an offline demo, CPU software checks, compute-only
   diagnostics and file-to-file prediction timing.
+
+### CNN-only ablation
+
+The default `cnn_ssm` model retains the selective state-space blocks.
+`--model-variant cnn_only` uses optical temporal mean pooling and omits both
+SSM blocks while keeping fusion, CNN stages and local SASF. Saved checkpoints
+retain their variant; older configurations default to `cnn_ssm`.
+
+Generate the controlled architecture comparison without reading data:
+
+```bash
+python -m mamba_forest.experiment --comparison architecture \
+  --run-root runs/architecture-pair
+```
+
+The [validation runbook](docs/gpu-validation.md#controlled-architecture-comparison)
+explains execution, shared controls and the different parameter counts.
+The [free Colab notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
+prepares a smaller real-source GPU check; its GPU execution remains pending.
 
 ## Results
 
@@ -118,7 +137,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **225 tests passed** | Retained CPU check record; supports software behavior. |
+| **Software checks** | **260 tests passed** | Local CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Default-model compute** | Graph median **149.01 ms**; eager **316.54 ms** | Three synthetic inference samples per mode after two warmups; excludes input and output IO. |

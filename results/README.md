@@ -73,6 +73,29 @@ exact shard paths, model settings and the weights' SHA-256. Training also writes
 `split_manifest.json` with the exact paths for each started epoch, allowing
 actual cumulative shard coverage to be counted.
 
+## Effect of the selective state-space blocks
+
+The architecture mode pairs `cnn_ssm` and `cnn_only` with the same ComboLoss,
+fixed split memberships, seeds and training budgets:
+
+```bash
+python -m mamba_forest.experiment --comparison architecture \
+  --run-root runs/architecture-pair
+# Review plan.json, then execute on the prepared real-data GPU runtime.
+python -m mamba_forest.experiment --comparison architecture \
+  --run-root runs/architecture-pair --execute
+python -m mamba_forest.compare --comparison architecture \
+  --run-root runs/architecture-pair
+```
+
+CNN-only uses optical temporal mean pooling and removes both SSM blocks while
+retaining normalization, fusion, CNN stages and local SASF. Parameter counts
+differ. This is a component ablation under a shared training budget; it does
+not isolate recurrence from parameter count or loss of optical temporal order.
+The [controlled protocol](../docs/gpu-validation.md#controlled-architecture-comparison)
+describes the controls, metrics and remaining geographic validation.
+No real-data architecture ranking is established.
+
 ## Effect of the objective
 
 Class weighting and Dice loss are intended to help under-represented classes.
@@ -106,6 +129,12 @@ evaluation. These experiments have not run in the current CPU environment.
   steps after two warmups; eager median 316.54 ms, graph median 149.01 ms.
 - `forty_gpu_preflight.json`: the GPU requirement failed on this CPU runtime;
   no source records were opened and no real-data validation result is implied.
+- [`architecture_pipeline_smoke.json`](architecture_pipeline_smoke.json): both architecture
+  arms completed two CPU epochs on four synthetic training and two validation
+  examples, then evaluated the same two test tiles and passed paired artifact
+  checks. CNN + SSM has 3,311,968 parameters; CNN-only has 3,309,724 in this
+  reduced configuration. This verifies workflow integration, not real-data
+  accuracy or a model ranking.
 - `paired_pipeline_smoke.json`: both objectives completed two CPU epochs on
   one synthetic 128×128 tile per split, reloaded saved configurations and
   passed all seven workflow stages and paired artifact checks. Its coverage

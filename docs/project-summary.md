@@ -1,106 +1,76 @@
 [Documentation](README.md) · [Project overview](../README.md)
 
-# Technical summary
+# Project summary
 
 Multi-modal forest type segmentation with convolutional encoders and a
 Mamba-inspired selective state-space model.
 
-**Project lead:** Yike Chen
+**Project lead:** Yike Chen · **Context:** Team deep-learning course project
 
 **Team:** Qianhua Wan, Cherng Khai Hng, and Jiawei Li
 
-## Context
+## Research question
 
-This began as a deep-learning course project at the Chinese University of
-Hong Kong, Shenzhen.
+Developed at the Chinese University of Hong Kong, Shenzhen, CNN-Mamba studies
+forest type segmentation using seasonal satellite observations and environmental
+context. Natural forest, planted forest and tree crops can share canopy cover
+while representing different land uses. The implemented task predicts nine
+land-cover classes for each pixel of a 128 × 128 tile in the ForTy v1 format.
 
-Forest type segmentation distinguishes natural forest, planted forest, and
-tree crops within a nine-class land-cover taxonomy. These categories describe
-different land uses even when all retain tree cover. The project implements
-a TensorFlow workflow for the ForTy v1 input format, combining four seasonal
-Sentinel-2 composites, elevation with slope and aspect, and climate variables.
-Its defined task is pixel-level forest type segmentation. Change detection
-and downstream environmental decisions require separate validation.
+The research question is whether selective state-space processing improves
+segmentation over a matched convolutional model under the same data and
+training budget. A controlled architecture comparison remains to be run.
+Deforestation change detection requires separate temporal validation.
 
-## Design
+## Approach
 
-The architecture combines convolutional encoders with a **Mamba-inspired
-selective state-space model**. Optical observations are rearranged into one
-four-step sequence per pixel. Input-dependent projections control state
-updates and readout; a shared low-rank projection connects channels to a
-compact recurrent state. TensorFlow's `tf.scan` evaluates the recurrence.
-This is a custom selective-SSM adaptation, with differences from the reference
-Mamba and Mamba-2 architectures. A second block scans the downsampled spatial
-grid in raster order. Five-point neighborhood fusion then introduces local
-two-dimensional structure. The recurrence proceeds in one direction, while
-the preceding convolution mixes neighboring positions. The
-[design notes](design.md) explain these choices and implementation limits.
+The TensorFlow architecture combines convolutional encoders with a
+**Mamba-inspired selective state-space model**. A temporal block processes four
+seasonal Sentinel-2 composites per pixel. Terrain convolutions encode elevation,
+slope and aspect; an MLP embeds climate observations. Sample-dependent fusion
+weights combine modalities, and a U-Net-style encoder and decoder restore
+pixel-level predictions. A spatial selective-SSM block scans the downsampled
+bottleneck with local neighborhood fusion.
 
-Terrain is encoded by convolutions, and an MLP embeds climate observations
-before broadcasting them spatially. A fusion network pools modality features
-and predicts sample-dependent weights. A U-Net-style encoder and decoder
-combine these features with skip connections and restore the original spatial
-resolution. These established components are adapted for heterogeneous
-remote-sensing inputs. The selective-SSM component's benefit over a matched
-CNN remains untested.
+The state-space recurrence uses input-dependent updates, a shared low-rank
+state projection and TensorFlow's `tf.scan`. It is a custom adaptation rather
+than an official Mamba or Mamba-2 implementation. The
+[design notes](design.md) describe its equations, scan direction and limits.
 
-### Class imbalance
+## Engineering and reproducibility
 
-Class imbalance motivates the training objective. The default combines
-weighted cross-entropy with soft Dice loss, using coefficients of 0.4 and 0.6,
-respectively. Cross-entropy uses label smoothing and increased weights for
-selected classes. Dice excludes absent classes from its average. These choices
-are intended to support minority classes, including planted forest. The
-available plain-cross-entropy comparison changes weighting, smoothing, and
-Dice together, so any eventual difference would concern the combined objective.
+The repository provides training, checkpoint restoration, evaluation and tile
+prediction. Seeded shard manifests retain data membership; validation selects
+checkpoints; evaluation saves confusion matrices, class support, configuration
+and checkpoint hashes. Paired architecture and objective runners check common training budgets and
+artifacts before reporting differences; architecture parameter counts differ. Geographic independence of the
+published splits has not been independently verified here.
 
-## Implementation
+A [one-command CPU demo](local-demo.md) generates the standard record schema
+and exercises training, evaluation and prediction on synthetic data. It retains
+source and data identifiers, checkpoint identity, logs and labelled figures.
 
-Experiment integrity is an explicit part of the implementation. Seeded shard
-selection records exact membership, and fixed-subset mode preserves training
-membership across epochs. Validation selects checkpoints. Selection metadata
-records the chosen epoch, score, and checkpoint digest. Evaluation retains
-the confusion matrix, class support, model settings, runtime information, and
-actual checkpoint hash. The paired runner completes all planned training
-before test evaluation. Its comparator rejects mismatched budgets, incomplete
-runs, or inconsistent metrics. These controls make experiments inspectable;
-recorded paths alone do not prove geographic independence.
+## Evidence and limitations
 
-A [one-command local demo](local-demo.md) generates the actual 128-by-128
-record schema and runs CPU training, evaluation, and tile prediction on
-synthetic data. It retains source and data identifiers, checkpoint identity,
-stage logs, and explicitly labelled input/label/prediction figures.
+- **Software:** Local verification includes 260 passing tests and
+  synthetic CPU pipeline runs. These establish software behavior, not accuracy
+  on satellite observations.
+- **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes
+  and 48.81% across the three forest types. Original logs and weights are
+  unavailable. Published baselines use different protocols, so these values
+  cannot establish a controlled ranking or independently verified performance.
+- **Performance:** Retained CPU compute and file-to-file measurements use
+  different model configurations and timing boundaries. Real-data training,
+  full-test evaluation and GPU performance remain unverified.
 
-## Evidence
+The [results record](../results/README.md) links the raw artifacts and explains
+their scope. The [validation runbook](gpu-validation.md) documents prepared
+real-data experiments; it does not report completed runs.
 
-**Historical scores.**
-The [results record](../results/README.md) separates historical scores from
-current evidence. Historical ForTy F1 values have no retained original logs
-or weights. Published baseline scores use different training and evaluation
-conditions, so the table cannot establish a controlled ranking.
+## Next study
 
-**Software verification.** Local verification recorded 225 passing automated
-tests and synthetic CPU pipeline checks, including training, checkpoint
-restoration, evaluation, and paired artifact validation. These establish
-software behavior; live-data accuracy
-and GPU performance remain unverified.
-
-**CPU measurements.** The [optimization audit](optimization-audit.md) records
-a synthetic CPU diagnostic for the default 128-by-128 model. After two warmup
-steps, three synchronized measurements per mode gave median inference times
-of 316.54 ms with eager execution and 149.01 ms with graph execution. This small diagnostic
-excludes source loading and production output handling. It measures neither
-end-to-end prediction latency nor GPU performance.
-
-A separate [file-to-file benchmark](local-demo.md#repeat-the-end-to-end-benchmark)
-records cold initialization, steady inference, input reads, and output writes,
-with 60 measured tile samples from 30 passes over two synthetic tiles. It uses
-the reduced demo checkpoint, so its timings are distinct from the
-default-model compute diagnostic.
-
-## Next research question
-
-The next research question is whether selective state-space processing adds
-value beyond a CNN under the same data, objective, and training budget. A
-matched architecture ablation would examine class-level errors alongside
-compute costs and retained experimental artifacts. That study has not run.
+Compare the selective-SSM model with a CNN control using identical split
+membership, objectives and training budgets, then repeat across seeds. Report
+forest-class F1, mean IoU, inference time and memory alongside retained
+checkpoints and error analysis. This would test the model's added value and
+provide reproducible evidence for subsequent research.

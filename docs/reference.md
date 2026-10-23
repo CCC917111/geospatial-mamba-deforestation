@@ -63,7 +63,7 @@ differs from `num_modalities`; all maps must share `H` and `W`.
 | Name | Purpose |
 |---|---|
 | `OPTICAL_CHANNELS`, `ELEVATION_CHANNELS`, `CLIMATE_CHANNELS` | Channel counts of the three modalities: 10, 3 and 14. |
-| `MambaForestSegmenter(num_classes, d_model, dropout_rate, d_state_temporal, d_state_spatial, bottleneck_channels)` | The segmentation network. |
+| `MambaForestSegmenter(num_classes, d_model, dropout_rate, d_state_temporal, d_state_spatial, bottleneck_channels, model_variant)` | The segmentation network; `cnn_ssm` by default or `cnn_only` for the component ablation. |
 
 `call(inputs, training)` takes a dict with keys `s2` `[B, T, H, W, 10]`,
 `elevation` `[B, H, W, 3]` and `climate` `[B, T, 14]`, and returns per-pixel

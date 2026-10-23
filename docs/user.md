@@ -61,6 +61,7 @@ The flags worth knowing:
 | `--learning-rate` | 2e-4 | Initial rate of the cosine schedule. |
 | `--lr-alpha` | 0.1 | Final rate as a fraction of the initial one. |
 | `--weight-decay` | 5e-3 | AdamW weight decay. |
+| `--model-variant` | `cnn_ssm` | Use `cnn_only` for temporal mean pooling with both SSM blocks omitted. |
 | `--d-model` | 32 | Width after fusion; the main capacity knob. |
 | `--dropout` | 0.2 | Dropout throughout the network. |
 | `--d-state-temporal` | 8 | State dimension of the temporal Mamba-inspired selective-SSM block. |
@@ -132,6 +133,19 @@ scaling is enabled only for mixed float16. An explicit policy pins controlled
 experiments. `--no-mixed-precision` still selects float32 and conflicts with
 explicit `--precision mixed_float16`.
 
+## Compare the architecture
+
+Training defaults to `--model-variant cnn_ssm`. Select `--model-variant cnn_only`
+for optical temporal mean pooling with both SSM blocks removed; fusion, CNN
+stages and local SASF remain. The parameter counts differ. Evaluation and
+prediction restore the saved variant, while older configs default to `cnn_ssm`.
+
+For paired runs with shared objectives, data selections and budgets, use
+`python -m mamba_forest.experiment --comparison architecture --run-root runs/architecture-pair`.
+This generates commands only; see the
+[controlled comparison protocol](gpu-validation.md#controlled-architecture-comparison)
+before execution on real records.
+
 ## Evaluation
 
 ```bash
@@ -149,8 +163,9 @@ This prints pixel accuracy, mean IoU and the benchmark columns — `Overall`
 (macro F1 over the nine classes), `Forests` (mean F1 of the three forest
 types) and `N`, `P`, `TC` (the F1 of natural forest, planted forest and tree
 crops) — and writes `test_metrics.json` next to the weights. Evaluation and
-prediction read the five model settings (`d_model`, `dropout`,
-`d_state_temporal`, `d_state_spatial`, `bottleneck_channels`) from `config.json`
+prediction read the model settings (`d_model`, `dropout`,
+`d_state_temporal`, `d_state_spatial`, `bottleneck_channels`, `model_variant`)
+from `config.json`
 beside the weights. Explicit architecture flags override saved values; missing
 settings fall back to the original model defaults.
 
@@ -175,7 +190,7 @@ test use the first N shards without augmentation. An empty split is an error.
 For a local demonstration and timing that includes reading tiles and writing
 predictions, see [Local demo and end-to-end timing](local-demo.md).
 
-For actual source validation, paired objective experiments and full-test
+For actual source validation, paired architecture/objective experiments and full-test
 evaluation, follow the [GPU validation runbook](gpu-validation.md). Start with
 `python -m mamba_forest.validate_data --require-gpu --output preflight.json`;
 this rejects a CPU-only runtime before opening any records and samples one

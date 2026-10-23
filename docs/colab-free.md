@@ -15,41 +15,48 @@ provider's current resource rules; this workflow assumes no fixed free quota.
 
 ## Open the notebook
 
-1. Download the [notebook](../notebooks/colab_free_gpu.ipynb) and the supplied
-   `publication-recovery.zip` from the handoff. Keep both files locally. A
-   supplied standalone Git bundle can also restore the source.
-2. Open [Google Colab](https://colab.research.google.com), choose **Upload
-   notebook**, and upload `colab_free_gpu.ipynb`.
-3. In **Runtime → Change runtime type**, select an available GPU in the free
+1. [Open directly in Colab](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
+   and sign in to your Google account. You can also download the
+   [notebook](../notebooks/colab_free_gpu.ipynb) and upload it at
+   [Google Colab](https://colab.research.google.com).
+2. In **Runtime → Change runtime type**, select an available GPU in the free
    runtime. If none is available, stop and try another session later.
-4. Review the settings cell, including the optional Drive setting below. Run
-   cells in order. When the source-upload cell opens a file chooser, upload
-   `publication-recovery.zip` or the supplied Git bundle.
-5. Confirm source restoration and the GPU probe pass before allowing the data
-   and experiment cells to continue. Retain the logs if either step fails.
+3. Review the settings cell, including the optional Drive setting below. Run
+   cells in order. Source is cloned from the public GitHub repository and
+   checked out at the notebook's immutable `SOURCE_COMMIT`.
+4. Confirm the source identity and GPU probe pass before the data and
+   experiment cells continue. Retain the logs if either step fails.
 
-The notebook restores prepared codebase `ae6a123` from the recovery archive and
-checks the source revision. Use the supplied archive for this workflow; the
-notebook does not depend on the prepared branch already being published to
-GitHub. It installs the package editable with `--no-deps`, preserving Colab's
-TensorFlow installation. GPU compatibility is established by an actual GPU
-operation, and the resolved package versions are retained with the session.
+No recovery archive is needed by default. `UPLOAD_SOURCE_BUNDLE = True`
+enables the optional upload path for a `.bundle` or recovery `.zip` containing
+`geospatial-mamba-deforestation.bundle`. That bundle must contain the pinned
+commit; an older handoff archive may not. Both paths reject a source mismatch
+or a modified working tree. Use a fresh workspace when changing revisions.
+
+The notebook installs the package editable with `--no-deps`, preserving Colab's
+TensorFlow installation. GPU compatibility is checked by an actual GPU
+operation, and resolved package versions are retained with the session.
 
 ## What the default run does
 
-The default settings use the full model, batch size one and one paired seed.
-Both objective arms use the same seeded, fixed training shard, one validation
-shard and one test shard:
+The default settings use `COMPARISON = "architecture"`, the full-width models,
+batch size one and one paired seed. Both arms use the same ComboLoss, seeded
+fixed training shard, one validation shard and one test shard:
 
-- ComboLoss: **two training epochs**.
-- Plain unweighted cross-entropy: **two training epochs**.
+- CNN + selective SSM (`cnn_ssm`): **two training epochs**.
+- CNN-only (`cnn_only`): **two training epochs**.
+
+CNN-only averages optical seasons and omits both SSM blocks; normalization,
+fusion, CNN stages and local SASF remain. Parameter counts differ. This is a
+component ablation under a common training budget. Set `COMPARISON = "objective"`
+to run the separate ComboLoss versus plain-cross-entropy check on CNN + SSM.
 
 The GPU gate precedes source access. Dataset preflight inspects one raw record
 from each selected train, validation and test shard for schema, shapes, finite
 inputs and valid labels. That check covers three records. It does not verify
 the whole source or geographic isolation.
 
-After both arms finish training, the runner evaluates their selected
+After both arms finish training and their artifacts pass checks, the runner evaluates their selected
 checkpoints on the same test shard and compares retained confusion matrices,
 checkpoint hashes and experiment settings. The small run's scores are
 diagnostic. They do not establish model ranking, reproduce the historical
@@ -59,7 +66,7 @@ benchmark or support accuracy claims. Keep test results out of model tuning.
 
 `SAVE_TO_DRIVE` defaults to `False`. With that setting, session files under
 `/content` are temporary. Download the run-artifact archive produced by the
-notebook and retain the source recovery archive separately.
+notebook and retain the pinned source revision and any supplied recovery archive.
 
 To save outputs to Drive, set `SAVE_TO_DRIVE = True` **before running the setup
 and experiment cells**. The notebook then asks you to sign in and authorize a

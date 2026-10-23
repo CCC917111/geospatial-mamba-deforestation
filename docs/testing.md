@@ -8,6 +8,15 @@ remote dataset access. Assertions cover properties that can fail silently,
 including axis handling, modality influence and loss behavior, rather than
 numerical values that depend on initialization.
 
+## Continuous integration
+
+[CPU checks](../.github/workflows/ci.yml) runs on pull requests to `main` and
+pushes to the published development branch or `main`. It installs the pinned
+Python 3.12 CPU environment, checks actual convolution gradients and GCS
+filesystem registration without source access, then runs lint and the offline
+test suite. Package versions, the runtime report and JUnit results are retained
+as workflow artifacts. These checks do not run real-data training or GPU jobs.
+
 ## Overall structure
 
 ```bash
@@ -59,6 +68,9 @@ suite needs is in `requirements.txt`.
   class axis.
 - **Every modality matters.** Perturbing the optical series, the elevation map
   or the climate series each change the prediction.
+- **CNN-only ablation.** The baseline has no SSM layers, keeps finite gradients,
+  is invariant to optical season permutation, has fewer parameters and restores
+  predictions from its saved architecture and weights.
 - **Temporal order matters.** With an optical tile that is constant over space,
   reversing the season axis must change the prediction: the only structure left
   in that input is temporal, so the test fails if the phenological order is not
@@ -122,8 +134,9 @@ suite needs is in `requirements.txt`.
   driver failure before installation, actual CPU convolution gradients and
   rejection of missing GPU/GCS support. It installs no packages or cloud resources.
 - `test_colab_notebook.py` checks unexecuted notebook structure, Python syntax,
-  the small default budget through the actual experiment argument parser, and
-  reading only the expected Git bundle from an uploaded ZIP. It does not start
+  the default architecture budget through the actual experiment argument parser,
+  fixed-revision source checkout and reading only the expected Git bundle from
+  an optional uploaded ZIP. It does not start
   Colab, install packages or run GPU computation.
 
 ## What is not covered

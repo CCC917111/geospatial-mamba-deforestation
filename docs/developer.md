@@ -48,7 +48,7 @@ src/mamba_forest/
   benchmark.py   synchronized synthetic model-compute measurements, CLI
   benchmark_predict.py  end-to-end prediction timing through the production path
   demo.py        local synthetic-data generation, training and prediction demo
-  experiment.py  plan and execute fixed-split paired objective experiments
+  experiment.py  plan and execute fixed-split architecture/objective experiments
   compare.py     verify experiment artifacts and summarize paired differences
 tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper

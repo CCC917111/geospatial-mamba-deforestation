@@ -4,17 +4,62 @@
 
 This runbook prepares new experiments on the current implementation. It does
 not reproduce the historical score table or implement the published UNet3D,
-UTAE or MTSViT baselines. The primary comparison is the default ComboLoss
-against plain, unweighted cross-entropy; both use the same architecture and
-paired data selections.
+UTAE or MTSViT baselines. Two paired modes address separate questions: `architecture` compares CNN-only
+with CNN + selective SSM under the same ComboLoss, while the default
+`objective` mode compares ComboLoss with plain cross-entropy on CNN + SSM.
 
-**Execution status, 2026-10-20:** these real-data/GPU experiments have not run.
+**Execution status, 2026-10-23:** these real-data/GPU experiments have not run.
 The current environment has no GPU, Google Cloud Storage access is blocked,
 and no cloud identities are configured. The retained CPU measurements and
 synthetic tests do not establish real-data accuracy, GPU throughput or dataset
 compatibility. No GPU duration or memory estimate is available.
 
-## Automated paired experiment
+## Controlled architecture comparison
+
+Generate a plan without reading data or importing TensorFlow:
+
+```bash
+python -m mamba_forest.experiment --comparison architecture \
+  --run-root runs/architecture-pair
+```
+
+The default plan pairs `cnn_ssm` and `cnn_only` for seeds 42, 43 and 44,
+40 epochs each, batch size one, fixed 128/8 train/validation shards and all
+1,024 test shards. Both arms use the same ComboLoss, normalization,
+augmentation protocol, optimizer, widths, precision and validation selection
+rule. All training completes and its artifacts pass checks before test
+evaluation starts. Review `plan.json`, then use the same settings to execute:
+
+```bash
+python -m mamba_forest.experiment --comparison architecture \
+  --run-root runs/architecture-pair --execute
+python -m mamba_forest.compare --comparison architecture \
+  --run-root runs/architecture-pair
+```
+
+CNN-only averages optical observations over seasons and removes both selective
+SSM blocks. It retains normalization, dynamic modality fusion, the CNN
+encoder/decoder and local SASF. This removes optical season ordering as well
+as learned SSM processing. **Parameter counts differ**, so this is a component
+ablation under a common training budget, not a capacity-matched comparison or
+an isolated test of the recurrence alone. Climate still uses its ordered MLP
+input in both arms. Evaluation records each model's parameter count.
+
+The comparator checks arm identities, matching objectives, manifests, example
+budgets, evaluation support and checkpoint hashes. Its summary includes forest
+F1, mean IoU, paired percentage-point changes and sample standard deviation
+across seeds. One seed has no sample standard deviation. Epoch and test-process
+wall times are diagnostic; they are not steady-state inference latency or GPU
+peak memory. Use the compute/prediction benchmarks for a defined latency
+boundary and retain actual hardware memory measurements separately.
+
+Use `--data-root /path/to/forty` for a local mirror. Preflight inspects only
+one record per selected split. Matching manifests do not establish geographic
+independence: inspect official split provenance and tile IDs/coordinates
+before claiming spatially independent evaluation. Test outcomes must not guide
+model or hyperparameter selection.
+
+## Automated paired objective experiment
 
 The experiment CLI implements the primary comparison below. First generate
 the commands and settings without importing TensorFlow or reading the source:

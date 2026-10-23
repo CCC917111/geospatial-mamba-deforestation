@@ -16,7 +16,7 @@ import pytest
 from mamba_forest import experiment
 
 NOTEBOOK = Path(__file__).resolve().parents[1] / "notebooks" / "colab_free_gpu.ipynb"
-SOURCE_COMMIT = "ae6a123d0469a2950ce6b9733cf7902b14cb7f5c"
+SOURCE_COMMIT = "39bd9bbe1aa15567235e645c46e431158d59d188"
 BUNDLE_MEMBER = "geospatial-mamba-deforestation.bundle"
 
 
@@ -88,6 +88,8 @@ def test_default_configuration_is_small_gpu_run_with_optional_drive_disabled():
   assert config["EPOCHS"] == 2
   assert config["SEEDS"] == [42]
   assert config["SAVE_TO_DRIVE"] is False
+  assert config["UPLOAD_SOURCE_BUNDLE"] is False
+  assert config["COMPARISON"] == "architecture"
   assert config["SOURCE_COMMIT"] == SOURCE_COMMIT
 
 
@@ -132,7 +134,8 @@ def test_extracted_builder_produces_real_parser_compatible_gpu_plan(tmp_path):
   assert config["train_shards"] == config["val_shards"] == config["test_shards"] == 1
   assert config["precision"] == "mixed_float16" and config["allow_cpu"] is False
   training = [step for step in plan["steps"] if step["phase"] == "train"]
-  assert [step["arm"] for step in training] == ["combo", "plain_ce"]
+  assert [step["arm"] for step in training] == ["cnn_ssm", "cnn_only"]
+  assert config["comparison"] == "architecture"
   for step in training:
     argv = step["argv"]
     assert argv[argv.index("--epochs") + 1] == "2"
@@ -176,3 +179,29 @@ def test_malformed_zip_and_unsupported_upload_rejected():
     restore("broken.zip", b"not an archive")
   with pytest.raises(ValueError):
     restore("source.tar", b"not a supported bundle")
+
+
+def test_source_clone_pins_the_commit_and_propagates_checkout_failure(tmp_path):
+  clone = _function("restore_source", "clone_pinned_source", {})
+  calls = []
+
+  def runner(argv, **kwargs):
+    calls.append((argv, kwargs))
+
+  config = _literal_configuration()
+  destination = tmp_path / "source"
+  clone(config["SOURCE_REPOSITORY"], destination, config["SOURCE_COMMIT"],
+        config["SOURCE_BRANCH"], runner)
+  assert calls[0] == (["git", "clone", "--branch", config["SOURCE_BRANCH"],
+                       "--no-checkout", config["SOURCE_REPOSITORY"],
+                       str(destination)], {"check": True})
+  assert calls[1] == (["git", "checkout", "--detach", config["SOURCE_COMMIT"]],
+                      {"cwd": destination, "check": True})
+
+  def fail_checkout(argv, **kwargs):
+    if argv[1] == "checkout":
+      raise RuntimeError("pinned source is absent")
+
+  with pytest.raises(RuntimeError, match="pinned source is absent"):
+    clone("recovery.bundle", destination, config["SOURCE_COMMIT"],
+          config["SOURCE_BRANCH"], fail_checkout)

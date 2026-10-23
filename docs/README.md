@@ -7,7 +7,7 @@ Multi-modal forest type segmentation with convolutional encoders and a
 
 **Team:** Qianhua Wan, Cherng Khai Hng, and Jiawei Li
 
-[Repository overview](../README.md) · [Technical summary](project-summary.md) ·
+[Repository overview](../README.md) · [Project summary](project-summary.md) ·
 [Results and artifacts](../results/README.md)
 
 ## Choose a starting point
@@ -15,7 +15,7 @@ Multi-modal forest type segmentation with convolutional encoders and a
 | What you want to do | Start here | Continue with |
 |---|---|---|
 | **Try the workflow locally** | [Synthetic CPU demo](local-demo.md) | [Usage guide](user.md) · [Tile input and output formats](apply.md) |
-| **Understand the model** | [Technical summary](project-summary.md) | [Architecture and equations](design.md) |
+| **Understand the model** | [Project summary](project-summary.md) | [Architecture and equations](design.md) |
 | **Inspect the evidence** | [Results and retained artifacts](../results/README.md) | [Optimization audit](optimization-audit.md) · [Validation protocol](gpu-validation.md) |
 | **Develop the package** | [Developer guide](developer.md) | [API reference](reference.md) · [Tests](testing.md) · [Common tasks](tasks.md) · [Coding style](coding.md) |
 
@@ -55,4 +55,4 @@ prepared experiments; it is not a record of completed GPU runs.
 - [Free Colab guide](colab-free.md): a prepared notebook whose real GPU
   execution remains pending; free GPU availability is not guaranteed.
 - [Real-data and GPU validation](gpu-validation.md): preflight, fixed-budget
-  paired experiments, and evidence retention.
+  architecture/objective comparisons, and evidence retention.
