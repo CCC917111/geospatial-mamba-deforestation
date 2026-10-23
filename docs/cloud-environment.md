@@ -5,6 +5,10 @@ virtual environment. No VM, GPU, network policy or cloud identity has been
 provisioned by this work. The current tools can inspect environment settings;
 resource creation and configuration changes use the provider or Codex UI.
 
+For a free hosted GPU attempt, start with the [Colab notebook](colab-free.md).
+It reuses Colab's configured TensorFlow runtime and prepares a small paired
+pipeline check. Free GPU allocation and session duration are not guaranteed.
+
 ## Choose the execution target
 
 Use Linux x86_64, Bash, GNU coreutils and Python 3.12, with a persistent workspace for

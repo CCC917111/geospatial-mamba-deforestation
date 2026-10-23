@@ -267,3 +267,29 @@ it as a GPU runtime. No new host was created, no target installation was run,
 and no billable resources were provisioned. Provider, account connection and
 budget remain required before deployment; the current environment interface
 exposes inspection only.
+
+### Free Colab preparation — 2026-10-23
+
+The [Colab guide](colab-free.md) and unexecuted notebook provide a free-runtime
+entry point. The notebook restores source commit `ae6a123` from the supplied
+Git recovery archive, keeps Colab's existing TensorFlow/CUDA stack, verifies
+GPU convolution gradients and GCS registration, and prepares two objective
+arms with two epochs, one shard per split, one seed and batch size one.
+Those scores are diagnostic; they do not establish an objective ranking.
+
+An offline rehearsal executed the notebook's upload/restore code against the
+actual recovery ZIP, checked the pinned checkout, generated the tiny GPU plan
+with the restored source and archived the artifacts. No source records or GPU
+training were executed. Twelve notebook tests cover syntax, defaults, real
+CLI parsing and reading only the expected bundle from uploaded ZIP content.
+
+Optional Drive output preserves completed artifacts from the start; otherwise
+the user must download from temporary storage. Normal interruptions stop the
+runner process group before archiving. Forced runtime reclamation may prevent
+export, and interrupted training does not resume optimizer state. Free GPU
+availability and duration remain subject to the provider. Actual Colab GPU
+execution requires the user's signed-in session and remains unexecuted here.
+
+Final preparation checks: 202 tests passed in 54.50 seconds; lint, diff checks
+and all 33 documentation Bash blocks passed. Keras emitted 865 upstream NumPy
+deprecation warnings. Notebook cells remain unexecuted in the delivered file.

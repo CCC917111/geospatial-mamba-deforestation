@@ -50,6 +50,7 @@ src/mamba_forest/
 tests/           unit tests for the blocks, the network and the objective
 scripts/         plotting helper
 cloud/           CPU/GPU dependency profiles and runtime readiness checks
+notebooks/       free Colab entry point for a small real-source GPU check
 docs/            these pages and the figures
 results/         benchmark numbers and run configuration
 ```
@@ -83,6 +84,7 @@ and [Programming Reference](reference.md) lists the exact signatures.
 | Change the objective | `losses.py` |
 | Change the loop, metrics or schedule | `train.py` |
 | Prepare a new cloud runtime | [Cloud environment setup](cloud-environment.md) |
+| Try a free GPU runtime | [Colab setup](colab-free.md) |
 | Apply the model to new data | `predict.py`, [Mapping Your Own Region](apply.md) |
 | Add a modality or a dataset | [Common Tasks](tasks.md) |
 | Understand why something is built this way | [High-level Design](design.md) |

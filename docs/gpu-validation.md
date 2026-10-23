@@ -69,6 +69,8 @@ cover environment preparation, calibration and the same experiment protocol.
 
 The [cloud setup guide](cloud-environment.md) covers preparing a fresh CPU or
 GPU runtime and its network/identity requirements.
+The [free Colab guide](colab-free.md) provides a smaller pipeline check when
+a free GPU is available; it does not assume capacity for this full protocol.
 
 Use a GPU-enabled environment with a compatible TensorFlow installation,
 driver and CUDA libraries, and authorized read access to the ForTy source.

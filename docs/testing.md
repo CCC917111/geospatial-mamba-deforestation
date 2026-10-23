@@ -110,6 +110,10 @@ suite needs is in `requirements.txt`.
   protection of existing environments including normalized path aliases,
   driver failure before installation, actual CPU convolution gradients and
   rejection of missing GPU/GCS support. It installs no packages or cloud resources.
+- `test_colab_notebook.py` checks unexecuted notebook structure, Python syntax,
+  the small default budget through the actual experiment argument parser, and
+  reading only the expected Git bundle from an uploaded ZIP. It does not start
+  Colab, install packages or run GPU computation.
 
 ## What is not covered
 
