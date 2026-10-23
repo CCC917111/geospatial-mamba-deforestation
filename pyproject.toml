@@ -1,7 +1,7 @@
 [project]
 name = "mamba-forest"
 version = "0.1.0"
-description = "Efficient multi-modal CNN-Mamba segmentation for forest typology on ForTy v1"
+description = "Multi-modal forest type segmentation with CNNs and Mamba-inspired selective state-space modeling"
 requires-python = ">=3.10"
 license = "MIT"
 dependencies = [

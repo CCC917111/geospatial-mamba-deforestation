@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="810" viewBox="0 0 1600 810">
+<title>Multi-modal forest type segmentation</title>
+<desc>Convolutional encoders and Mamba-inspired selective state-space blocks combine Sentinel-2, terrain and climate inputs for pixel-level forest type segmentation. This is an architecture schematic.</desc>
 <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8.5" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 z" fill="#1d2330"/></marker></defs>
 <rect width="1600" height="810" fill="#ffffff"/>
-<text x="800.0" y="42" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Efficient Multi-Modal CNN&#8211;Mamba Segmentation Framework</text>
+<text x="800.0" y="42" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Multi-Modal Forest Type Segmentation with CNNs and Selective SSMs</text>
 <rect x="14" y="70" width="470" height="720" rx="14" fill="#dbe8f6"/>
 <text x="249.0" y="104" font-family="Helvetica, Arial, sans-serif" font-size="19" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Stage 1:</text>
 <text x="249.0" y="130" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Multi-modal input &amp; preprocessing</text>
@@ -70,7 +72,7 @@
 <rect x="512" y="174" width="184" height="152" rx="10" fill="#ece0f7" stroke="#8a63b8" stroke-width="2.2" stroke-dasharray="7 5"/>
 <path d="M591.0 210 V190 L604.0 204 L617.0 190 V210" fill="none" stroke="#8a63b8" stroke-width="3" stroke-linejoin="round"/>
 <path d="M587.0 187 h6 M615.0 187 h6" stroke="#8a63b8" stroke-width="3"/>
-<text x="604.0" y="251.0" font-family="Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Temporal Mamba</text>
+<text x="604.0" y="251.0" font-family="Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Temporal SSM</text>
 <text x="604.0" y="270.0" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" font-style="normal" fill="#51607a" text-anchor="middle">one sequence per pixel</text>
 <text x="604.0" y="289.0" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" font-style="normal" fill="#51607a" text-anchor="middle">T = 4, last state</text>
 <text x="604.0" y="308.0" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" font-style="normal" fill="#51607a" text-anchor="middle">+ conv to 32 ch</text>
@@ -112,7 +114,7 @@
 <rect x="1050" y="356" width="156" height="228" rx="10" fill="#ece0f7" stroke="#8a63b8" stroke-width="2.2" stroke-dasharray="7 5"/>
 <path d="M1115.0 392 V372 L1128.0 386 L1141.0 372 V392" fill="none" stroke="#8a63b8" stroke-width="3" stroke-linejoin="round"/>
 <path d="M1111.0 369 h6 M1139.0 369 h6" stroke="#8a63b8" stroke-width="3"/>
-<text x="1128.0" y="452.0" font-family="Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Spatial Mamba</text>
+<text x="1128.0" y="452.0" font-family="Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">Spatial SSM</text>
 <text x="1128.0" y="471.0" font-family="Helvetica, Arial, sans-serif" font-size="15.5" font-weight="700" font-style="normal" fill="#1d2330" text-anchor="middle">+ SASF</text>
 <text x="1128.0" y="490.0" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" font-style="normal" fill="#51607a" text-anchor="middle">conv to 512 ch</text>
 <text x="1128.0" y="509.0" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="400" font-style="normal" fill="#51607a" text-anchor="middle">16&#215;16 &#8594; L = 256</text>

@@ -44,7 +44,7 @@ before one-hot encoding.
 
 | Class | Input | Output | Purpose |
 |---|---|---|---|
-| `MambaBlock(d_model, d_state, expand, dropout_rate)` | `[B, L, d_model]` | `[B, L, d_model]` | Selective state-space block with a residual connection. |
+| `MambaBlock(d_model, d_state, expand, dropout_rate)` | `[B, L, d_model]` | `[B, L, d_model]` | Mamba-inspired selective state-space block with a residual connection. |
 | `StructureAwareStateFusion()` | `[B, H, W, C]` | `[B, H, W, C]` | Fuses each state over its five-point neighbourhood (itself, up, down, left, right). |
 | `DynamicMultiModalFusion(d_model, num_modalities, hidden_dim, dropout_rate)` | list of `[B, H, W, C]` | `[B, H, W, d_model]` | Content-dependent attention over the modalities. |
 

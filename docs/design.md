@@ -3,8 +3,8 @@ High-level Design
 Welcome to the CNN-Mamba forest typology high-level design page!
 
 This page explains why the network is built the way it is, and gives the
-equations behind the two Mamba stages. Numbers in brackets refer to the
-[references on the main page](../README.md#references).
+equations behind the two Mamba-inspired selective-SSM stages. Numbers in
+brackets refer to the [references on the main page](../README.md#references).
 
 ![Architecture](figures/architecture.svg)
 
@@ -14,9 +14,9 @@ Three properties of the task drive every design decision.
 
 1. **The signal is temporal, but the sequence is short.** Telling planted
    forest from natural forest is largely a question of how the canopy changes
-   between seasons, yet each sample carries only four composites. A transformer
-   spends quadratic attention on a four-step sequence and still has to be told
-   how to weigh the modalities.
+   between seasons, yet each sample carries only four composites. The temporal
+   encoder summarizes these seasonal observations. This short sequence alone
+   does not establish an efficiency advantage over attention.
 2. **The modalities are heterogeneous.** Optical imagery is a spatial time
    series, terrain is a static map, climate is a handful of numbers per season.
    Concatenating them at the input mixes signals of very different reliability:
@@ -30,10 +30,12 @@ content-dependent fusion mechanism, and a region-level term in the loss.
 
 ## Selective state-space blocks
 
-A state-space model keeps a hidden state and updates it linearly along the
-sequence. What makes Mamba [2] *selective* is that the update is produced from
-the input, so the model can decide, per step and per state dimension, how much
-to remember. `MambaBlock` implements
+A state-space model keeps a hidden state and updates it along a sequence.
+This project's **Mamba-inspired selective state-space model** draws on the
+input-dependent updates of Mamba [2]. It uses a custom shared low-rank state
+projection and one `d_state`-dimensional state per sequence. This adaptation
+differs from the reference Mamba architecture and its fused scan implementation.
+`MambaBlock` implements
 
 ```
 alpha_t = exp(-exp(A) * softplus(W_dt s_delta(x_t)))        # forget gate
@@ -62,9 +64,10 @@ The same block is used twice, on two different axes:
   neighbouring pixels. The last state is the temporal summary.
 - **Spatially**, over the 16 x 16 bottleneck grid flattened in raster order:
   one linear-time pass in which the state at each patch summarises all the
-  patches before it. The scan is causal and runs in one direction, so context
-  flows forward along the raster order; SASF below restores the local 2D
-  neighbourhood in both directions.
+  patches before it. The recurrence runs in one direction along raster order.
+  The preceding width-three convolution uses `padding="same"` and mixes
+  adjacent positions on both sides, so the complete block is not strictly
+  causal. SASF below restores the local 2D neighbourhood in both directions.
 
 ## Structure-Aware State Fusion
 

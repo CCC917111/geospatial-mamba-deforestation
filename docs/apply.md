@@ -11,9 +11,9 @@ satellite tiles, get back a forest-type map and a table of what is in them.**
 You have satellite coverage of an area — a concession, a catchment, a national
 park, a supply-chain sourcing region — and you want to know not just where the
 trees are, but *which kind*: natural forest, planted forest or tree crops. That
-distinction is the one that matters for deforestation monitoring and
-zero-deforestation compliance, and it is the one a normal NDVI threshold or a
-binary forest mask cannot give you.
+distinction describes forest composition at a finer level than a binary
+forest mask. The implemented task is forest type segmentation; deforestation
+monitoring and compliance applications would require separate validation.
 
 What it is not: a general-purpose segmentation model. It expects the ForTy v1
 modality stack — Sentinel-2 seasonal composites, terrain and climate — and it
@@ -134,11 +134,11 @@ The class shares are what make the output actionable. A few patterns:
   `share_planted_forest` and `share_tree_crops` over the tiles that cover it.
   A concession that is 40% planted forest and 5% natural forest tells a very
   different story from the reverse, even at identical total canopy cover.
-- **Change between two dates.** Run the model on tiles built from two different
-  years and subtract the class maps. Natural forest turning into tree crops is
-  a conversion event; natural forest turning into bare ground is a clearing.
-  Both are invisible to a binary forest mask, which sees canopy in the first
-  case and simply "less forest" in the second.
+- **Potential extension: comparison across years.** Forest-type maps could
+  support a later study of conversion or clearing. Such a study requires
+  co-registered imagery and independent validation of temporal changes;
+  disagreement between two predicted maps alone does not establish an event.
+  No deforestation change-detection experiment is retained in this project.
 - **A shortlist for inspection.** Sort `predictions.csv` by the share of the
   class you care about and look at the top tiles first. With
   `--save-probabilities` you can also rank by mean confidence and inspect the

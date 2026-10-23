@@ -3,6 +3,13 @@ Multi-Modal CNN-Mamba for Forest Type Segmentation
 Welcome to the CNN-Mamba forest typology project main page!
 This page is about how to run this software.
 
+**Project lead: Yike Chen.**
+
+Multi-modal forest type segmentation with convolutional encoders and a
+**Mamba-inspired selective state-space model**. CNN-Mamba is the project name
+for this custom TensorFlow adaptation, which uses a shared low-rank state
+projection and `tf.scan`.
+
 #### Setup
 
 Python 3.10 to 3.12. TensorFlow publishes stable releases for a limited
@@ -83,13 +90,15 @@ User page
 =============
 Welcome to the CNN-Mamba forest typology project user main page!
 
-This is a deep-learning project which has been completed by Yike Chen, Qianhua
-Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
-Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
-model for satellite time series: an efficient multi-modal CNN-Mamba framework
-that combines Sentinel-2 optical time series, climate variables and elevation
-data into pixel-level segmentation of forest types, evaluated on the ForTy v1
-benchmark. It mainly contains two parts. The segmentation model comes with the
+This deep-learning course project at the Chinese University of Hong Kong,
+Shenzhen was led by **Yike Chen**, working with Qianhua Wan, Cherng Khai Hng
+and Jiawei Li. We developed a forest type mapping
+model for satellite time series, combining convolutional encoders with a
+Mamba-inspired selective state-space model. It integrates Sentinel-2 optical
+time series, climate variables and elevation for pixel-level forest type
+segmentation using the ForTy v1 dataset format. Historical ForTy scores and
+current validation scope are documented in [Results](#results).
+The project contains two parts. The segmentation model comes with the
 input pipeline that streams the dataset from Google Cloud Storage, the training
 objective designed for the class imbalance of the task, and the training and
 evaluation entry points; the prediction tool applies a trained model to your
@@ -106,15 +115,17 @@ it requires modelling spatial structure, seasonal dynamics and heterogeneous
 information from several sensors at once, and multi-temporal, multi-modal
 observations are known to improve forest mapping substantially [[1]](#ref-1).
 
-This project proposes an efficient multi-modal CNN-Mamba framework. The model
-combines convolutional encoders for local spatial feature extraction with
-Temporal and Spatial Mamba blocks — selective state-space models that capture
-long-range dependencies in linear time instead of the quadratic attention of a
-transformer [[2]](#ref-2). A dynamic MLP-based fusion mechanism adaptively
-integrates the modalities per sample, and a U-Net-style encoder-decoder
-[[3]](#ref-3) with a Mamba bottleneck reconstructs high-resolution segmentation
-maps. The historical ForTy scores below use a training read budget of 128
-shards per epoch. Published UNet3D [[4]](#ref-4), UTAE [[5]](#ref-5) and
+This project implements a multi-modal segmentation framework combining
+convolutional encoders with a **Mamba-inspired selective state-space model**
+[[2]](#ref-2), applied along temporal and spatial axes. The custom blocks use
+input-dependent state updates, a shared low-rank state projection and
+TensorFlow's `tf.scan`. A dynamic MLP-based fusion mechanism integrates the
+modalities per sample, and a U-Net-style encoder-decoder [[3]](#ref-3) with a
+selective-SSM bottleneck reconstructs high-resolution segmentation maps.
+The [design page](docs/design.md#selective-state-space-blocks) describes the
+adaptation and its implementation limits. The historical ForTy scores below
+use a training read budget of 128 shards per epoch. Published UNet3D
+[[4]](#ref-4), UTAE [[5]](#ref-5) and
 MTSViT [[1]](#ref-1) scores provide context; their training and evaluation
 protocols differ, so the table does not establish model or data efficiency.
 
@@ -386,12 +397,10 @@ so there is no second copy of the scaling constants to drift.
 
 You get back `<tile>_class_map.npy` with the nine class indices per pixel, an
 optional colour-coded PNG, and `predictions.csv` with the pixel share of every
-class per tile plus the combined `forest_share`. That last table is what turns
-the model into an answer: average the shares over the tiles covering a
-concession to get its composition, or subtract the class maps of two years to
-separate *natural forest converted to tree crops* from *natural forest cleared
-to bare ground* — a distinction a binary forest mask cannot make, because in
-the first case the canopy is still there.
+class per tile plus the combined `forest_share`. These shares summarize the
+predicted forest composition of a region. Comparing maps across years is a
+potential extension requiring co-registration and independent temporal
+validation; deforestation change detection has not been validated here.
 
 The full contract — array shapes, units, band order, what each output file
 holds, and how to retarget the model to a different taxonomy — is in
@@ -406,13 +415,15 @@ Welcome to the CNN-Mamba forest typology project developer main page!
 ----------------
 ## Abstract
 
-This is a deep-learning project which has been completed by Yike Chen, Qianhua
-Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
-Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
-model for satellite time series: an efficient multi-modal CNN-Mamba framework
-that combines Sentinel-2 optical time series, climate variables and elevation
-data into pixel-level segmentation of forest types, evaluated on the ForTy v1
-benchmark. It mainly contains two parts. The segmentation model comes with the
+This deep-learning course project at the Chinese University of Hong Kong,
+Shenzhen was led by **Yike Chen**, working with Qianhua Wan, Cherng Khai Hng
+and Jiawei Li. We developed a forest type mapping
+model for satellite time series, combining convolutional encoders with a
+Mamba-inspired selective state-space model. It integrates Sentinel-2 optical
+time series, climate variables and elevation for pixel-level forest type
+segmentation using the ForTy v1 dataset format. Historical ForTy scores and
+current validation scope are documented in [Results](#results).
+The project contains two parts. The segmentation model comes with the
 input pipeline that streams the dataset from Google Cloud Storage, the training
 objective designed for the class imbalance of the task, and the training and
 evaluation entry points; the prediction tool applies a trained model to your
@@ -519,9 +530,10 @@ dataset: every test builds a small model on synthetic tensors.
 make test                          # python -m pytest tests -q
 ```
 
-- `tests/test_layers.py` checks that the Mamba block preserves shape, is causal
-  and carries information through its state, that SASF stays local, and that
-  the fusion layer uses every modality.
+- `tests/test_layers.py` checks shape preservation, recurrent directionality
+  outside the convolution's local neighbourhood and state propagation in the
+  selective-SSM block, that SASF stays local, and that the fusion layer uses
+  every modality.
 - `tests/test_model.py` checks that the network returns valid probabilities at
   the input resolution, that every modality and the season order change the
   prediction, and that gradients are finite.

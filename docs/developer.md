@@ -8,27 +8,29 @@ change something.
 
 ## Abstract
 
-This is a deep-learning project which has been completed by Yike Chen, Qianhua
-Wan, Cherng Khai Hng and Jiawei Li as a deep-learning course project at the
-Chinese University of Hong Kong, Shenzhen. We developed a forest type mapping
-model for satellite time series: an efficient multi-modal CNN-Mamba framework
-that combines Sentinel-2 optical time series, climate variables and elevation
-data into pixel-level segmentation of forest types, evaluated on the ForTy v1
-benchmark. It mainly contains two parts. The segmentation model comes with the
+This deep-learning course project at the Chinese University of Hong Kong,
+Shenzhen was led by **Yike Chen**, working with Qianhua Wan, Cherng Khai Hng
+and Jiawei Li. We developed a forest type mapping
+model for satellite time series, combining convolutional encoders with a
+Mamba-inspired selective state-space model. It integrates Sentinel-2 optical
+time series, climate variables and elevation for pixel-level forest type
+segmentation using the ForTy v1 dataset format. Historical ForTy scores and
+current validation scope are documented in [Results](../results/README.md).
+The project contains two parts. The segmentation model comes with the
 input pipeline that streams the dataset from Google Cloud Storage, the training
 objective designed for the class imbalance of the task, and the training and
 evaluation entry points; the prediction tool applies a trained model to your
 own tiles and maps the forest types in them.
 
-The project implements an efficient multi-modal CNN-Mamba framework for
-pixel-level forest type segmentation on the ForTy v1 benchmark. Convolutional
-encoders extract local spatial structure, selective state-space (Mamba) blocks
-model seasonal dynamics and global context in linear time, a dynamic MLP-based
-fusion mechanism weighs the modalities per sample, and a U-Net-style
-encoder-decoder with a Mamba bottleneck reconstructs the segmentation map.
+Convolutional encoders extract local spatial structure, and the custom
+Mamba-inspired selective state-space blocks aggregate seasonal and spatial
+context along their scan order. A dynamic MLP-based fusion mechanism weighs
+the modalities per sample, and a U-Net-style encoder-decoder with a
+selective-SSM bottleneck reconstructs the segmentation map.
 
-The implementation is a TensorFlow package under `src/mamba_forest/`; every
-reported number comes from it.
+The implementation is a TensorFlow package under `src/mamba_forest/`.
+[Results](../results/README.md) distinguishes historical scores, published
+reference baselines and retained synthetic workflow/performance checks.
 
 ## Layout
 

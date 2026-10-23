@@ -64,8 +64,8 @@ The flags worth knowing:
 | `--weight-decay` | 5e-3 | AdamW weight decay. |
 | `--d-model` | 32 | Width after fusion; the main capacity knob. |
 | `--dropout` | 0.2 | Dropout throughout the network. |
-| `--d-state-temporal` | 8 | State dimension of the temporal Mamba block. |
-| `--d-state-spatial` | 16 | State dimension of the spatial Mamba block. |
+| `--d-state-temporal` | 8 | State dimension of the temporal Mamba-inspired selective-SSM block. |
+| `--d-state-spatial` | 16 | State dimension of the spatial Mamba-inspired selective-SSM block. |
 | `--bottleneck-channels` | 512 | Channel width of the bottleneck. |
 | `--combo-alpha` | 0.4 | Weight of cross-entropy against the Dice term. |
 | `--label-smoothing` | 0.05 | Smoothing of the cross-entropy term. |

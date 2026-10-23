@@ -16,9 +16,10 @@ in:
 3. Add its key to the geometric part of `augment` if it is a spatial modality,
    and leave it out of the brightness jitter, which is optical-only by design.
 4. Add it to the input dict built by `split_inputs_labels`.
-5. In `src/mamba_forest/model.py`, give it an encoder — a second temporal Mamba
-   block if it is a time series, a convolutional stack if it is a static map —
-   and raise `num_modalities` in the `DynamicMultiModalFusion` constructor to
+5. In `src/mamba_forest/model.py`, give it an encoder — a second temporal
+   selective-SSM block if it is a time series, a convolutional stack if it is a
+   static map — and raise `num_modalities` in the `DynamicMultiModalFusion`
+   constructor to
    4. The fusion layer needs no other change: it pools whatever it is given and
    emits one softmax weight per modality.
 6. Add a case to `tests/test_model.py::test_every_modality_influences_the_prediction`.

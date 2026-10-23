@@ -27,17 +27,21 @@ suite needs is in `requirements.txt`.
 
 - **Shape preservation.** `MambaBlock` returns a tensor of the same shape it
   was given, so it can be dropped into a residual stack.
-- **Causality.** Perturbing the tail of a sequence must not change the outputs
-  at the head, and must change the outputs at the tail — the second half of the
-  assertion is what stops the test passing because the block ignores its input.
+- **Recurrent directionality.** Perturbing the tail of a sequence must not
+  change the outputs at the head, and must change the outputs at the tail —
+  the second half of the assertion is what stops the test passing because the
+  block ignores its input.
   The block is a recurrence plus a separable convolution of width three, so the
   test perturbs from step 6 on and checks steps 0 to 4, which the convolution
-  cannot reach either. The perturbation varies across channels on purpose: the
+  cannot reach either. This checks directionality outside the convolution's
+  local neighbourhood; the complete block is not strictly causal because its
+  convolution mixes adjacent positions on both sides.
+  The perturbation varies across channels on purpose: the
   block normalises over the channel axis, so a shift applied equally to every
   channel would be removed before the recurrence ever saw it.
 - **The state carries information.** Perturbing the first step must change the
   output at the last step; a block whose decay saturated to zero would pass the
-  causality test and fail this one.
+  directionality test and fail this one.
 - **SASF locality.** A perturbation at one pixel must reach its direct
   neighbours and must not reach a distant pixel — the property that separates a
   neighbourhood fusion from a global mixing layer.
