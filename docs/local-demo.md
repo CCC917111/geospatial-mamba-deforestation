@@ -1,8 +1,18 @@
+[Documentation](README.md) · [Project overview](../README.md)
+
 # Local synthetic demo and prediction timing
 
 The local demo runs the installed training, evaluation and prediction commands
 on generated data. It needs CPU computation and the existing project
 dependencies; no dataset download, cloud credentials or GPU is required.
+
+**On this page**
+
+- [Run the demonstration](#run-the-demonstration)
+- [Inspect the outputs](#inspect-the-outputs)
+- [Time a normal prediction run](#time-a-normal-prediction-run)
+- [Repeat the end-to-end benchmark](#repeat-the-end-to-end-benchmark)
+- [View the retained example](#retained-example)
 
 ## Run the demonstration
 

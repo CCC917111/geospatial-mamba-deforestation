@@ -1,10 +1,17 @@
-Results
-=============
+[Documentation](../docs/README.md) · [Project overview](../README.md)
 
-All numbers are F1 scores in percent, computed over pixels and following the
-metrics of the benchmark. For one class, *precision* is the share of the pixels
-predicted as that class that really belong to it, *recall* is the share of the
-class's pixels that are found, and *F1* is their harmonic mean. **Overall F1**
+# Results and evidence
+
+Historical benchmark scores, retained CPU measurements and local workflow
+checks are recorded separately below.
+
+[Historical scores](#benchmark) · [Compute diagnostics](#retained-compute-measurements) ·
+[File-to-file timing](#local-demo-and-file-to-file-prediction-timing)
+
+The historical accuracy table reports F1 scores in percent, computed over
+pixels using the benchmark metrics. For one class, *precision* is the share of
+pixels predicted as that class that really belong to it, *recall* is the share
+of the class's pixels that are found, and *F1* is their harmonic mean. **Overall F1**
 is the macro average over the nine classes, **Forest mean F1** the average over
 the three forest types, and the last three columns are the F1 of natural
 forest, planted forest and tree crops. In the code and in `test_metrics.json`
@@ -49,7 +56,9 @@ which also changes the training sequence relative to the earlier pipeline.
 | Label smoothing | 0.05 |
 | Precision | mixed float16 with dynamic loss scaling |
 
-## Reproducing
+<a id="reproducing"></a>
+
+## Run new experiments
 
 ```bash
 make train                 # writes runs/mamba_forest/training_results.csv
@@ -102,9 +111,11 @@ evaluation. These experiments have not run in the current CPU environment.
   passed all seven workflow stages and paired artifact checks. Its coverage
   refers to the one-shard synthetic fixture. No real-data score is reported.
 
-The timing artifacts contain raw synchronized CPU timings and configuration. They
-exclude source IO and measure fixed-shape model compute, so they do not report
-GPU performance, real-data accuracy or production-predictor end-to-end latency.
+`performance_cpu.json` and `performance_cpu_128.json` contain synchronized
+CPU compute timings and configuration. They exclude source IO and measure
+fixed-shape model compute. The file-to-file benchmark below uses a different
+timing boundary. None of these CPU records establishes GPU performance or
+real-data accuracy.
 
 ## Local demo and file-to-file prediction timing
 

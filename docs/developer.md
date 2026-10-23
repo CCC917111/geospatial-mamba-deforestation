@@ -1,10 +1,9 @@
-Developer page
-=============
-Welcome to the CNN-Mamba forest typology developer main page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-This page is the entry point for working on the code: how the repository is
-laid out, how a batch travels through it, and where to start when you want to
-change something.
+# Developer overview
+
+Find the implementation modules, follow a batch through the pipeline, and
+choose where to extend the code.
 
 ## Abstract
 

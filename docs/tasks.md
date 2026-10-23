@@ -1,8 +1,9 @@
-Common Tasks
-=============
-Welcome to the CNN-Mamba forest typology common tasks page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-This page gives the recipes for the changes people most often want to make.
+# Common tasks
+
+Recipes for adding modalities, adjusting model capacity or objectives,
+adapting datasets and changing the training read budget.
 
 ## Add a fourth modality
 

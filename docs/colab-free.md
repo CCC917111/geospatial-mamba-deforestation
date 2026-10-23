@@ -1,3 +1,5 @@
+[Documentation](README.md) · [Project overview](../README.md)
+
 # Run the small GPU check in free Colab
 
 **Status: prepared; Colab GPU execution is pending.** The current workspace is

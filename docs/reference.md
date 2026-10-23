@@ -1,9 +1,9 @@
-Programming Reference
-=============
-Welcome to the CNN-Mamba forest typology programming reference page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-This page lists what every module provides, with the tensor shapes each part
-expects and returns. `B` is the batch size, `T` the number of seasonal
+# API reference
+
+Module interfaces, tensor shapes and return values for the package and its
+command-line tools. `B` is the batch size, `T` the number of seasonal
 composites (4 in ForTy v1), `H` and `W` the tile height and width (128), and
 `C` the channel count of the modality in question.
 

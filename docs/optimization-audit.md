@@ -1,3 +1,5 @@
+[Documentation](README.md) · [Project overview](../README.md)
+
 # Optimization audit — 2026-10-20
 
 Reviewed the data pipeline, comparison claims, training loop, evaluation and

@@ -1,10 +1,10 @@
-High-level Design
-=============
-Welcome to the CNN-Mamba forest typology high-level design page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-This page explains why the network is built the way it is, and gives the
-equations behind the two Mamba-inspired selective-SSM stages. Numbers in
-brackets refer to the [references on the main page](../README.md#references).
+# Architecture and preprocessing
+
+Architecture rationale, input preprocessing and equations for the temporal
+and spatial Mamba-inspired selective-SSM blocks. Numbered citations refer to
+the [project references](../README.md#references).
 
 ![Architecture](figures/architecture.svg)
 

@@ -1,11 +1,10 @@
-User page
-=============
-Welcome to the CNN-Mamba forest typology user main page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-This page is the practical guide to running the software: what you need, what
-the commands do, and what they write where. The description of the model
-itself is in the [top-level README](../README.md), and the design rationale is
-in [High-level Design](design.md).
+# Usage guide
+
+Install the package, run training and evaluation, and apply a checkpoint to
+prepared tiles. This guide covers requirements, command options and outputs;
+the [design guide](design.md) explains the architecture and preprocessing.
 
 ## Requirements
 

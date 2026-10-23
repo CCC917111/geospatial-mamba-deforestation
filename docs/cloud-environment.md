@@ -1,3 +1,5 @@
+[Documentation](README.md) · [Project overview](../README.md)
+
 # Prepare a cloud environment
 
 **Status: prepared, not deployed.** The setup files prepare software in a new

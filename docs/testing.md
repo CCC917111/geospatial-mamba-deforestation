@@ -1,14 +1,12 @@
-Testing
-=============
-Welcome to the CNN-Mamba forest typology testing page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-The suite runs on CPU and needs neither
-a GPU nor access to the remote dataset: tests use small models, synthetic
-tensors and temporary local TFRecords. The point is to pin down properties
-that are easy to break
-silently — a sequence folded along the wrong axis, a modality that stops
-reaching the output, a loss term that quietly rewards ignoring a class — rather
-than to check numerical values that depend on initialisation.
+# Testing
+
+Check model behavior and CLI integration with small CPU models, synthetic
+tensors and temporary local TFRecords. The suite needs neither a GPU nor
+remote dataset access. Assertions cover properties that can fail silently,
+including axis handling, modality influence and loss behavior, rather than
+numerical values that depend on initialization.
 
 ## Overall structure
 

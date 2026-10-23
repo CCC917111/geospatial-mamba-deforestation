@@ -1,10 +1,10 @@
-Mapping Your Own Region
-=============
-Welcome to the CNN-Mamba forest typology application page!
+[Documentation](README.md) · [Project overview](../README.md)
 
-The benchmark answers "how good is this model". This page answers the question
-someone with their own imagery actually has: **give the model a stack of
-satellite tiles, get back a forest-type map and a table of what is in them.**
+# Mapping your own region
+
+Apply a trained checkpoint to prepared satellite tiles and export forest-type
+maps, class shares and optional visualizations. This guide defines the input
+format and explains how to interpret the outputs.
 
 ## What the tool is for
 

@@ -1,3 +1,5 @@
+[Documentation](README.md) · [Project overview](../README.md)
+
 # Real-data and GPU validation runbook
 
 This runbook prepares new experiments on the current implementation. It does
