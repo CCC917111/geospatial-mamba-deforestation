@@ -25,9 +25,9 @@ jobs:
       TF_NUM_INTEROP_THREADS: "2"
       OMP_NUM_THREADS: "2"
       MPLBACKEND: Agg
-      MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
-      KERAS_HOME: ${{ runner.temp }}/keras
-      XDG_CACHE_HOME: ${{ runner.temp }}/cache
+      MPLCONFIGDIR: /tmp/mamba-forest-matplotlib
+      KERAS_HOME: /tmp/mamba-forest-keras
+      XDG_CACHE_HOME: /tmp/mamba-forest-cache
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
