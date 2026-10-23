@@ -293,3 +293,37 @@ execution requires the user's signed-in session and remains unexecuted here.
 Final preparation checks: 202 tests passed in 54.50 seconds; lint, diff checks
 and all 33 documentation Bash blocks passed. Keras emitted 865 upstream NumPy
 deprecation warnings. Notebook cells remain unexecuted in the delivered file.
+
+### Local demonstration and prediction timing — 2026-10-23
+
+`make demo` now generates synthetic records in the actual fixed 128 × 128
+schema, trains a reduced model for two epochs on CPU, evaluates the selected
+checkpoint and predicts two held-out synthetic tiles. The completed
+[demo record](../results/local_demo_cpu.json) preserves source-file hashes,
+seed, split counts, checkpoint identity, stage logs and artifact paths. The
+comparison figure is explicitly synthetic and shows the actual short-run
+predictions. Cache directories are writable by default, and caller cache
+settings are restored after the run.
+
+`predict --timings` measures file reads/validation, normalization, model setup,
+actual returned-tensor synchronization, postprocessing, NPY/PNG writes and
+CSV export. `benchmark_predict` reuses that production path with complete
+warmup/measured passes, separate output directories and raw timing samples.
+The first graph trace is separated from steady-state measurements. New-output
+checks normalize path aliases and claim the benchmark directory exclusively.
+
+The [retained benchmark](../results/performance_predict_cpu.json) used the
+same reduced checkpoint and two generated NPZ inputs, one warmup pass and
+30 measured passes, with PNG output enabled. Its 60 measured tile samples
+gave 7.20 tiles/s including per-pass CSV and output-directory work. Per-tile
+stage totals had a median of 133.38 ms, with CSV accounted separately. This
+differs from the default-model, compute-only diagnostic and does not establish a
+speedup, real-data accuracy or GPU performance. OS caches were not cleared
+and file writes did not request physical-disk synchronization.
+
+Final CPU checks: **225 tests passed in 58.40 seconds**, including prediction
+compatibility, warmup exclusion, source/output protection, synthetic schema
+and split checks, and failure/cache-environment behavior. Lint and diff checks
+passed. Keras emitted the same 865 upstream NumPy deprecation warnings. The
+default one-command demo and the 60-sample benchmark both completed on the
+final implementation; no remote source data were accessed.

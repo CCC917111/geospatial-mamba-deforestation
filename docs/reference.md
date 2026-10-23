@@ -158,6 +158,23 @@ the outputs.
 
 The same architecture/config resolution as `evaluate` applies.
 
+`--timings PATH` saves stage measurements from the normal prediction path.
+The report separates first-inference tracing from later predictions and
+records the checkpoint, input dimensions and selected export options.
+
+## `mamba_forest.benchmark_predict`
+
+Repeats the production prediction path with full-input warmup passes and
+measured passes. It retains raw timing samples and distinct output directories
+while loading the checkpoint once. Process startup is excluded; runtime import
+cost is recorded separately. See [Local demo and timing](local-demo.md).
+
+## `mamba_forest.demo`
+
+Generates synthetic 128 × 128 ForTy-format records and runs the real training,
+evaluation and prediction commands on CPU. It writes a comparison figure and
+a run summary in a fresh output directory. See [Local demo](local-demo.md).
+
 ## `scripts/plot_results.py`
 
 Plots the training loss and the validation metrics from a

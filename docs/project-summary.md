@@ -56,10 +56,15 @@ The [results record](../results/README.md) separates historical scores from
 current evidence. Historical ForTy F1 values have no retained original logs
 or weights. Published baseline scores use different training and evaluation
 conditions, so the table cannot establish a controlled ranking. Local
-verification recorded 202 passing automated tests and synthetic CPU pipeline
+verification recorded 225 passing automated tests and synthetic CPU pipeline
 checks, including training, checkpoint restoration, evaluation, and paired
 artifact validation. These establish software behavior; live-data accuracy
 and GPU performance remain unverified.
+
+A [one-command local demo](local-demo.md) now generates the actual 128-by-128
+record schema and runs CPU training, evaluation and tile prediction. A separate
+file-to-file benchmark records cold initialization, steady inference, input
+reads and output writes, with 60 measured tile samples in the retained run.
 
 The [optimization audit](optimization-audit.md) also records a synthetic CPU
 diagnostic for the default 128-by-128 model. After two warmup steps, three

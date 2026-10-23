@@ -56,7 +56,7 @@ does not establish an efficiency advantage over attention.
 - **Tile prediction:** shared preprocessing, automatic checkpoint architecture
   restoration, optional colour maps and a CSV of predicted class shares.
 - **Local development:** local TFRecord support, CPU float32 selection,
-  synthetic integration checks and synchronized compute benchmarks.
+  synthetic integration checks, a one-command demo and performance benchmarks.
 
 These are implementation and software-validation capabilities. The next
 research question is whether the selective-SSM modules improve segmentation
@@ -70,8 +70,9 @@ The repository retains several kinds of evidence with different scopes:
 |---|---|---|
 | Historical ForTy scores | Overall macro F1 **56.89%**; forest mean F1 **48.81%** | Historical report; source logs and trained checkpoint are not retained |
 | Synthetic CPU workflow | Both objectives completed two epochs; all seven workflow stages passed | Checks training, checkpoint reload, evaluation and artifact comparison on local synthetic records |
+| File-to-file CPU prediction | **60 measured tiles**, about **7.20 tiles/s** including PNG and CSV output | Reduced demo model, synthetic 128 × 128 inputs; 30 passes after one warmup pass |
 | Default-model CPU compute | Eager median **316.54 ms**; graph median **149.01 ms** | Synthetic 128 × 128 inference, batch 1; three samples per mode after two warmups |
-| Automated checks | **202 tests passed** in the last retained check record | CPU software checks; not a real-data accuracy study |
+| Automated checks | **225 tests passed** in the last retained check record | CPU software checks; not a real-data accuracy study |
 
 The historical scores used a rotating 128-shard training budget and a 64-shard
 test subset. Published UNet3D, UTAE and MTSViT scores use different training and
@@ -85,6 +86,10 @@ performance measurement has been completed in the current environment.
 protocol. Raw [CPU timings](results/performance_cpu_128.json),
 [workflow checks](results/paired_pipeline_smoke.json) and the
 [optimization audit](docs/optimization-audit.md) document the retained evidence.
+The [local demo record](results/local_demo_cpu.json) and
+[file-to-file timings](results/performance_predict_cpu.json) cover the new
+offline demonstration and prediction benchmark. Its reduced architecture and
+timing boundary differ from the default-model compute diagnostic above.
 
 ## Dataset
 
@@ -138,6 +143,23 @@ they require neither a GPU nor access to the ForTy bucket. A pinned CPU
 installation recipe is also available in the
 [environment guide](docs/cloud-environment.md#install-into-a-new-virtual-environment).
 
+## Local demonstration
+
+After installation, run the complete workflow on generated synthetic data:
+
+```bash
+make demo
+```
+
+The demo uses CPU computation and the standard 128 × 128 input format. It
+generates local TFRecords, trains a small model for two epochs, evaluates the
+saved checkpoint and predicts the test tiles. A fresh run directory contains
+class maps, a CSV, prediction timings and a labelled synthetic comparison
+figure. The scores demonstrate software behavior on toy data.
+
+The [local demo guide](docs/local-demo.md) explains output files and a separate
+end-to-end benchmark covering tile reads, preprocessing, inference and export.
+
 ## Training
 
 Default-scale training assumes a suitable GPU and authorized read access to
@@ -175,6 +197,7 @@ validation on representative labelled imagery from that region.
 | Read about | Guide |
 |---|---|
 | Project context, team and evidence | [Technical brief](docs/project-summary.md) |
+| A complete local example and prediction timings | [Synthetic demo and end-to-end benchmark](docs/local-demo.md) |
 | Running the software | [Usage](docs/user.md) · [Tile prediction](docs/apply.md) |
 | Architecture and preprocessing | [Design](docs/design.md) |
 | Code layout and APIs | [Developer overview](docs/developer.md) · [Reference](docs/reference.md) |

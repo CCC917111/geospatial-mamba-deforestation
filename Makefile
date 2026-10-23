@@ -7,8 +7,12 @@ EPOCHS ?= 40
 WEIGHTS ?= $(OUTPUT_DIR)/best.weights.h5
 TILES ?= tiles
 OUT ?= predictions
+DEMO_ARGS ?=
+BENCHMARK_OUT ?= runs/predict-benchmark
+BENCHMARK_REPEATS ?= 30
+BENCHMARK_WARMUP ?= 1
 
-.PHONY: install train eval predict test lint clean
+.PHONY: install train eval predict demo benchmark-predict test lint clean
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -31,6 +35,16 @@ predict:
 		--weights $(WEIGHTS) \
 		--input-dir $(TILES) \
 		--output-dir $(OUT) \
+		--save-png
+
+demo:
+	$(PYTHON) -m mamba_forest.demo $(DEMO_ARGS)
+
+benchmark-predict:
+	$(PYTHON) -m mamba_forest.benchmark_predict \
+		--weights $(WEIGHTS) --input-dir $(TILES) \
+		--output-dir $(BENCHMARK_OUT) \
+		--repeats $(BENCHMARK_REPEATS) --warmup $(BENCHMARK_WARMUP) \
 		--save-png
 
 test:

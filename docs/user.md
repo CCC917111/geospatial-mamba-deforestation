@@ -173,6 +173,9 @@ test use the first N shards without augmentation. An empty split is an error.
 
 ## Measuring compute performance
 
+For a local demonstration and timing that includes reading tiles and writing
+predictions, see [Local demo and end-to-end timing](local-demo.md).
+
 For actual source validation, paired objective experiments and full-test
 evaluation, follow the [GPU validation runbook](gpu-validation.md). Start with
 `python -m mamba_forest.validate_data --require-gpu --output preflight.json`;

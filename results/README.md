@@ -105,3 +105,46 @@ evaluation. These experiments have not run in the current CPU environment.
 The timing artifacts contain raw synchronized CPU timings and configuration. They
 exclude source IO and measure fixed-shape model compute, so they do not report
 GPU performance, real-data accuracy or production-predictor end-to-end latency.
+
+## Local demo and file-to-file prediction timing
+
+The [local demo record](local_demo_cpu.json) retains a completed CPU run of
+the real training, evaluation and prediction entry points. Generated data use
+the standard 128 × 128 record schema, with four training examples, two
+validation examples and two test examples. The reduced architecture uses
+`d_model=4`, temporal/spatial state dimensions 2/2, bottleneck width 8 and
+dropout 0, trained for two epochs with batch size 2 and float32 computation.
+The summary identifies the selected checkpoint and the source modules by hash.
+The [figure](../docs/figures/local-demo-synthetic.png) displays its actual toy
+predictions, which remain nearly uniform at this short training budget.
+
+The [prediction timing record](performance_predict_cpu.json) uses this same
+checkpoint and the two synthetic NPZ test tiles, with class-map NPY, PNG and
+per-pass CSV output enabled. After one warmup pass, 30 measured passes produced
+60 steady-state tile samples. Both TensorFlow thread settings were 2.
+
+| Per-tile stage | Median |
+|---|---:|
+| NPZ read and validation | 12.16 ms |
+| Normalization and tensor preparation | 3.01 ms |
+| Graph inference and actual output synchronization | 115.88 ms |
+| Class shares and colour-map preparation | 0.36 ms |
+| NPY and PNG export | 1.00 ms |
+| Per-tile stage total | 133.38 ms |
+
+The per-tile total is calculated before taking the median; it excludes CSV
+and initialization. Full measured-pass wall times
+include directory creation, CSV writes and close/flush; their combined
+throughput was **7.20 tiles/s**. Runtime import took 2.39 seconds separately;
+the first prediction tensors were available 1.88 seconds after entering the
+prediction function, including model setup and first graph tracing. Process
+startup and command-line parsing remain outside these timing boundaries.
+
+Input files are reread on every pass, but operating-system caches are not
+cleared. File writes are closed/flushed to the OS cache without `fsync`.
+These results apply to the reduced demo architecture and selected exports;
+they are not directly comparable with the default-model compute-only timings.
+They establish neither real-data accuracy nor performance on a GPU.
+
+The [local guide](../docs/local-demo.md) provides commands to regenerate the
+demo and repeat the benchmark on its checkpoint or on another trained model.

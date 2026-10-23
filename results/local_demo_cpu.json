@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "scope": "Synthetic CPU pipeline demonstration only. All inputs and labels are generated arrays, not satellite observations. Scores do not establish real-data accuracy, geographic generalization, or a model improvement.",
+  "data_kind": "synthetic",
+  "output_dir": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz",
+  "seed": 42,
+  "started_at": "2026-10-23T21:22:57.133563+00:00",
+  "model": {
+    "d_model": 4,
+    "dropout": 0.0,
+    "d_state_temporal": 2,
+    "d_state_spatial": 2,
+    "bottleneck_channels": 8
+  },
+  "device": "CPU",
+  "precision": "float32",
+  "tile_shape": [
+    128,
+    128
+  ],
+  "requested_epochs": 2,
+  "batch_size": 2,
+  "counts": {
+    "train": 4,
+    "validation": 2,
+    "test": 2
+  },
+  "stages": [
+    {
+      "name": "train",
+      "state": "completed",
+      "argv": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.train",
+        "--data-root",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/data",
+        "--total-shards",
+        "1",
+        "--batch-size",
+        "2",
+        "--d-model",
+        "4",
+        "--dropout",
+        "0.0",
+        "--d-state-temporal",
+        "2",
+        "--d-state-spatial",
+        "2",
+        "--bottleneck-channels",
+        "8",
+        "--train-shards",
+        "1",
+        "--val-shards",
+        "1",
+        "--fixed-train-subset",
+        "--epochs",
+        "2",
+        "--seed",
+        "42",
+        "--patience",
+        "0",
+        "--precision",
+        "float32",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training"
+      ],
+      "log_path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/logs/train.log",
+      "seconds": 17.559603498000797
+    },
+    {
+      "name": "evaluate",
+      "state": "completed",
+      "argv": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.evaluate",
+        "--data-root",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/data",
+        "--total-shards",
+        "1",
+        "--batch-size",
+        "2",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--test-shards",
+        "1",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/evaluation"
+      ],
+      "log_path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/logs/evaluate.log",
+      "seconds": 4.869999366001139
+    },
+    {
+      "name": "predict",
+      "state": "completed",
+      "argv": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/predictions",
+        "--save-png",
+        "--timings",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/predictions/timings.json"
+      ],
+      "log_path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/logs/predict.log",
+      "seconds": 4.584703312000784
+    }
+  ],
+  "outputs": {
+    "data_manifest": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/data/manifest.json",
+    "training": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training",
+    "evaluation": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/evaluation/test_metrics.json",
+    "predictions": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/predictions",
+    "comparison": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/comparison.png"
+  },
+  "current_stage": "render_comparison",
+  "source": {
+    "repository": "/workspace/geospatial-mamba-deforestation",
+    "python_version": "3.12.14",
+    "git_commit": "8723fd9ca0e8ea364996a887c39984e4986e788d",
+    "git_status": "M Makefile\n M README.md\n M docs/developer.md\n M docs/reference.md\n M docs/testing.md\n M docs/user.md\n M src/mamba_forest/predict.py\n?? docs/local-demo.md\n?? src/mamba_forest/benchmark_predict.py\n?? src/mamba_forest/demo.py\n?? tests/test_benchmark_predict.py\n?? tests/test_demo.py\n?? tests/test_predict_timing.py",
+    "source_files_sha256": {
+      "benchmark.py": "d93a5cadafcd641f02616a133521c0aa8ac471e9a6dd701c0890f137128c24c9",
+      "train.py": "fdb0f65d5e3c5a94967d84eee952109c571e1089e23e1719464f0099cc45ce3c",
+      "demo.py": "95c69e88c56b9184e0ec1e9769b862492f6cffe19cde0e504b9b78644d3b384c",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "checkpoint.py": "11f573cc947aff53dba3e18d2be89acdb89a9386c995a79fdcd5da46ebf71556",
+      "__init__.py": "e420fa460a6e4c39463bafc59fbbfd9e8e6d9e0132e589b5cd63b76c72775517",
+      "evaluate.py": "fd25667be83b959ecaea60e8e5baf039cf58d8318089c466207e81bdba020891",
+      "predict.py": "a08b46eea410be26faebfab82a480fe30e12c2cc4cf93fddb72948428a9f7d39",
+      "constants.py": "59494da36a8b8383297b9e0c0f28cc29592c8fcbb8e9e11ab52f7af0eb8a52b2",
+      "model.py": "9708a261725f13ad4ebd5832c7793234ae9c687e57e3268b9d159119a4fd8e8a",
+      "benchmark_predict.py": "fb454418520af736da75d216334d1f9ff9f0dd60a7e3f2db4faf4370604012f6",
+      "layers.py": "3c33a9bea454c81f4b58ed9b7eb0e61c5501ca0118338ef42fb83044809f3bd3",
+      "experiment.py": "1bf9fcf324c6c0b426cb6090167769a5ba344509113cd3614441219c586b44cd",
+      "data.py": "303963c80f6acc3e5c74f6928ed21e988f83ce237621fc3b7ad55a89205d822c",
+      "compare.py": "b784313ccca0d573541983e31b88cbb552e96d65ccb0af84e8edee0383fffeca",
+      "validate_data.py": "e6d76a5bf81fb1c9913c34c30be83f6a284cb4af859d742adc8674ae40bc704b"
+    },
+    "package_versions": {
+      "tensorflow": null,
+      "keras": "3.15.1",
+      "numpy": "2.5.4",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "command_environment": {
+    "CUDA_VISIBLE_DEVICES": "-1",
+    "TF_NUM_INTRAOP_THREADS": "2",
+    "TF_NUM_INTEROP_THREADS": "2",
+    "MPLCONFIGDIR": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/runtime/matplotlib",
+    "XDG_CACHE_HOME": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/runtime/cache"
+  },
+  "checkpoint": {
+    "path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+    "sha256": "ddd7e071689b25d2f462185d0e0e8dad63019b00adb10e63d37907f6a0376cc7",
+    "selection_path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/checkpoint_selection.json"
+  },
+  "completed_epochs": 2,
+  "evaluation_runtime": {
+    "tensorflow_version": "2.21.0",
+    "precision_policy": "float32",
+    "devices": [
+      {
+        "name": "/physical_device:CPU:0",
+        "type": "CPU"
+      }
+    ]
+  },
+  "synthetic_scores": {
+    "pixel_accuracy": 0.110260009765625,
+    "mean_iou": 0.013407133200771078,
+    "overall_f1": 0.024379295975231613,
+    "forests_f1": 0.07313788792569484
+  },
+  "prediction_tiles": 2,
+  "prediction_timings_path": "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/predictions/timings.json",
+  "finished_at": "2026-10-23T21:23:28.287702+00:00",
+  "retained_artifacts": {
+    "comparison": "../docs/figures/local-demo-synthetic.png",
+    "end_to_end_benchmark": "performance_predict_cpu.json"
+  }
+}

@@ -102,6 +102,15 @@ suite needs is in `requirements.txt`.
 - `test_predict.py` checks graph/eager agreement, dynamic tile sizes and the
   input contract, plus real nondefault checkpoint loading through adjacent,
   explicit and standalone configuration paths.
+- `test_predict_timing.py` checks requested tensor synchronization, first-tile
+  read accounting, per-pass export separation, checkpoint identity and
+  protection of existing timing/configuration files.
+- `test_benchmark_predict.py` checks warmup and first-trace exclusion,
+  framework-free argument parsing, raw timing summaries and fresh-output
+  protection, including normalized path aliases.
+- `test_demo.py` checks the actual 128 × 128 TFRecord schema, distinct split
+  examples, seed reproducibility, matching NPZ inputs, output protection,
+  failure diagnostics and restoration of the caller's cache environment.
 - `test_benchmark.py` checks timing aggregation and warmup accounting.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
