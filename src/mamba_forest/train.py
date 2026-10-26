@@ -220,46 +220,68 @@ def f1_from_confusion(confusion: np.ndarray) -> np.ndarray:
                    where=denominator > 0)
 
 
+class DatasetEvaluator:
+  """Reuses a model's evaluation graph across serial dataset evaluations.
+
+  Each call clears the int64 confusion matrix, so validation epochs retain
+  independent metrics while reading the model's current weights. Keep this
+  helper separate from the model: its counters are not checkpoint state.
+  One evaluator belongs to one model and is not safe for concurrent calls.
+  """
+
+  def __init__(self, model, num_classes: int):
+    if num_classes < 1:
+      raise ValueError("num_classes must be positive")
+    self.num_classes = num_classes
+    confusion = tf.Variable(
+        tf.zeros((num_classes, num_classes), dtype=tf.int64), trainable=False)
+    self.confusion = confusion
+
+    @tf.function(reduce_retracing=True)
+    def accumulate(inputs, labels):
+      predictions = model(inputs, training=False)
+      predictions = tf.debugging.assert_all_finite(
+          predictions, "evaluation predictions contain non-finite values")
+      y_true = tf.argmax(labels, axis=-1)
+      y_pred = tf.argmax(predictions, axis=-1)
+      confusion.assign_add(tf.math.confusion_matrix(
+          tf.reshape(y_true, [-1]), tf.reshape(y_pred, [-1]),
+          num_classes=num_classes, dtype=tf.int64))
+
+    self.accumulate = accumulate
+
+  def __call__(self, dataset, return_confusion: bool = False):
+    """Returns independent confusion-derived metrics for one dataset pass."""
+    self.confusion.assign(tf.zeros_like(self.confusion))
+    for batch in dataset:
+      inputs, labels = data_lib.split_inputs_labels(batch)
+      self.accumulate(inputs, labels)
+
+    matrix = self.confusion.numpy()
+    total_pixels = int(matrix.sum())
+    if total_pixels == 0:
+      raise ValueError("evaluation dataset contains no pixels")
+    true_positives = np.diag(matrix).astype(np.float64)
+    union = matrix.sum(axis=0) + matrix.sum(axis=1) - true_positives
+    present = union > 0
+    result = (float(true_positives.sum() / total_pixels),
+              float(np.mean(true_positives[present] / union[present])),
+              f1_from_confusion(matrix))
+    return result + (matrix,) if return_confusion else result
+
+
 def evaluate(model, dataset, num_classes: int, return_confusion: bool = False):
   """Returns (accuracy, mean IoU, per-class F1) on ``dataset``.
 
+  This one-shot wrapper creates a separate evaluator for each call. Training
+  retains a ``DatasetEvaluator`` to reuse its graph across validation epochs.
   Inference and int64 confusion updates run in one graph per batch, and only
   the final matrix is copied to NumPy. Mean IoU excludes classes absent from
   both labels and predictions; macro F1 retains all ``num_classes`` classes,
   with zero F1 for absent classes. An empty or zero-pixel dataset is rejected.
   With ``return_confusion=True``, the matrix is returned as a fourth value.
   """
-  if num_classes < 1:
-    raise ValueError("num_classes must be positive")
-  confusion = tf.Variable(
-      tf.zeros((num_classes, num_classes), dtype=tf.int64), trainable=False)
-
-  @tf.function(reduce_retracing=True)
-  def accumulate(inputs, labels):
-    predictions = model(inputs, training=False)
-    predictions = tf.debugging.assert_all_finite(
-        predictions, "evaluation predictions contain non-finite values")
-    y_true = tf.argmax(labels, axis=-1)
-    y_pred = tf.argmax(predictions, axis=-1)
-    confusion.assign_add(tf.math.confusion_matrix(
-        tf.reshape(y_true, [-1]), tf.reshape(y_pred, [-1]),
-        num_classes=num_classes, dtype=tf.int64))
-
-  for batch in dataset:
-    inputs, labels = data_lib.split_inputs_labels(batch)
-    accumulate(inputs, labels)
-
-  matrix = confusion.numpy()
-  total_pixels = int(matrix.sum())
-  if total_pixels == 0:
-    raise ValueError("evaluation dataset contains no pixels")
-  true_positives = np.diag(matrix).astype(np.float64)
-  union = matrix.sum(axis=0) + matrix.sum(axis=1) - true_positives
-  present = union > 0
-  result = (float(true_positives.sum() / total_pixels),
-            float(np.mean(true_positives[present] / union[present])),
-            f1_from_confusion(matrix))
-  return result + (matrix,) if return_confusion else result
+  return DatasetEvaluator(model, num_classes)(dataset, return_confusion)
 
 
 def forest_scores(per_class_f1: np.ndarray) -> dict:
@@ -335,6 +357,7 @@ def main() -> None:
         f"the training split under {args.gcs_root} yielded no batches; check "
         "the dataset root and the Google Cloud credentials")
   print(f"model built with {model.count_params():,} parameters")
+  validation_evaluator = DatasetEvaluator(model, num_classes)
 
   @tf.function
   def train_step(inputs, labels):
@@ -380,7 +403,7 @@ def main() -> None:
     write_split_manifest(manifest_path, manifest)
 
     started = time.perf_counter()
-    accuracy, mean_iou, per_class_f1 = evaluate(model, val_ds, num_classes)
+    accuracy, mean_iou, per_class_f1 = validation_evaluator(val_ds)
     validation_seconds = time.perf_counter() - started
     scores = forest_scores(per_class_f1)
 

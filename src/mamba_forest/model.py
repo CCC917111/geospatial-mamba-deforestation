@@ -171,6 +171,7 @@ class MambaForestSegmenter(tf.keras.Model):
       return self.optical_proj(spatial, training=training)
     shape = tf.shape(x)
     batch, time, height, width = shape[0], shape[1], shape[2], shape[3]
+    static_time = x.shape[1]
     channels = x.shape[-1]  # static, needed by the dense layers
 
     # One sequence per pixel. The time axis is moved next to the channels
@@ -181,10 +182,10 @@ class MambaForestSegmenter(tf.keras.Model):
     sequences = tf.reshape(x, (-1, time, channels))
     # The static channel dimension has to be restored after the reshape,
     # otherwise the layers inside the Mamba block cannot build their weights.
-    sequences.set_shape([None, None, channels])
-    sequences = self.temporal_mamba(sequences, training=training)
+    sequences.set_shape([None, static_time, channels])
     # The last state summarises the whole season sequence.
-    summary = self.temporal_norm(sequences[:, -1, :])
+    summary = self.temporal_norm(self.temporal_mamba(
+        sequences, training=training, return_last=True))
     spatial = tf.reshape(summary, (batch, height, width, channels))
     spatial.set_shape([None, None, None, channels])
     return self.optical_proj(spatial, training=training)

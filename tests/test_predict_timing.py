@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -142,3 +143,74 @@ def test_existing_timing_or_checkpoint_path_is_never_overwritten(tmp_path, monke
   with pytest.raises(ValueError, match="new .json file"):
     predict.run_prediction(args)
   assert not args.timings == args.output_dir
+
+
+def test_preprocessing_completes_before_its_timer_stops(tmp_path, monkeypatch):
+  args = _arguments(tmp_path)
+  synchronized = []
+  original = predict._synchronize_preprocessing
+
+  def synchronize(inputs):
+    original(inputs)
+    synchronized.append(True)
+
+  calls = 0
+
+  def clock():
+    nonlocal calls
+    calls += 1
+    if calls == 4:
+      assert synchronized, "preprocessing timer stopped before tensor completion"
+    return float(calls)
+
+  monkeypatch.setattr(predict, "_synchronize_preprocessing", synchronize)
+  monkeypatch.setattr(predict.time, "perf_counter", clock)
+  _, _, read_seconds, preprocess_seconds = predict._read_inputs(
+      Path(args.input_dir) / "tile_0.npz")
+  assert read_seconds == preprocess_seconds == 1.0
+  assert calls == 4
+
+
+def test_preprocessing_barrier_rejects_nonfinite_normalized_inputs():
+  with pytest.raises(FloatingPointError, match="preprocessing"):
+    predict._synchronize_preprocessing({
+        "first": tf.constant([0.0]), "last": tf.constant([float("nan")])})
+
+
+def test_checkpoint_change_during_loading_is_rejected(tmp_path, monkeypatch):
+  args = _arguments(tmp_path)
+  _lightweight_predictor(monkeypatch)
+  original_model = predict.MambaForestSegmenter
+
+  class MutatingModel(original_model):
+    def load_weights(self, path):
+      Path(path).write_bytes(b"checkpoint changed during load")
+
+  monkeypatch.setattr(predict, "MambaForestSegmenter", MutatingModel)
+  monkeypatch.setattr(predict, "make_predictor",
+                      lambda *args: pytest.fail("must reject before prediction"))
+  with pytest.raises(ValueError, match="Checkpoint changed while loading"):
+    predict.run_prediction(args, quiet=True)
+
+
+def test_report_identifies_loaded_checkpoint_even_if_file_changes_later(
+      tmp_path, monkeypatch):
+  args = _arguments(tmp_path)
+  original_hash = hashlib.sha256(Path(args.weights).read_bytes()).hexdigest()
+  _lightweight_predictor(monkeypatch)
+  original_make = predict.make_predictor
+
+  def make_predictor(model, save_probabilities=False):
+    infer = original_make(model, save_probabilities)
+
+    def predict_and_mutate(inputs):
+      outputs = infer(inputs)
+      Path(args.weights).write_bytes(b"later checkpoint replacement")
+      return outputs
+
+    return predict_and_mutate
+
+  monkeypatch.setattr(predict, "make_predictor", make_predictor)
+  report = predict.run_prediction(args, quiet=True)
+  assert report["metadata"]["weights_sha256"] == original_hash
+  assert hashlib.sha256(Path(args.weights).read_bytes()).hexdigest() != original_hash

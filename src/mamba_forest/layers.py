@@ -85,18 +85,30 @@ class MambaBlock(layers.Layer):
         initializer=tf.keras.initializers.Ones(), trainable=True)
     super().build(input_shape)
 
-  def call(self, x, training: bool = False):
-    """Applies the block to ``x`` of shape [B, L, d_model] (residual included)."""
+  def call(self, x, training: bool = False, return_last: bool = False):
+    """Returns [B, L, d_model], or [B, d_model] with ``return_last=True``.
+
+    Selecting the last output avoids readout projections for discarded steps.
+    The recurrent update still consumes the complete sequence. Short sequences
+    with a known length use the same updates in an unrolled graph; other
+    lengths retain ``tf.scan``. No weight shape or configuration changes.
+
+    With dropout disabled, the last output matches slicing the full output
+    within floating-point tolerance. Training dropout has the same marginal
+    distribution, but draws a smaller mask and need not match a seeded full
+    sequence call sample for sample.
+    """
     residual = x
     x_ln = self.norm(x)
 
     x_proc, gate = tf.split(self.in_proj(x_ln), 2, axis=-1)  # [B, L, d_inner]
     conv_act = tf.nn.silu(self.conv(x_proc))                 # [B, L, d_inner]
 
-    # Input-dependent SSM parameters, all [B, L, R].
+    # Input-dependent SSM parameters. Only the requested readout needs C.
     s_delta = self.s_delta(conv_act)
     s_B = self.s_B(conv_act)
-    s_C = self.s_C(conv_act)
+    readout_act = conv_act[:, -1:, :] if return_last else conv_act
+    s_C = self.s_C(readout_act)
     dt = tf.nn.softplus(self.dt_proj(s_delta))
 
     # Per-step decay: larger dt or larger A means faster forgetting.
@@ -119,21 +131,37 @@ class MambaBlock(layers.Layer):
       alpha_t, u_t = inputs
       return alpha_t * h_prev + (1.0 - alpha_t) * u_t
 
-    h_all = tf.scan(
-        step,
-        elems=(tf.cast(tf.transpose(alpha, [1, 0, 2]), tf.float32),
-               tf.cast(tf.transpose(u, [1, 0, 2]), tf.float32)),
-        initializer=h_0,
-        parallel_iterations=10)
-    h_all = tf.cast(tf.transpose(h_all, [1, 0, 2]), conv_act.dtype)  # [B, L, R]
+    # Four-season inputs are short enough to unroll without constructing a
+    # TensorArray or loop. Keep the update order and float32 state unchanged.
+    static_length = x.shape[1]
+    if return_last and static_length is not None and 1 <= static_length <= 8:
+      alpha_states = tf.cast(alpha, tf.float32)
+      input_states = tf.cast(u, tf.float32)
+      state = h_0
+      for index in range(static_length):
+        state = step(state, (alpha_states[:, index, :], input_states[:, index, :]))
+      h_readout = tf.cast(state[:, None, :], conv_act.dtype)
+    else:
+      h_all = tf.scan(
+          step,
+          elems=(tf.cast(tf.transpose(alpha, [1, 0, 2]), tf.float32),
+                 tf.cast(tf.transpose(u, [1, 0, 2]), tf.float32)),
+          initializer=h_0,
+          parallel_iterations=10)
+      states = h_all[-1, :, :][:, None, :] if return_last else tf.transpose(
+          h_all, [1, 0, 2])
+      h_readout = tf.cast(states, conv_act.dtype)
 
     # Read the state out with the input-dependent C, lift it back to the
     # channel dimension and add the scaled convolution path.
-    y = tf.tensordot(h_all * s_C, self.state_to_channel, axes=[[2], [0]])
-    y = y + conv_act * tf.reshape(self.D, (1, 1, -1))        # [B, L, d_inner]
+    y = tf.tensordot(h_readout * s_C, self.state_to_channel, axes=[[2], [0]])
+    y = y + readout_act * tf.reshape(self.D, (1, 1, -1))
 
-    out = self.out_proj(y * tf.nn.silu(gate))                # [B, L, d_model]
+    readout_gate = gate[:, -1:, :] if return_last else gate
+    out = self.out_proj(y * tf.nn.silu(readout_gate))
     out = self.dropout(out, training=training)
+    if return_last:
+      return residual[:, -1, :] + out[:, 0, :]
     return residual + out
 
   def get_config(self):

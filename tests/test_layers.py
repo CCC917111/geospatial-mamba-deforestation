@@ -75,6 +75,79 @@ def test_mamba_block_state_carries_information():
   assert max_diff > 1e-6, "the recurrent state does not carry information"
 
 
+def _last_readout_value_and_gradients(block, x, final_only):
+  with tf.GradientTape() as tape:
+    tape.watch(x)
+    output = block(x, training=False, return_last=final_only)
+    last = output if final_only else output[:, -1, :]
+    coefficients = tf.cast(tf.range(1, block.d_model + 1), tf.float32)
+    loss = tf.reduce_sum(tf.cast(last, tf.float32) * coefficients)
+  gradients = tape.gradient(loss, [x, *block.trainable_variables])
+  return last, gradients
+
+
+def _assert_last_readout_matches(block, x, policy):
+  expected, expected_gradients = _last_readout_value_and_gradients(block, x, False)
+  actual, actual_gradients = _last_readout_value_and_gradients(block, x, True)
+  assert actual.shape == (x.shape[0], block.d_model)
+  tolerance = 3e-3 if policy == "mixed_float16" else 2e-5
+  np.testing.assert_allclose(actual, expected, rtol=tolerance, atol=tolerance)
+  assert len(actual_gradients) == len(expected_gradients)
+  for actual_gradient, expected_gradient in zip(actual_gradients, expected_gradients):
+    assert actual_gradient is not None and expected_gradient is not None
+    assert np.isfinite(actual_gradient.numpy()).all()
+    np.testing.assert_allclose(actual_gradient, expected_gradient,
+                               rtol=tolerance, atol=tolerance)
+
+
+def test_mamba_final_readout_matches_full_sequence_outputs_and_gradients():
+  """Both readout paths represent the same deterministic differentiable model."""
+  previous = tf.keras.mixed_precision.global_policy()
+  try:
+    for policy in ("float32", "mixed_float16"):
+      tf.keras.mixed_precision.set_global_policy(policy)
+      # One step and four seasons exercise bounded unrolling; nine steps
+      # exercise its long-sequence fallback without large test tensors.
+      for length in (1, 4, 9):
+        tf.keras.utils.set_random_seed(102 + length)
+        block = MambaBlock(d_model=6, d_state=3, dropout_rate=0.0)
+        x = tf.random.normal((2, length, 6))
+        block(x, training=False)
+        _assert_last_readout_matches(block, x, policy)
+  finally:
+    tf.keras.mixed_precision.set_global_policy(previous)
+
+
+def test_mamba_final_readout_supports_dynamic_sequence_lengths_and_gradients():
+  previous = tf.keras.mixed_precision.global_policy()
+  try:
+    for policy in ("float32", "mixed_float16"):
+      tf.keras.mixed_precision.set_global_policy(policy)
+      tf.keras.utils.set_random_seed(203)
+      block = MambaBlock(d_model=6, d_state=3, dropout_rate=0.0)
+      block(tf.zeros((1, 4, 6)), training=False)
+
+      @tf.function(input_signature=[tf.TensorSpec((None, None, 6), tf.float32)])
+      def compare_paths(x):
+        return (_last_readout_value_and_gradients(block, x, False),
+                _last_readout_value_and_gradients(block, x, True))
+
+      tolerance = 3e-3 if policy == "mixed_float16" else 2e-5
+      for length in (1, 4, 11):
+        (expected, reference_gradients), (actual, actual_gradients) = compare_paths(
+            tf.random.normal((2, length, 6)))
+        assert actual.shape == (2, 6)
+        np.testing.assert_allclose(actual, expected, rtol=tolerance, atol=tolerance)
+        for actual_gradient, reference_gradient in zip(
+              actual_gradients, reference_gradients):
+          assert actual_gradient is not None and reference_gradient is not None
+          assert np.isfinite(actual_gradient.numpy()).all()
+          np.testing.assert_allclose(actual_gradient, reference_gradient,
+                                     rtol=tolerance, atol=tolerance)
+  finally:
+    tf.keras.mixed_precision.set_global_policy(previous)
+
+
 def test_sasf_preserves_shape_and_locality():
   """SASF mixes direct neighbours only."""
   sasf = StructureAwareStateFusion()

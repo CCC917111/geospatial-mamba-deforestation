@@ -188,23 +188,34 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
   monkeypatch.setattr(tf.config, "get_visible_devices", visible_devices)
   monkeypatch.setattr(tf.keras.mixed_precision, "LossScaleOptimizer",
                       unexpected_loss_scaling)
-  original_evaluate = train.evaluate
+  original_evaluator = train.DatasetEvaluator
   selection_scores = [0.12345671, 0.12345674]
   evaluated_epochs = []
+  validation_evaluators = []
+  validation_trace_counts = []
 
-  def close_validation_scores(*args, **kwargs):
-    accuracy, mean_iou, _ = original_evaluate(*args, **kwargs)
-    score = selection_scores[len(evaluated_epochs)]
-    evaluated_epochs.append(score)
-    return accuracy, mean_iou, np.full(data.NUM_CLASSES, score)
+  class CloseValidationEvaluator(original_evaluator):
+    def __init__(self, *args, **kwargs):
+      super().__init__(*args, **kwargs)
+      validation_evaluators.append(self)
+
+    def __call__(self, *args, **kwargs):
+      accuracy, mean_iou, _ = super().__call__(*args, **kwargs)
+      validation_trace_counts.append(self.accumulate.experimental_get_tracing_count())
+      score = selection_scores[len(evaluated_epochs)]
+      evaluated_epochs.append(score)
+      return accuracy, mean_iou, np.full(data.NUM_CLASSES, score)
 
   # Both scores round to the same six-decimal CSV value. The second epoch
   # must still be recoverable as the checkpoint selected during training.
-  monkeypatch.setattr(train, "evaluate", close_validation_scores)
+  monkeypatch.setattr(train, "DatasetEvaluator", CloseValidationEvaluator)
   prior_policy = tf.keras.mixed_precision.global_policy().name
   try:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
     train.main()
+    assert len(validation_evaluators) == 1
+    assert len(validation_trace_counts) == 2
+    assert validation_trace_counts[0] == validation_trace_counts[1]
     config = json.loads((output / "config.json").read_text(encoding="utf-8"))
     assert config["precision"] == "auto"
     assert config["resolved_precision"] == "float32"

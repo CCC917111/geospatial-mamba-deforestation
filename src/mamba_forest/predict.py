@@ -181,13 +181,23 @@ def _read_inputs(path):
   read_seconds = time.perf_counter() - started
   started = time.perf_counter()
   inputs = preprocess_tile(tile)
+  # Complete all normalization tensors without transferring full tile arrays
+  # back to the host. Otherwise queued GPU preprocessing is charged to the
+  # following inference timer.
+  _synchronize_preprocessing(inputs)
   return inputs, source, read_seconds, time.perf_counter() - started
 
 
-def _runtime_metadata(args, sources):
+def _synchronize_preprocessing(inputs):
+  token = tf.add_n([tf.reduce_sum(value) for value in tf.nest.flatten(inputs)])
+  if not np.isfinite(token.numpy()).all():
+    raise FloatingPointError("preprocessing produced non-finite values")
+
+
+def _runtime_metadata(args, sources, weights_sha256):
   return {
       "weights": str(args.weights),
-      "weights_sha256": checkpoint.weights_sha256(args.weights),
+      "weights_sha256": weights_sha256,
       "training_config_path": getattr(args, "training_config_path", None),
       "output_dir": str(args.output_dir), "input_dir": str(args.input_dir),
       "pattern": args.pattern, "source_file_count": len(sources),
@@ -246,7 +256,10 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
       model_variant=getattr(args, "model_variant", DEFAULT_MODEL_VARIANT))
   # Synchronize the eager build before stopping its timer or loading weights.
   tf.reduce_sum(model(first_inputs, training=False)).numpy()
+  loaded_checkpoint_sha256 = checkpoint.weights_sha256(args.weights)
   model.load_weights(args.weights)
+  if checkpoint.weights_sha256(args.weights) != loaded_checkpoint_sha256:
+    raise ValueError("Checkpoint changed while loading prediction weights")
   model_load_seconds = time.perf_counter() - started
   del first_inputs
   predict = make_predictor(model, args.save_probabilities)
@@ -347,11 +360,14 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
         print(f"  {name:18s} {100 * value:5.2f}%")
       print(f"\nclass maps and {table_path.name} written to {directory}")
   report = {
-      "schema_version": 1, "metadata": _runtime_metadata(args, sources),
+      "schema_version": 1,
+      "metadata": _runtime_metadata(args, sources, loaded_checkpoint_sha256),
       "scope": {
           "start": ("run_prediction entry; excludes imports, CLI parsing "
                     "and config resolution"),
           "synchronization": "all actual predictor return tensors copied to NumPy",
+          "preprocessing": ("normalization tensors completed with a scalar "
+                            "host barrier before inference timing starts"),
           "first_inference": ("includes first graph tracing and execution; "
                               "never steady state"),
           "writes": ("file writes and close/flush to OS cache; "

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from mamba_forest import data as data_lib  # noqa: E402
 from mamba_forest import evaluate as evaluation_cli  # noqa: E402
 from mamba_forest.model import MambaForestSegmenter  # noqa: E402
-from mamba_forest.train import evaluate, forest_scores  # noqa: E402
+from mamba_forest.train import DatasetEvaluator, evaluate, forest_scores  # noqa: E402
 
 
 class PredictionModel(tf.keras.Model):
@@ -69,6 +69,79 @@ def test_metrics_do_not_depend_on_batch_boundaries():
   assert len(single) == 3
   np.testing.assert_allclose(single[:2], uneven[:2])
   np.testing.assert_array_equal(single[2], uneven[2])
+
+
+def test_reusable_evaluator_resets_confusion_between_different_datasets():
+  model = PredictionModel()
+  evaluator = DatasetEvaluator(model, 4)
+  first = evaluator(_dataset(*_examples()), return_confusion=True)
+  expected_first = evaluate(model, _dataset(*_examples()), 4, return_confusion=True)
+  np.testing.assert_array_equal(first[3], expected_first[3])
+  second = evaluator(_dataset([[[2, 2], [2, 2]]], [[[2, 2], [2, 2]]]),
+                     return_confusion=True)
+  assert second[0] == 1.0 and second[1] == 1.0
+  expected_second = np.zeros((4, 4), dtype=np.int64)
+  expected_second[2, 2] = 4
+  np.testing.assert_array_equal(second[3], expected_second)
+  np.testing.assert_array_equal(evaluator.confusion.numpy(), expected_second)
+  # Returned matrices are snapshots, not views of the next pass's counter.
+  np.testing.assert_array_equal(first[3], expected_first[3])
+
+
+def test_reusable_evaluator_keeps_graphs_after_uneven_batch_warmup():
+  evaluator = DatasetEvaluator(PredictionModel(), 4)
+  expected = evaluator(_dataset(*_examples()), return_confusion=True)
+  traces = evaluator.accumulate.experimental_get_tracing_count()
+  assert traces > 0
+  for _ in range(3):
+    actual = evaluator(_dataset(*_examples()), return_confusion=True)
+    np.testing.assert_array_equal(actual[3], expected[3])
+    assert evaluator.accumulate.experimental_get_tracing_count() == traces
+
+
+def test_reused_graph_reads_updated_weights_without_changing_model_state():
+  class BiasedPredictionModel(tf.keras.Model):
+    def __init__(self):
+      super().__init__()
+      self.bias = self.add_weight(shape=(4,), initializer="zeros")
+
+    def call(self, inputs, training=False):
+      assert training is False
+      return inputs["s2"] + self.bias
+
+  model = BiasedPredictionModel()
+  dataset = _dataset([[[0, 0], [0, 0]]], [[[0, 0], [0, 0]]])
+  evaluator = DatasetEvaluator(model, 4)
+  before = evaluator(dataset, return_confusion=True)
+  weights_before = tuple(id(weight) for weight in model.weights)
+  assert before[0] == 1.0 and len(weights_before) == 1
+  traces = evaluator.accumulate.experimental_get_tracing_count()
+  model.bias.assign([0, 2, 0, 0])
+  after = evaluator(dataset, return_confusion=True)
+  assert after[0] == 0.0
+  expected = np.zeros((4, 4), dtype=np.int64)
+  expected[0, 1] = 4
+  np.testing.assert_array_equal(after[3], expected)
+  assert tuple(id(weight) for weight in model.weights) == weights_before
+  assert evaluator.accumulate.experimental_get_tracing_count() == traces
+
+
+def test_reusable_evaluator_recovers_after_nonfinite_and_empty_passes():
+  model = PredictionModel()
+  evaluator = DatasetEvaluator(model, 4)
+  dataset = _dataset(*_examples())
+  expected = evaluator(dataset, return_confusion=True)
+  model.offset.assign(float("nan"))
+  with pytest.raises(tf.errors.InvalidArgumentError,
+                     match="evaluation predictions contain non-finite"):
+    evaluator(dataset)
+  np.testing.assert_array_equal(evaluator.confusion.numpy(), np.zeros((4, 4)))
+  model.offset.assign(0.0)
+  with pytest.raises(ValueError, match="contains no pixels"):
+    evaluator(dataset.take(0))
+  np.testing.assert_array_equal(evaluator.confusion.numpy(), np.zeros((4, 4)))
+  recovered = evaluator(dataset, return_confusion=True)
+  np.testing.assert_array_equal(recovered[3], expected[3])
 
 
 def test_predicted_only_class_is_included_in_mean_iou():

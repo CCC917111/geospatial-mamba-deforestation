@@ -180,6 +180,38 @@ def test_model_variant_defaults_to_ssm_and_rejects_unknown_names():
       _variant_model(variant)
 
 
+def test_final_temporal_readout_restores_full_readout_checkpoint_predictions():
+  """An old full-sequence temporal forward pass saves compatible weights."""
+  previous = tf.keras.mixed_precision.global_policy()
+  tf.keras.mixed_precision.set_global_policy("float32")
+  try:
+    tf.keras.utils.set_random_seed(304)
+    reference = _variant_model("cnn_ssm")
+    full_call = reference.temporal_mamba.call
+
+    def legacy_temporal_call(x, training=False, return_last=False):
+      full = full_call(x, training=training, return_last=False)
+      return full[:, -1, :] if return_last else full
+
+    reference.temporal_mamba.call = legacy_temporal_call
+    inputs = _inputs(batch=1, size=8)
+    expected = reference(inputs, training=False).numpy()
+    restored = MambaForestSegmenter.from_config(reference.get_config())
+    restored(inputs, training=False)
+    assert restored.count_params() == reference.count_params()
+    assert [tuple(weight.shape) for weight in restored.weights] == [
+        tuple(weight.shape) for weight in reference.weights]
+    with tempfile.TemporaryDirectory() as directory:
+      checkpoint = Path(directory) / "legacy.weights.h5"
+      reference.save_weights(checkpoint)
+      restored.load_weights(checkpoint)
+    np.testing.assert_allclose(restored(inputs, training=False).numpy(), expected,
+                               rtol=2e-5, atol=2e-6)
+    assert "return_last" not in restored.get_config()
+  finally:
+    tf.keras.mixed_precision.set_global_policy(previous)
+
+
 if __name__ == "__main__":
   tests = [value for name, value in sorted(globals().items())
            if name.startswith("test_") and callable(value)]
