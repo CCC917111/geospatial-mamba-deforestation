@@ -1,0 +1,180 @@
+{
+  "scope": "Same synthetic NPZ inputs and trained toy checkpoint; production NPY/PNG/CSV path with warm OS reads, no fsync claim.",
+  "source_commits": {
+    "baseline": "82723f3183231a36e736c1c118a866aed5ad9d6b",
+    "candidate": "f49b0042e35593fb120bf97bb292d0de8416fd4d"
+  },
+  "weights_sha256": "ddd7e071689b25d2f462185d0e0e8dad63019b00adb10e63d37907f6a0376cc7",
+  "input_sha256": {
+    "synthetic_test_000.npz": "a4d3193711dc1f77b32020ab440a7d7d7d22aea63720a362effd563be05d62ab",
+    "synthetic_test_001.npz": "bfdd0c9202f55a3ca115f788f33e9a2119b8a98a367288856b49507a5c7c92ea"
+  },
+  "steps": [
+    {
+      "round": 0,
+      "revision": "baseline",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/00-baseline/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/00-baseline",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    },
+    {
+      "round": 0,
+      "revision": "candidate",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/00-candidate/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/00-candidate",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    },
+    {
+      "round": 1,
+      "revision": "candidate",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/01-candidate/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/01-candidate",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    },
+    {
+      "round": 1,
+      "revision": "baseline",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/01-baseline/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/01-baseline",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    },
+    {
+      "round": 2,
+      "revision": "baseline",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/02-baseline/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/02-baseline",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    },
+    {
+      "round": 2,
+      "revision": "candidate",
+      "report": "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/02-candidate/benchmark.json",
+      "command": [
+        "/workspace/.venvs/geospatial-mamba/bin/python",
+        "-m",
+        "mamba_forest.benchmark_predict",
+        "--weights",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/training/best.weights.h5",
+        "--input-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/synthetic-demo-ddrcc8uz/tiles",
+        "--output-dir",
+        "/workspace/geospatial-mamba-deforestation/runs/production-perf-20261026/02-candidate",
+        "--repeats",
+        "30",
+        "--warmup",
+        "1",
+        "--save-png"
+      ]
+    }
+  ],
+  "status": "passed",
+  "summary": {
+    "baseline": {
+      "round_tiles_per_second": [
+        7.244233378546257,
+        7.165849946246904,
+        6.7531556638738905
+      ],
+      "round_median_pipeline_seconds": [
+        0.12990744999979142,
+        0.1376855964999777,
+        0.14438901699986673
+      ],
+      "total_measured_tiles": 180,
+      "pooled_tiles_per_second": 7.047704091666987
+    },
+    "candidate": {
+      "round_tiles_per_second": [
+        6.638636513258621,
+        6.627725593079856,
+        7.967208606372956
+      ],
+      "round_median_pipeline_seconds": [
+        0.1483115014998475,
+        0.15372375549941353,
+        0.1164435874998162
+      ],
+      "total_measured_tiles": 180,
+      "pooled_tiles_per_second": 7.0252817306333455
+    },
+    "paired_round_speedups": [
+      0.8759094789416921,
+      0.8956689618508765,
+      1.239991141634095
+    ],
+    "paired_round_median_latency_reduction_percent": -11.648392720177124,
+    "matching_first_measured_class_maps": true,
+    "all_measured_class_maps_equal": true,
+    "class_map_pairs_checked": 180
+  }
+}

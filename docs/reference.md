@@ -97,6 +97,7 @@ for the full list of flags; the defaults reproduce the configuration in
 | Function | Purpose |
 |---|---|
 | `configure_precision(precision, no_mixed_precision)` | Resolves auto from visible GPUs and explicitly sets the compute policy. |
+| `DatasetEvaluator(model, num_classes)` | Callable evaluator retaining one graph while resetting confusion for each pass; keep it separate from model checkpoint state. |
 | `prepare_output_directory(output_dir)` | Creates a run directory; rejects existing checkpoint weights before config writes. |
 | `build_datasets(args)` | Training and validation datasets from the parsed flags. |
 | `build_train_dataset(args, epoch)` | Explicit training subset for a zero-based epoch. |

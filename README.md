@@ -111,6 +111,11 @@ device-dependent overhead are documented separately from measured performance.
 - **Local inspection:** an offline demo, CPU software checks, compute-only
   diagnostics and file-to-file prediction timing.
 
+The [runtime performance guide](docs/performance.md) documents checkpoint-compatible
+temporal readout and validation-graph optimizations. In three controlled CPU
+rounds, inference median latency fell 6.4%–8.9%; training-step timings did not
+show a stable gain. The separate GPU before/after comparison remains pending.
+
 ### CNN-only ablation
 
 The default `cnn_ssm` model retains the selective state-space blocks.
@@ -137,7 +142,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **260 tests passed** | Local CPU verification; supports software behavior. |
+| **Software checks** | **291 tests passed** | Local CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Default-model compute** | Graph median **149.01 ms**; eager **316.54 ms** | Three synthetic inference samples per mode after two warmups; excludes input and output IO. |

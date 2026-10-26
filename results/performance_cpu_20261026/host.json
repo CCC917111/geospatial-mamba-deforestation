@@ -1,0 +1,8 @@
+{
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "cpu_count": 5,
+  "cpu_model": "AMD EPYC 9V74 80-Core Processor",
+  "cgroup_cpu_max": "400000 100000",
+  "cgroup_memory_max": "17179869184",
+  "note": "Host information collected in the same environment after the serialized measurements."
+}

@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "plan": {
+    "schema_version": 1,
+    "source_roots": {
+      "baseline": "/tmp/geospatial-perf-reference-82723f3",
+      "candidate": "/workspace/geospatial-mamba-deforestation"
+    },
+    "device": "/CPU:0",
+    "training_precision": "float32",
+    "rounds": 3,
+    "steps": 30,
+    "warmup": 5,
+    "tile_size": 128,
+    "batch_size": 1,
+    "harness_sha256": "1eb4e93b4bf08342367753730ba89ffc5738a458b5df80ab6984bb4456b3f11b",
+    "measurements": [
+      {
+        "revision": "baseline",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 0,
+        "file": "inference-00-baseline.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 0,
+        "file": "inference-00-candidate.json"
+      },
+      {
+        "revision": "baseline",
+        "mode": "training",
+        "precision": "float32",
+        "round": 0,
+        "file": "training-00-baseline.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "training",
+        "precision": "float32",
+        "round": 0,
+        "file": "training-00-candidate.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 1,
+        "file": "inference-01-candidate.json"
+      },
+      {
+        "revision": "baseline",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 1,
+        "file": "inference-01-baseline.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "training",
+        "precision": "float32",
+        "round": 1,
+        "file": "training-01-candidate.json"
+      },
+      {
+        "revision": "baseline",
+        "mode": "training",
+        "precision": "float32",
+        "round": 1,
+        "file": "training-01-baseline.json"
+      },
+      {
+        "revision": "baseline",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 2,
+        "file": "inference-02-baseline.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "inference",
+        "precision": "float32",
+        "round": 2,
+        "file": "inference-02-candidate.json"
+      },
+      {
+        "revision": "baseline",
+        "mode": "training",
+        "precision": "float32",
+        "round": 2,
+        "file": "training-02-baseline.json"
+      },
+      {
+        "revision": "candidate",
+        "mode": "training",
+        "precision": "float32",
+        "round": 2,
+        "file": "training-02-candidate.json"
+      }
+    ]
+  },
+  "fixture": {
+    "schema_version": 1,
+    "scope": "Shared synthetic compute fixture; no accuracy claim",
+    "runtime": {
+      "tensorflow_version": "2.21.0",
+      "python_version": "3.12.14",
+      "requested_device": "/CPU:0",
+      "probe_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+      "gpu_details": [],
+      "thread_environment": {
+        "TF_NUM_INTRAOP_THREADS": "2",
+        "TF_NUM_INTEROP_THREADS": "2",
+        "OMP_NUM_THREADS": "2"
+      }
+    },
+    "source": {
+      "package_directory": "/tmp/geospatial-perf-reference-82723f3/src/mamba_forest",
+      "module_sha256": {
+        "model.py": "47e6ed91b0504480d9f053ac35acd2d96428052793e49119be83859626904fdc",
+        "layers.py": "3c33a9bea454c81f4b58ed9b7eb0e61c5501ca0118338ef42fb83044809f3bd3",
+        "train.py": "1974a1363459e124e77812042c86a20141ef15ef134e3ad7003ed0c878a063d1",
+        "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+        "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+      },
+      "commit": "82723f3183231a36e736c1c118a866aed5ad9d6b",
+      "worktree_status": ""
+    },
+    "seed": 42,
+    "model_config": {
+      "num_classes": 9,
+      "d_model": 32,
+      "dropout_rate": 0.2,
+      "d_state_temporal": 8,
+      "d_state_spatial": 16,
+      "bottleneck_channels": 512,
+      "model_variant": "cnn_ssm"
+    },
+    "input_shapes": {
+      "s2": [
+        1,
+        4,
+        128,
+        128,
+        10
+      ],
+      "elevation": [
+        1,
+        128,
+        128,
+        3
+      ],
+      "climate": [
+        1,
+        4,
+        14
+      ],
+      "labels": [
+        1,
+        128,
+        128
+      ]
+    },
+    "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+    "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+    "golden": {
+      "float32": {
+        "file": "golden-float32.npy",
+        "sha256": "3d34d440b40e1c8fc0f96db613b3d4e23798a1d8b318160fe728e9933fd122b3"
+      }
+    },
+    "supplied_weights": null
+  },
+  "module_sha256": {
+    "baseline": {
+      "model.py": "47e6ed91b0504480d9f053ac35acd2d96428052793e49119be83859626904fdc",
+      "layers.py": "3c33a9bea454c81f4b58ed9b7eb0e61c5501ca0118338ef42fb83044809f3bd3",
+      "train.py": "1974a1363459e124e77812042c86a20141ef15ef134e3ad7003ed0c878a063d1",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "candidate": {
+      "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+      "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+      "train.py": "40b70d66bd8799b8ae4551624dc90f0b0ec127a9bb0a3108e921079a6cde9b80",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    }
+  },
+  "summary": {
+    "inference": {
+      "baseline": {
+        "median_seconds": 0.14607058949968632,
+        "p95_seconds": 0.19949935564968654,
+        "tiles_per_second": 6.692371423334327,
+        "samples": 90,
+        "round_medians_seconds": [
+          0.14025786499996684,
+          0.16082900650008014,
+          0.12860931549994348
+        ]
+      },
+      "candidate": {
+        "median_seconds": 0.12927144850027616,
+        "p95_seconds": 0.1886370484499821,
+        "tiles_per_second": 7.232996860503879,
+        "samples": 90,
+        "round_medians_seconds": [
+          0.12927144850027616,
+          0.1465793779998421,
+          0.1203596759996799
+        ]
+      },
+      "median_speedup": 1.1299524465324937,
+      "latency_reduction_percent": 11.50070048799675,
+      "paired_round_speedups": [
+        1.0849871849286752,
+        1.097214415115429,
+        1.0685415562292269
+      ],
+      "paired_round_median_speedup": 1.0849871849286752,
+      "paired_round_median_latency_reduction_percent": 7.833012786622184,
+      "paired_round_speedup_sample_sd": 0.014388054640731476,
+      "allocator_memory_by_round": {
+        "baseline": [
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          }
+        ],
+        "candidate": [
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          }
+        ]
+      }
+    },
+    "training": {
+      "baseline": {
+        "median_seconds": 0.4707539179999003,
+        "p95_seconds": 0.6005318489498677,
+        "tiles_per_second": 2.055343927166003,
+        "samples": 90,
+        "round_medians_seconds": [
+          0.45634904249982355,
+          0.4948872244995073,
+          0.48667847949991483
+        ]
+      },
+      "candidate": {
+        "median_seconds": 0.4713900530000501,
+        "p95_seconds": 0.6746062107500166,
+        "tiles_per_second": 2.003554289592937,
+        "samples": 90,
+        "round_medians_seconds": [
+          0.45010896849953497,
+          0.5754211309995299,
+          0.4585048784997525
+        ]
+      },
+      "median_speedup": 0.9986505124660539,
+      "latency_reduction_percent": -0.13513111114455967,
+      "paired_round_speedups": [
+        1.01386347404072,
+        0.8600435365310066,
+        1.0614466766250068
+      ],
+      "paired_round_median_speedup": 1.01386347404072,
+      "paired_round_median_latency_reduction_percent": 1.3673906197120944,
+      "paired_round_speedup_sample_sd": 0.10526787986164382,
+      "allocator_memory_by_round": {
+        "baseline": [
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          }
+        ],
+        "candidate": [
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          },
+          {
+            "status": "not_applicable_on_cpu"
+          }
+        ]
+      }
+    }
+  },
+  "scope": "Descriptive synchronized synthetic-compute comparison. Alternating order reduces ordering bias; rounds do not establish statistical significance, accuracy or another device's speed."
+}

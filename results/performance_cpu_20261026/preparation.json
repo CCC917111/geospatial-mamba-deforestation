@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "scope": "Shared synthetic compute fixture; no accuracy claim",
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.12.14",
+    "requested_device": "/CPU:0",
+    "probe_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+    "gpu_details": [],
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": "2",
+      "TF_NUM_INTEROP_THREADS": "2",
+      "OMP_NUM_THREADS": "2"
+    }
+  },
+  "source": {
+    "package_directory": "/tmp/geospatial-perf-reference-82723f3/src/mamba_forest",
+    "module_sha256": {
+      "model.py": "47e6ed91b0504480d9f053ac35acd2d96428052793e49119be83859626904fdc",
+      "layers.py": "3c33a9bea454c81f4b58ed9b7eb0e61c5501ca0118338ef42fb83044809f3bd3",
+      "train.py": "1974a1363459e124e77812042c86a20141ef15ef134e3ad7003ed0c878a063d1",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "commit": "82723f3183231a36e736c1c118a866aed5ad9d6b",
+    "worktree_status": ""
+  },
+  "seed": 42,
+  "model_config": {
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_ssm"
+  },
+  "input_shapes": {
+    "s2": [
+      1,
+      4,
+      128,
+      128,
+      10
+    ],
+    "elevation": [
+      1,
+      128,
+      128,
+      3
+    ],
+    "climate": [
+      1,
+      4,
+      14
+    ],
+    "labels": [
+      1,
+      128,
+      128
+    ]
+  },
+  "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+  "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+  "golden": {
+    "float32": {
+      "file": "golden-float32.npy",
+      "sha256": "3d34d440b40e1c8fc0f96db613b3d4e23798a1d8b318160fe728e9933fd122b3"
+    }
+  },
+  "supplied_weights": null
+}

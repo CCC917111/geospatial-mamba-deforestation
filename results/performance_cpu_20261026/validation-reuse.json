@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.12.14",
+    "requested_device": "/CPU:0",
+    "probe_device": "/job:localhost/replica:0/task:0/device:CPU:0",
+    "gpu_details": [],
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": "2",
+      "TF_NUM_INTEROP_THREADS": "2",
+      "OMP_NUM_THREADS": "2"
+    }
+  },
+  "results": {
+    "one_shot": {
+      "latencies_seconds": [
+        4.070371251999859,
+        3.7442209619994173,
+        3.770346745999632
+      ],
+      "first_pass_seconds": 3.415581602000202,
+      "median_seconds": 3.770346745999632
+    },
+    "reused": {
+      "latencies_seconds": [
+        3.483629401000144,
+        3.1468910880003023,
+        2.8897403439996197
+      ],
+      "first_pass_seconds": 3.7806585919997815,
+      "median_seconds": 3.1468910880003023
+    }
+  },
+  "reused_trace_count": 1,
+  "confusion_matrices_equal": true,
+  "model_config": {
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_ssm"
+  },
+  "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+  "source": {
+    "package_directory": "/workspace/geospatial-mamba-deforestation/src/mamba_forest",
+    "module_sha256": {
+      "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+      "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+      "train.py": "40b70d66bd8799b8ae4551624dc90f0b0ec127a9bb0a3108e921079a6cde9b80",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "commit": "f49b0042e35593fb120bf97bb292d0de8416fd4d",
+    "worktree_status": ""
+  },
+  "measurement_script_sha256": "36cd2e7cb898fcd706bc1b348f57b33ca0cb3f170175dbc4b4644a87e2f19763",
+  "batches_per_pass": 20,
+  "steps": 3,
+  "speedup": 1.1981179648627451,
+  "scope": "Same optimized model, one-shot versus retained evaluation graphs; includes dataset iteration, graph tracing and confusion metrics. Repeated synthetic batches; no remote data IO or accuracy claim."
+}

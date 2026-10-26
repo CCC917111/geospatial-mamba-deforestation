@@ -124,6 +124,12 @@ evaluation. These experiments have not run in the current CPU environment.
 
 ## Retained compute measurements
 
+- [`performance_cpu_20261026/`](performance_cpu_20261026/README.md): controlled
+  baseline/candidate compute comparison with shared inputs/weights, three
+  alternating rounds and 30 steps per revision/workload/round. Paired inference
+  latency fell 6.4%–8.9%; training gains were not stable. A separate validation
+  check measured graph reuse on the same model. These are CPU synthetic
+  measurements; see the [performance guide](../docs/performance.md) for boundaries.
 - `performance_cpu.json`: reduced 32×32 model, ten measured steps per mode.
 - `performance_cpu_128.json`: default 128×128 model, three measured inference
   steps after two warmups; eager median 316.54 ms, graph median 149.01 ms.

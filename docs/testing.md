@@ -122,6 +122,10 @@ suite needs is in `requirements.txt`.
   examples, seed reproducibility, matching NPZ inputs, output protection,
   failure diagnostics and restoration of the caller's cache environment.
 - `test_benchmark.py` checks timing aggregation and warmup accounting.
+- `test_revision_performance.py` exercises shared fixture preparation, inference,
+  complete optimizer updates, report protection and changed-input rejection even
+  under optimized Python. `test_performance_comparison.py` rejects mismatched
+  sources, fixtures, runtimes, sample counts, medians and batch throughput.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.
