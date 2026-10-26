@@ -83,6 +83,19 @@ Training does not resume optimizer state after interruption. Start a fresh
 session root for a retry and rerun the workflow; preserve the previous root
 for diagnosis. Reusing a failed run directory cannot safely continue training.
 
+## Inspect publisher label metadata
+
+[Open the CPU metadata check in Colab](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/forty_metadata_check.ipynb)
+to collect the source metadata without another training run. Keep hardware
+acceleration set to **None / CPU**, run its cells in order, and download the
+small `forty-source-metadata-*.zip` report. It uses a fresh directory per
+attempt and bounds metadata downloads; no TFRecord shards are read.
+
+Successful collection does not verify class-ID semantics. The report keeps
+`mapping_status` unresolved if no explicit names are found. Publisher names,
+if present, still require review against stored IDs; the notebook never changes
+the training configuration or silently relabels a class.
+
 ## Follow-up validation
 
 Retain the complete session artifacts, including source revision, package/GPU
