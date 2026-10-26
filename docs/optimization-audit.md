@@ -5,6 +5,12 @@
 Reviewed the data pipeline, comparison claims, training loop, evaluation and
 prediction at baseline commit `0b7b8a2`.
 
+This document records the audit and its dated follow-ups. Later runtime
+evidence is summarized in the [performance guide](performance.md), including
+the completed [Tesla T4 comparison](../results/performance_t4_20261026/README.md).
+Earlier statements about pending GPU measurements describe the evidence
+available at that stage.
+
 ## Data protocol
 
 The code preserves ForTy's `train`, `validation` and `test` shard namespaces.
