@@ -145,8 +145,10 @@ def measure(args, tf, runtime):
   directory = args.fixture_dir.resolve()
   fixture = json.loads((directory / "fixture.json").read_text())
   weights = directory / "initial.weights.h5"
-  assert digest(weights) == fixture["weights_sha256"], "Shared weights changed"
-  assert digest(directory / "inputs.npz") == fixture["inputs_sha256"], "Inputs changed"
+  if digest(weights) != fixture["weights_sha256"]:
+    raise ValueError("Shared weights changed")
+  if digest(directory / "inputs.npz") != fixture["inputs_sha256"]:
+    raise ValueError("Inputs changed")
   tf.keras.utils.set_random_seed(fixture["seed"])
   tf.keras.mixed_precision.set_global_policy(args.precision)
   with np.load(directory / "inputs.npz", allow_pickle=False) as stored:
@@ -156,7 +158,8 @@ def measure(args, tf, runtime):
   observed = model(inputs, training=False).numpy()
   golden_record = fixture["golden"][args.precision]
   golden_path = directory / golden_record["file"]
-  assert digest(golden_path) == golden_record["sha256"], "Golden predictions changed"
+  if digest(golden_path) != golden_record["sha256"]:
+    raise ValueError("Golden predictions changed")
   expected = np.load(golden_path, allow_pickle=False)
   tolerance = ((2e-5, 2e-6) if args.precision == "float32" else (5e-3, 5e-4))
   np.testing.assert_allclose(observed, expected, rtol=tolerance[0], atol=tolerance[1])
@@ -220,7 +223,8 @@ def measure(args, tf, runtime):
              "ending_current_bytes": after["current"], "peak_bytes": after["peak"],
              "peak_above_starting_current_bytes": after["peak"] - before["current"]}
             if before is not None else {"status": "not_applicable_on_cpu"})
-  assert digest(weights) == fixture["weights_sha256"], "Shared weights changed"
+  if digest(weights) != fixture["weights_sha256"]:
+    raise ValueError("Shared weights changed")
   return {"schema_version": 1, "status": "passed", "runtime": runtime,
           "source": source_metadata(), "mode": args.mode, "precision": args.precision,
           "model_config": fixture["model_config"], "parameters": model.count_params(),

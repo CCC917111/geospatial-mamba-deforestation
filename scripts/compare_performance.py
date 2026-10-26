@@ -44,6 +44,12 @@ def aggregate(reports, batch_size):
 
 def compare(root, plan):
   fixture = json.loads((root / "fixture" / "fixture.json").read_text())
+  batch, size = plan["batch_size"], plan["tile_size"]
+  expected_shapes = {"s2": [batch, 4, size, size, 10],
+                     "elevation": [batch, size, size, 3],
+                     "climate": [batch, 4, 14], "labels": [batch, size, size]}
+  if fixture["input_shapes"] != expected_shapes:
+    raise ValueError("Fixture dimensions differ from the comparison plan")
   groups = {}
   fingerprints = {}
   for entry in plan["measurements"]:
@@ -62,9 +68,27 @@ def compare(root, plan):
                or not report["forward_agreement"]["passed"])
     if invalid:
       raise ValueError(f"Unmatched measurement protocol: {entry['file']}")
+    samples = report["latencies_seconds"]
+    invalid_samples = (
+        not isinstance(samples, list) or len(samples) != plan["steps"]
+        or any(isinstance(value, bool) or not isinstance(value, (int, float))
+               or not math.isfinite(value) or value <= 0 for value in samples))
+    if invalid_samples:
+      raise ValueError("Latency samples differ from the configured step budget")
+    if not math.isclose(report["median_seconds"], statistics.median(samples),
+                        rel_tol=1e-12, abs_tol=1e-12):
+      raise ValueError("Reported median differs from raw latency samples")
+    expected_package = str(Path(plan["source_roots"][entry["revision"]])
+                           / "src" / "mamba_forest")
+    if report["source"]["package_directory"] != expected_package:
+      raise ValueError("Imported source package differs from the selected checkout")
     if entry["mode"] == "training" and report["optimizer_updates"] != plan["steps"]:
       raise ValueError("Training measurement skipped optimizer updates")
     source = report["source"]["module_sha256"]
+    wrong_baseline = (entry["revision"] == "baseline"
+                      and source != fixture["source"]["module_sha256"])
+    if wrong_baseline:
+      raise ValueError("Baseline source differs from shared fixture preparation")
     previous = fingerprints.setdefault(entry["revision"], source)
     if source != previous:
       raise ValueError("Source modules changed between rounds")
@@ -87,6 +111,9 @@ def compare(root, plan):
         "latency_reduction_percent": (
             100 * (1 - right["median_seconds"] / left["median_seconds"])),
         "paired_round_speedups": ratios,
+        "paired_round_median_speedup": statistics.median(ratios),
+        "paired_round_median_latency_reduction_percent": statistics.median(
+            [100 * (1 - 1 / ratio) for ratio in ratios]),
         "paired_round_speedup_sample_sd": (
             statistics.stdev(ratios) if len(ratios) > 1 else None),
         "allocator_memory_by_round": {

@@ -51,6 +51,8 @@ def test_revision_harness_shared_fixture_updates_and_tamper_protection(tmp_path)
 
   (fixture / "inputs.npz").write_bytes(b"changed shared inputs")
   failure = tmp_path / "changed-inputs.json"
+  # Integrity checks must not disappear when the Python interpreter is optimized.
+  environment["PYTHONOPTIMIZE"] = "1"
   run("--phase", "measure", "--output", str(failure), success=False)
   report = json.loads(failure.read_text())
   assert report["status"] == "failed" and "Inputs changed" in report["error"]
