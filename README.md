@@ -142,7 +142,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **291 tests passed** | Local CPU verification; supports software behavior. |
+| **Software checks** | **295 tests passed** | Local CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Default-model compute** | Graph median **149.01 ms**; eager **316.54 ms** | Three synthetic inference samples per mode after two warmups; excludes input and output IO. |
