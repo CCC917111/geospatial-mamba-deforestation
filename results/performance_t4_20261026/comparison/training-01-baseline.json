@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.13.16",
+    "requested_device": "/GPU:0",
+    "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "gpu_details": [
+      {
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_name": "Tesla T4"
+      }
+    ],
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "OMP_NUM_THREADS": null
+    }
+  },
+  "source": {
+    "package_directory": "/content/geospatial-performance/sources-20261026T210717Z-9fcbaed4/baseline/src/mamba_forest",
+    "module_sha256": {
+      "model.py": "47e6ed91b0504480d9f053ac35acd2d96428052793e49119be83859626904fdc",
+      "layers.py": "3c33a9bea454c81f4b58ed9b7eb0e61c5501ca0118338ef42fb83044809f3bd3",
+      "train.py": "1974a1363459e124e77812042c86a20141ef15ef134e3ad7003ed0c878a063d1",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "commit": "82723f3183231a36e736c1c118a866aed5ad9d6b",
+    "worktree_status": ""
+  },
+  "mode": "training",
+  "precision": "mixed_float16",
+  "model_config": {
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_ssm"
+  },
+  "parameters": 7732800,
+  "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+  "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+  "forward_agreement": {
+    "passed": true,
+    "rtol": 0.005,
+    "atol": 0.0005,
+    "max_absolute_error": 2.2336840629577637e-05,
+    "argmax_agreement": 1.0
+  },
+  "warmup_steps": 5,
+  "steps": 30,
+  "latencies_seconds": [
+    0.259618355999919,
+    0.24111806699988847,
+    0.24509342999999717,
+    0.24115742900016812,
+    0.2629945230000885,
+    0.24916120699981548,
+    0.2428267960001449,
+    0.23686795699995855,
+    0.26902683999992405,
+    0.23879560499995023,
+    0.2531632539999009,
+    0.24408427899993512,
+    0.2752480080000623,
+    0.24975282199989124,
+    0.24749595699995552,
+    0.243320643999823,
+    0.25345215500010454,
+    0.25415841600010936,
+    0.25145951299987246,
+    0.24268919900009678,
+    0.25191839400008575,
+    0.2503259650000018,
+    0.2503057460000946,
+    0.254676604999986,
+    0.24110853999991377,
+    0.263618125999983,
+    0.24175826000009693,
+    0.24453792899998916,
+    0.24671189300011065,
+    0.3506332219999422
+  ],
+  "median_seconds": 0.24945701449985336,
+  "p95_seconds": 0.2724484824000001,
+  "tiles_per_second": 3.948886073055626,
+  "optimizer_updates": 30,
+  "training_loss_samples": [
+    1.7035953998565674,
+    1.7013697624206543,
+    1.694710373878479,
+    1.696777582168579,
+    1.6931670904159546,
+    1.6898577213287354,
+    1.6912944316864014,
+    1.6892015933990479,
+    1.6877472400665283,
+    1.6886098384857178,
+    1.6864345073699951,
+    1.6891934871673584,
+    1.6832587718963623,
+    1.6837728023529053,
+    1.6853748559951782,
+    1.6840300559997559,
+    1.6857770681381226,
+    1.6837191581726074,
+    1.6819274425506592,
+    1.6837480068206787,
+    1.6835055351257324,
+    1.6819696426391602,
+    1.6823418140411377,
+    1.6823484897613525,
+    1.682114839553833,
+    1.6796998977661133,
+    1.6807454824447632,
+    1.6827588081359863,
+    1.681583046913147,
+    1.6799870729446411
+  ],
+  "memory": {
+    "status": "available",
+    "starting_current_bytes": 108524032,
+    "ending_current_bytes": 108524032,
+    "peak_bytes": 264122880,
+    "peak_above_starting_current_bytes": 155598848
+  },
+  "scope": "Synthetic compute and scalar synchronization, one model per process; excludes imports, tracing, data IO, preprocessing, loading and exports. Memory is TensorFlow allocator usage, not total GPU VRAM. Dropout draws may differ between equivalent output selections. No accuracy or semantic class claim."
+}

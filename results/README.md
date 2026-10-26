@@ -2,7 +2,7 @@
 
 # Results and evidence
 
-Historical benchmark scores, retained CPU measurements and local workflow
+Historical benchmark scores, retained CPU/GPU measurements and local workflow
 checks are recorded separately below.
 
 [Historical scores](#benchmark) · [Compute diagnostics](#retained-compute-measurements) ·
@@ -124,6 +124,12 @@ evaluation. These experiments have not run in the current CPU environment.
 
 ## Retained compute measurements
 
+- [`performance_t4_20261026/`](performance_t4_20261026/README.md): completed
+  Tesla T4 baseline/candidate comparison with shared inputs/weights, three
+  alternating rounds, float32 inference and mixed-float16 training. No stable
+  latency gain was observed. Median TensorFlow allocator peaks fell 12.75%
+  for inference and 6.04% for training; these are not total GPU VRAM. Raw
+  reports, package versions and a local audit are retained.
 - [`performance_cpu_20261026/`](performance_cpu_20261026/README.md): controlled
   baseline/candidate compute comparison with shared inputs/weights, three
   alternating rounds and 30 steps per revision/workload/round. Paired inference

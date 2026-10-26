@@ -114,7 +114,9 @@ device-dependent overhead are documented separately from measured performance.
 The [runtime performance guide](docs/performance.md) documents checkpoint-compatible
 temporal readout and validation-graph optimizations. In three controlled CPU
 rounds, inference median latency fell 6.4%–8.9%; training-step timings did not
-show a stable gain. The separate GPU before/after comparison remains pending.
+show a stable gain. A [three-round Tesla T4 comparison](results/performance_t4_20261026/README.md)
+found lower TensorFlow allocator peaks (12.75% for inference, 6.04% for
+training), with no stable inference or training latency gain at batch one.
 
 ### CNN-only ablation
 
@@ -133,7 +135,9 @@ python -m mamba_forest.experiment --comparison architecture \
 The [validation runbook](docs/gpu-validation.md#controlled-architecture-comparison)
 explains execution, shared controls and the different parameter counts.
 The [free Colab notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
-prepares a smaller real-source GPU check; its GPU execution remains pending.
+prepares a smaller real-source GPU check. The separate
+[performance notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_performance.ipynb)
+runs the synthetic before/after GPU comparison recorded above.
 
 ## Results
 
@@ -145,17 +149,18 @@ protocols are linked from the [results record](results/README.md).
 | **Software checks** | **295 tests passed** | Local CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
-| **Default-model compute** | Graph median **149.01 ms**; eager **316.54 ms** | Three synthetic inference samples per mode after two warmups; excludes input and output IO. |
+| **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |
+| **Controlled T4 compute** | Inference/training allocator peaks **12.75% / 6.04% lower** | Same three-round synthetic protocol; no stable latency gain; memory is not total GPU VRAM. |
 | **Historical ForTy report** | Overall F1 **56.89%**; forest mean F1 **48.81%** | Original logs and checkpoint are not retained; scores are not independently reproducible. |
 
 The historical run and published UNet3D, UTAE and MTSViT references differ in
 training budget, modalities and test membership, so they do not form a
-controlled ranking. New real ForTy training, full-test evaluation and GPU
-measurements remain pending.
+controlled ranking. Full-scale real ForTy training and full-test evaluation
+remain pending. The retained GPU compute record does not establish accuracy.
 
 The next research question is whether selective-SSM modules improve
-segmentation over a matched CNN control. That architecture ablation has not
-been run.
+segmentation over a matched CNN control across seeds. A controlled multi-seed
+architecture ranking has not been established.
 
 **Inspect the evidence:** [Demo record](results/local_demo_cpu.json) ·
 [Prediction timings](results/performance_predict_cpu.json) ·

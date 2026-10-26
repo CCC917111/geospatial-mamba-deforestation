@@ -43,17 +43,18 @@ software integration; they do not measure accuracy on satellite observations.
 |---|---|---|
 | **Local software verification** | Automated tests and synthetic CPU training, checkpoint restoration, evaluation, and prediction | [Testing guide](testing.md) · [Completed demo record](../results/local_demo_cpu.json) |
 | **CPU timing measurements** | Compute diagnostics and a separately measured file-to-file prediction workflow, each with its own architecture and timing boundary | [Measurement guide](local-demo.md) · [Raw prediction timing](../results/performance_predict_cpu.json) · [Audit](optimization-audit.md) |
+| **T4 compute measurements** | Three-round synthetic comparison: lower TensorFlow allocator peaks, no stable latency gain | [Performance guide](performance.md) · [Raw T4 reports](../results/performance_t4_20261026/README.md) |
 | **Historical ForTy scores** | Context from earlier reported results; original logs and weights are unavailable, and literature baselines use different protocols | [Results discussion](../results/README.md) |
 
-Live-data accuracy, controlled architecture comparisons, and GPU performance
-remain unverified. The [validation runbook](gpu-validation.md) documents
-prepared experiments; it is not a record of completed GPU runs.
+Full-scale live-data accuracy and multi-seed architecture comparisons remain
+unverified. The [validation runbook](gpu-validation.md) documents those
+prepared experiments; the T4 compute results use synthetic data.
 
 ## Prepare another runtime when needed
 
 - [Cloud environment setup](cloud-environment.md): dependency profiles, runtime
   checks, and source/artifact recovery.
-- [Free Colab guide](colab-free.md): a prepared notebook whose real GPU
-  execution remains pending; free GPU availability is not guaranteed.
+- [Free Colab guide](colab-free.md): a notebook for a small real-source check;
+  free GPU availability is not guaranteed.
 - [Real-data and GPU validation](gpu-validation.md): preflight, fixed-budget
   architecture/objective comparisons, and evidence retention.

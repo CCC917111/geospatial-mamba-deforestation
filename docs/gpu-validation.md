@@ -8,11 +8,12 @@ UTAE or MTSViT baselines. Two paired modes address separate questions: `architec
 with CNN + selective SSM under the same ComboLoss, while the default
 `objective` mode compares ComboLoss with plain cross-entropy on CNN + SSM.
 
-**Execution status, 2026-10-23:** these real-data/GPU experiments have not run.
-The current environment has no GPU, Google Cloud Storage access is blocked,
-and no cloud identities are configured. The retained CPU measurements and
-synthetic tests do not establish real-data accuracy, GPU throughput or dataset
-compatibility. No GPU duration or memory estimate is available.
+**Execution status, 2026-10-26:** the full-budget, multi-seed real-data
+protocols below remain pending. The local workspace is CPU-only and Google
+Cloud Storage access is blocked. A separate
+[Tesla T4 synthetic comparison](performance.md#retained-tesla-t4-comparison)
+completed in Colab and retains compute timing and allocator memory. Those
+measurements do not establish real-data accuracy or dataset compatibility.
 
 ## Controlled architecture comparison
 

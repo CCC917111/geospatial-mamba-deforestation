@@ -60,8 +60,11 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
   unavailable. Published baselines use different protocols, so these values
   cannot establish a controlled ranking or independently verified performance.
 - **Performance:** Retained CPU compute and file-to-file measurements use
-  different model configurations and timing boundaries. Real-data training,
-  full-test evaluation and GPU performance remain unverified.
+  different model configurations and timing boundaries. A three-round
+  [Tesla T4 comparison](../results/performance_t4_20261026/README.md) found
+  12.75% lower inference and 6.04% lower training TensorFlow allocator peaks,
+  with no stable latency gain. Full-scale real-data training and full-test
+  evaluation remain unverified; synthetic timings do not establish accuracy.
 
 The [results record](../results/README.md) links the raw artifacts and explains
 their scope. The [validation runbook](gpu-validation.md) documents prepared

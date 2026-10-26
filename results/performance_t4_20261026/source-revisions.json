@@ -1,0 +1,9 @@
+{
+  "baseline": "82723f3183231a36e736c1c118a866aed5ad9d6b",
+  "candidate": "f49b0042e35593fb120bf97bb292d0de8416fd4d",
+  "rounds": 3,
+  "steps": 30,
+  "warmup": 5,
+  "tile_size": 128,
+  "batch_size": 1
+}

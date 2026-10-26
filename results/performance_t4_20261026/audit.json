@@ -1,0 +1,157 @@
+{
+  "status": "passed",
+  "checks": [
+    "Recomputed comparison equals uploaded summary",
+    "All 13 process stages succeeded",
+    "All 12 reports match shared hashes, runtime, model and complete sample budgets",
+    "All 6 training measurements report 30 optimizer updates",
+    "Clean pinned source commits and module hashes match local Git objects",
+    "Measurement harness hash matches repository script"
+  ],
+  "limits": [
+    "Binary fixtures, checkpoints and golden arrays were excluded from the upload; their bytes could not be rehashed locally",
+    "Forward agreement was recorded by the GPU harness before training; it does not prove training-trajectory equality",
+    "Memory is TensorFlow allocator usage after warmup, not total GPU VRAM",
+    "Synthetic compute excludes IO, preprocessing, tracing, loading and exports"
+  ],
+  "summary": {
+    "inference": {
+      "pooled_median_seconds": {
+        "baseline": 0.09419686849992104,
+        "candidate": 0.09483407599987004
+      },
+      "paired_latency_reductions_percent": [
+        -3.9790880505499615,
+        0.3570088345470346,
+        3.2125151884423775
+      ],
+      "median_allocator_peak_bytes": {
+        "baseline": 77111296,
+        "candidate": 67280384
+      },
+      "median_peak_reduction_percent": 12.748990757463085,
+      "per_round_peak_reductions_percent": [
+        12.748990757463085,
+        12.748990757463085,
+        12.748990757463085
+      ],
+      "forward_agreement_by_revision": {
+        "baseline": [
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 0.0,
+            "argmax_agreement": 1.0
+          },
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 0.0,
+            "argmax_agreement": 1.0
+          },
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 0.0,
+            "argmax_agreement": 1.0
+          }
+        ],
+        "candidate": [
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 1.043081283569336e-07,
+            "argmax_agreement": 0.99993896484375
+          },
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 1.043081283569336e-07,
+            "argmax_agreement": 0.99993896484375
+          },
+          {
+            "passed": true,
+            "rtol": 2e-05,
+            "atol": 2e-06,
+            "max_absolute_error": 1.043081283569336e-07,
+            "argmax_agreement": 0.99993896484375
+          }
+        ]
+      }
+    },
+    "training": {
+      "pooled_median_seconds": {
+        "baseline": 0.25148954549990776,
+        "candidate": 0.25794773250004255
+      },
+      "paired_latency_reductions_percent": [
+        -0.17937773190159767,
+        0.5795742015308192,
+        -5.335342949163424
+      ],
+      "median_allocator_peak_bytes": {
+        "baseline": 264122624,
+        "candidate": 248173056
+      },
+      "median_peak_reduction_percent": 6.038698146509402,
+      "per_round_peak_reductions_percent": [
+        3.8439551225861734,
+        6.038789218109386,
+        6.271705069839073
+      ],
+      "forward_agreement_by_revision": {
+        "baseline": [
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 2.2336840629577637e-05,
+            "argmax_agreement": 1.0
+          },
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 2.2336840629577637e-05,
+            "argmax_agreement": 1.0
+          },
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 6.815791130065918e-05,
+            "argmax_agreement": 0.9996337890625
+          }
+        ],
+        "candidate": [
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 6.815791130065918e-05,
+            "argmax_agreement": 0.99951171875
+          },
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 2.2336840629577637e-05,
+            "argmax_agreement": 1.0
+          },
+          {
+            "passed": true,
+            "rtol": 0.005,
+            "atol": 0.0005,
+            "max_absolute_error": 2.2336840629577637e-05,
+            "argmax_agreement": 1.0
+          }
+        ]
+      }
+    }
+  }
+}

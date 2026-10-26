@@ -2,9 +2,11 @@
 
 # Run the small GPU check in free Colab
 
-**Status: prepared; Colab GPU execution is pending.** The current workspace is
-CPU-only. Local code and source-restoration checks do not establish that the
-notebook has run successfully on Colab or on a GPU.
+This notebook prepares a small real-source architecture check. The local
+workspace is CPU-only; run the notebook on an available Colab GPU. For the
+separate synthetic before/after compute study, see the completed
+[Tesla T4 record](../results/performance_t4_20261026/README.md) and
+[performance notebook](../notebooks/colab_performance.ipynb).
 
 This workflow uses Colab's free runtime, without a paid API, Colab Pro or
 enabling billing. GPU availability, session duration and usage allowances are

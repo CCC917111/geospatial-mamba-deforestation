@@ -1,0 +1,33 @@
+{
+  "uploaded_archive": "reports-20261026T210717Z-9fcbaed4.zip",
+  "archive_sha256": "74ede5985e72e7d9e6bc3178b8b5e223d58bba6805b859a6fd22e1c3d387d93f",
+  "retained_files_sha256": {
+    "archive-index.json": "d745e94b35e760d9cbaa5c90dda56a733b82ee607daded9f4919d4f6c5ca30b4",
+    "command.json": "4dd0eb64d03507c9b62504dce9eeb96d4af0ef03fb5b8b95a75e7a944da6bfb2",
+    "packages.txt": "1d1211780d3f6fd02855e270a12ca9d78e65f80521ccb370d352d3794989e4e7",
+    "source-revisions.json": "999d724fb3bc10c86118155c2722de11cc461ce063dc6027439c5f5d82815b22",
+    "comparison/comparison.json": "45cfc3dfc3b009d155da226ec9a809af92418d89bae2187cad8361ce98bbe1a5",
+    "comparison/execution.json": "a9d84349c22d4f145dcdea37c830995ce1a2fc2563196a2118c5229e4991f114",
+    "comparison/plan.json": "04a5a50ce0df942155017ce6dca7a123698a60409ece741bfa51c51c29928c02",
+    "comparison/preparation.json": "33c4e7f6cb111340a4498401de81df28c77c407b782025bab4e613a78d432752",
+    "comparison/fixture/fixture.json": "33c4e7f6cb111340a4498401de81df28c77c407b782025bab4e613a78d432752",
+    "comparison/inference-00-baseline.json": "ab7f452f6acdfddd3745d80cab8d062e561c5fd9f3ae9c56fe7fec17e2aa5007",
+    "comparison/inference-00-candidate.json": "5cb9824c8cfdc448e36672f0359afdccf546a29489193527289b5c9143ad99dd",
+    "comparison/training-00-baseline.json": "faec5a7f01c37be8650dc67931cdfe42674eaab2c7b976f3d6154a2b754943ae",
+    "comparison/training-00-candidate.json": "54c656094a918cdbba07624ae0f23743f0ae22c0d8b0229c0ad3fec3336117b1",
+    "comparison/inference-01-candidate.json": "7e40591d1b2a09a3d8e0f8e290fe5282fb2d7459db8bb2bf1a6f14e4af9b58dd",
+    "comparison/inference-01-baseline.json": "c9fc5f796148978f29268545b3ecd59c53b1ddf80d164d3ac18e0a015de66f0c",
+    "comparison/training-01-candidate.json": "1635d737b2bada75226ae2ad2f62b5c0aee8fd7609d5a14417f4d78678649db1",
+    "comparison/training-01-baseline.json": "f0ed7addf5973038721323f85ccea4a50460021be71a6e6edb9bd8f5aa102d6f",
+    "comparison/inference-02-baseline.json": "602a0eca0e01bcfe961fadf866689c24d44a6d1e5a3078e7d2d58a968559ef77",
+    "comparison/inference-02-candidate.json": "68c3bd15b4e850813708697cc5e3007872b49466eefbb4ef3a17c348eb94eb9d",
+    "comparison/training-02-baseline.json": "abb017ce1b2c9befee5932aa32bcbcc13e24cbadab8347e556cf3177fab9f73e",
+    "comparison/training-02-candidate.json": "b5db7f62731df8070527cc7f6632be04496de24f2540315709c045217bd15553"
+  },
+  "not_retained_from_upload": "driver.log and comparison/logs/*.log duplicate the JSON report status and measurements; all are still in the original upload.",
+  "generated_files": [
+    "README.md",
+    "audit.json",
+    "provenance.json"
+  ]
+}

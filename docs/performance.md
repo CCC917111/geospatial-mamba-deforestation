@@ -70,6 +70,38 @@ measured class maps were identical. Reads are warm-cache and no fsync boundary
 is claimed. The compute-only improvement above must not be applied to this
 different model and timing boundary.
 
+## Retained Tesla T4 comparison
+
+The [raw T4 record](../results/performance_t4_20261026/README.md) uses the same
+full model and 128 × 128, batch-one protocol, with three alternating rounds,
+five warmups and 30 measured steps per process. Baseline `82723f3` and
+candidate `f49b004` share one synthetic input fixture and initial checkpoint.
+All 13 stages passed on TensorFlow 2.21.0 / Keras 3.13.2, with float32
+inference and mixed-float16 training. Every measured training step updated
+the optimizer.
+
+| Measurement | Baseline | Candidate | Observed result |
+|---|---:|---:|---|
+| Inference pooled median, 90 steps | 94.197 ms | 94.834 ms | No stable speedup |
+| Training pooled median, 90 steps | 251.490 ms | 257.948 ms | No stable speedup |
+| Inference allocator peak, median of three rounds | 73.539 MiB | 64.164 MiB | 12.75% lower |
+| Training allocator peak, median of three rounds | 251.887 MiB | 236.676 MiB | 6.04% lower |
+
+Paired latency reductions varied in direction: −3.98% to +3.21% for inference
+and −5.34% to +0.58% for training. Allocator peaks decreased in every round.
+Memory here includes starting live TensorFlow allocations; it is not total
+GPU VRAM. The measured gain on T4 is reduced allocator memory, with no
+demonstrated latency gain at batch one.
+
+Forward checks passed tolerance bounds, but argmax outputs were not exactly
+identical. Float32 candidate maximum error was `1.0431e-7`, with one changed
+pixel out of 16,384. Mixed-precision checks had maximum error `6.8158e-5`
+and at most eight changed pixels; baseline mixed-precision checks also varied
+across processes. These are pre-training checks on synthetic inputs and
+initialized weights, not accuracy or convergence measurements. No GPU
+file-to-file or validation-reuse speedup was measured. Profiling GPU execution
+and testing larger batches are the next performance studies.
+
 ## Run the source comparison locally
 
 After installing the project dependencies, create a detached baseline checkout:
@@ -113,8 +145,8 @@ python scripts/measure_validation.py \
 select an available GPU and run the cells in order. It pins baseline and
 candidate source commits, uses the existing Colab TensorFlow stack, and runs
 inference in float32 and training in mixed float16. No ForTy download is
-required. GPU execution of this new comparison remains pending; the earlier
-real-data T4 pipeline run does not establish these optimizations' GPU benefit.
+required. The retained T4 run above completed this comparison; it establishes
+lower allocator peaks without a stable inference or training latency gain.
 
 Each measured training step must perform one optimizer update. Loss-scale
 adaptation is permitted during warmup; a skipped measured update fails the

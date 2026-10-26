@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "source_roots": {
+    "baseline": "/content/geospatial-performance/sources-20261026T210717Z-9fcbaed4/baseline",
+    "candidate": "/content/geospatial-performance/sources-20261026T210717Z-9fcbaed4/candidate"
+  },
+  "device": "/GPU:0",
+  "training_precision": "mixed_float16",
+  "rounds": 3,
+  "steps": 30,
+  "warmup": 5,
+  "tile_size": 128,
+  "batch_size": 1,
+  "harness_sha256": "6b19df512544ec9d6e83126c3a7e265fed7bc0886a76d65a35929b65608ff720",
+  "measurements": [
+    {
+      "revision": "baseline",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 0,
+      "file": "inference-00-baseline.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 0,
+      "file": "inference-00-candidate.json"
+    },
+    {
+      "revision": "baseline",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 0,
+      "file": "training-00-baseline.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 0,
+      "file": "training-00-candidate.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 1,
+      "file": "inference-01-candidate.json"
+    },
+    {
+      "revision": "baseline",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 1,
+      "file": "inference-01-baseline.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 1,
+      "file": "training-01-candidate.json"
+    },
+    {
+      "revision": "baseline",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 1,
+      "file": "training-01-baseline.json"
+    },
+    {
+      "revision": "baseline",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 2,
+      "file": "inference-02-baseline.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "inference",
+      "precision": "float32",
+      "round": 2,
+      "file": "inference-02-candidate.json"
+    },
+    {
+      "revision": "baseline",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 2,
+      "file": "training-02-baseline.json"
+    },
+    {
+      "revision": "candidate",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "round": 2,
+      "file": "training-02-candidate.json"
+    }
+  ]
+}
