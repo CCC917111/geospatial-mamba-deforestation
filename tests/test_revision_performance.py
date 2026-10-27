@@ -39,6 +39,8 @@ def test_revision_harness_shared_fixture_updates_and_tamper_protection(tmp_path)
     run(*arguments)
     report = json.loads(path.read_text())
     assert report["status"] == "passed"
+    assert report["phase"] == "measure" and report["batch_size"] == 1
+    assert report["batch_replication"]["kind"] == "none"
     assert report["weights_sha256"] == metadata["weights_sha256"]
     assert report["inputs_sha256"] == metadata["inputs_sha256"]
     assert report["forward_agreement"]["passed"]
@@ -56,3 +58,4 @@ def test_revision_harness_shared_fixture_updates_and_tamper_protection(tmp_path)
   run("--phase", "measure", "--output", str(failure), success=False)
   report = json.loads(failure.read_text())
   assert report["status"] == "failed" and "Inputs changed" in report["error"]
+  assert report["error_type"] == "ValueError"

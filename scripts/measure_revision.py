@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import time
 
@@ -138,6 +139,49 @@ def memory_info(tf, device):
   return tf.config.experimental.get_memory_info(device.removeprefix("/"))
 
 
+def capture_profile(tf, directory, steps, synchronized_step, consume, mode):
+  """Capture warmed steps without including profiler overhead in timings."""
+  directory = Path(directory).resolve()
+  directory.mkdir(parents=True, exist_ok=False)
+  options = tf.profiler.experimental.ProfilerOptions(
+      host_tracer_level=2, python_tracer_level=0, device_tracer_level=1)
+  started = False
+  try:
+    tf.profiler.experimental.start(str(directory), options=options)
+    started = True
+    for index in range(steps):
+      trace = tf.profiler.experimental.Trace(mode + "_step", step_num=index, _r=1)
+      with trace:
+        consume(synchronized_step())
+  finally:
+    if started:
+      tf.profiler.experimental.stop()
+  artifacts = []
+  for path in sorted(directory.rglob("*")):
+    if path.is_file() and not path.is_symlink():
+      artifacts.append({"path": str(path.relative_to(directory)),
+                        "bytes": path.stat().st_size, "sha256": digest(path)})
+  if not any(item["path"].endswith(".xplane.pb") and item["bytes"] > 0
+             for item in artifacts):
+    raise RuntimeError("Profiler produced no nonempty .xplane.pb artifact")
+  return {"status": "captured", "directory": str(directory),
+          "steps": steps, "artifacts": artifacts,
+          "tracer_options": {"host_tracer_level": 2, "python_tracer_level": 0,
+                             "device_tracer_level": 1}}
+
+
+def layer_scopes(model):
+  """Record existing names for trace navigation without renaming any layer."""
+  names = ("temporal_mamba", "temporal_norm", "optical_proj", "elevation_proj",
+           "climate_proj", "fusion_layer", "enc1", "enc2", "enc3",
+           "bottleneck_conv", "spatial_mamba", "spatial_norm", "sasf",
+           "up1", "dec1", "up2", "dec2", "up3", "dec3", "head_conv",
+           "head_output")
+  return {name: {"name": layer.name, "path": getattr(layer, "path", None),
+                 "class": type(layer).__name__}
+          for name in names if (layer := getattr(model, name, None)) is not None}
+
+
 def measure(args, tf, runtime):
   from mamba_forest.losses import ComboLoss
   from mamba_forest.train import scale_loss, unscale_gradients
@@ -152,8 +196,23 @@ def measure(args, tf, runtime):
   tf.keras.utils.set_random_seed(fixture["seed"])
   tf.keras.mixed_precision.set_global_policy(args.precision)
   with np.load(directory / "inputs.npz", allow_pickle=False) as stored:
-    inputs = {key: tf.constant(stored[key]) for key in ("s2", "elevation", "climate")}
-    labels = tf.one_hot(stored["labels"], 9)
+    arrays = {key: stored[key] for key in ("s2", "elevation", "climate", "labels")}
+  stored_shapes = {key: list(value.shape) for key, value in arrays.items()}
+  if stored_shapes != fixture["input_shapes"]:
+    raise ValueError("Stored input shapes differ from fixture metadata")
+  fixture_batch = arrays["s2"].shape[0]
+  if any(value.shape[0] != fixture_batch for value in arrays.values()):
+    raise ValueError("Fixture inputs do not share one batch dimension")
+  if args.repeat_batch is not None:
+    if fixture_batch != 1:
+      raise ValueError("--repeat-batch requires a one-tile fixture")
+    arrays = {key: np.repeat(value, args.repeat_batch, axis=0)
+              for key, value in arrays.items()}
+  batch = arrays["s2"].shape[0]
+  input_shapes = {key: list(value.shape) for key, value in arrays.items()}
+  inputs = {key: tf.constant(arrays[key]) for key in ("s2", "elevation", "climate")}
+  labels = tf.one_hot(arrays["labels"], 9)
+  del arrays
   model = make_model(tf, fixture["model_config"], inputs, weights)
   observed = model(inputs, training=False).numpy()
   golden_record = fixture["golden"][args.precision]
@@ -161,6 +220,8 @@ def measure(args, tf, runtime):
   if digest(golden_path) != golden_record["sha256"]:
     raise ValueError("Golden predictions changed")
   expected = np.load(golden_path, allow_pickle=False)
+  if args.repeat_batch is not None:
+    expected = np.repeat(expected, args.repeat_batch, axis=0)
   tolerance = ((2e-5, 2e-6) if args.precision == "float32" else (5e-3, 5e-4))
   np.testing.assert_allclose(observed, expected, rtol=tolerance[0], atol=tolerance[1])
   agreement = {"passed": True, "rtol": tolerance[0], "atol": tolerance[1],
@@ -202,14 +263,10 @@ def measure(args, tf, runtime):
     synchronized_step()
   last_iteration = int(optimizer.iterations.numpy()) if optimizer else None
   iterations_start = last_iteration
-  before = memory_info(tf, args.device)
-  if before is not None:
-    tf.config.experimental.reset_memory_stats(args.device.removeprefix("/"))
-  latencies, losses = [], []
-  for _ in range(args.steps):
-    start = time.perf_counter()
-    values = synchronized_step()
-    elapsed = time.perf_counter() - start
+  losses = []
+
+  def consume(values):
+    nonlocal last_iteration
     if optimizer is not None:
       iteration = int(values[1])
       if iteration != last_iteration + 1:
@@ -217,6 +274,52 @@ def measure(args, tf, runtime):
             "Optimizer skipped a measured update; increase warmup for both revisions")
       last_iteration = iteration
       losses.append(float(values[0]))
+
+  metadata = {"schema_version": 1, "status": "passed", "phase": args.phase,
+              "runtime": runtime, "source": source_metadata(),
+              "mode": args.mode, "precision": args.precision,
+              "model_config": fixture["model_config"],
+              "parameters": model.count_params(),
+              "weights_sha256": fixture["weights_sha256"],
+              "inputs_sha256": fixture["inputs_sha256"],
+              "forward_agreement": agreement, "batch_size": batch,
+              "input_shapes": input_shapes,
+              "batch_replication": {
+                  "kind": ("repeat_single_fixture_tile"
+                           if args.repeat_batch is not None else "none"),
+                  "repeat_count": args.repeat_batch or 1,
+                  "fixture_batch_size": fixture_batch},
+              "warmup_steps": args.warmup,
+              "warmup_optimizer_updates": iterations_start}
+  if args.phase == "profile":
+    profile = capture_profile(tf, args.profile_dir, args.profile_steps,
+                              synchronized_step, consume, args.mode)
+    profile.update({"layer_scopes": layer_scopes(model),
+                    "gpu_trace_coverage": (
+                        "unverified" if args.device.startswith("/GPU:")
+                        else "not_applicable_on_cpu"),
+                    "coverage_note": (
+                        "A saved XPlane file does not prove GPU kernel coverage; "
+                        "inspect device planes in the profiler viewer.")})
+    if digest(weights) != fixture["weights_sha256"]:
+      raise ValueError("Shared weights changed")
+    return {**metadata, "steps": args.profile_steps, "profile": profile,
+            "optimizer_updates": (last_iteration - iterations_start
+                                  if optimizer else None),
+            "training_loss_samples": losses,
+            "scope": (
+                "Warmed synthetic compute trace in a separate invocation. "
+                "Profiler overhead is not a latency or throughput measurement. "
+                "No accuracy, semantic class or total GPU VRAM claim.")}
+  before = memory_info(tf, args.device)
+  if before is not None:
+    tf.config.experimental.reset_memory_stats(args.device.removeprefix("/"))
+  latencies = []
+  for _ in range(args.steps):
+    start = time.perf_counter()
+    values = synchronized_step()
+    elapsed = time.perf_counter() - start
+    consume(values)
     latencies.append(elapsed)
   after = memory_info(tf, args.device)
   memory = ({"status": "available", "starting_current_bytes": before["current"],
@@ -225,18 +328,11 @@ def measure(args, tf, runtime):
             if before is not None else {"status": "not_applicable_on_cpu"})
   if digest(weights) != fixture["weights_sha256"]:
     raise ValueError("Shared weights changed")
-  return {"schema_version": 1, "status": "passed", "runtime": runtime,
-          "source": source_metadata(), "mode": args.mode, "precision": args.precision,
-          "model_config": fixture["model_config"], "parameters": model.count_params(),
-          "weights_sha256": fixture["weights_sha256"],
-          "inputs_sha256": fixture["inputs_sha256"],
-          "forward_agreement": agreement,
-          "warmup_steps": args.warmup, "steps": args.steps,
+  return {**metadata, "steps": args.steps,
           "latencies_seconds": latencies,
           "median_seconds": float(np.median(latencies)),
           "p95_seconds": float(np.percentile(latencies, 95)),
-          "tiles_per_second": (fixture["input_shapes"]["s2"][0]
-                               * args.steps / sum(latencies)),
+          "tiles_per_second": batch * args.steps / sum(latencies),
           "optimizer_updates": (last_iteration - iterations_start
                                 if optimizer else None),
           "training_loss_samples": losses, "memory": memory,
@@ -250,7 +346,8 @@ def measure(args, tf, runtime):
 
 def parse_args(argv=None):
   parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument("--phase", choices=("prepare", "measure"), required=True)
+  parser.add_argument("--phase", choices=("prepare", "measure", "profile"),
+                      required=True)
   parser.add_argument("--fixture-dir", type=Path, required=True)
   parser.add_argument("--output", type=Path)
   parser.add_argument("--device", default="/CPU:0")
@@ -265,6 +362,9 @@ def parse_args(argv=None):
   parser.add_argument("--weights", type=Path)
   parser.add_argument("--tile-size", type=int, default=128)
   parser.add_argument("--batch-size", type=int, default=1)
+  parser.add_argument("--repeat-batch", type=int)
+  parser.add_argument("--profile-dir", type=Path)
+  parser.add_argument("--profile-steps", type=int, default=3)
   parser.add_argument("--d-model", type=int, default=32)
   parser.add_argument("--d-state-temporal", type=int, default=8)
   parser.add_argument("--d-state-spatial", type=int, default=16)
@@ -273,14 +373,23 @@ def parse_args(argv=None):
   parser.add_argument("--model-variant", choices=("cnn_ssm", "cnn_only"),
                       default="cnn_ssm")
   args = parser.parse_args(argv)
-  if args.phase == "measure" and args.output is None:
-    parser.error("--output is required for measurement")
+  if args.phase in ("measure", "profile") and args.output is None:
+    parser.error("--output is required for measurement or profiling")
+  if args.phase == "profile" and args.profile_dir is None:
+    parser.error("--profile-dir is required for profiling")
+  if args.phase != "profile" and args.profile_dir is not None:
+    parser.error("--profile-dir is only valid for profiling")
+  if args.phase == "prepare" and args.repeat_batch is not None:
+    parser.error("--repeat-batch is only valid for measurement or profiling")
+  if args.repeat_batch is not None and args.repeat_batch < 1:
+    parser.error("--repeat-batch must be positive")
   if min(args.steps, args.warmup, args.tile_size, args.batch_size, args.d_model,
-         args.d_state_temporal, args.d_state_spatial, args.bottleneck_channels) < 1:
+         args.d_state_temporal, args.d_state_spatial, args.bottleneck_channels,
+         args.profile_steps) < 1:
     parser.error("budgets and dimensions must be positive")
   if args.tile_size % 8 or not np.isfinite(args.dropout) or not 0 <= args.dropout < 1:
     parser.error("tile size must be divisible by 8; dropout must be finite in [0,1)")
-  if not args.device.startswith(("/GPU:", "/CPU:")):
+  if re.fullmatch(r"/(?:GPU|CPU):[0-9]+", args.device) is None:
     parser.error("--device must be an explicit /CPU:N or /GPU:N")
   return args
 
@@ -289,6 +398,8 @@ def main():
   args = parse_args()
   if args.output is not None and args.output.exists():
     raise FileExistsError(f"Refusing to overwrite {args.output}")
+  if args.profile_dir is not None and args.profile_dir.exists():
+    raise FileExistsError(f"Refusing to overwrite {args.profile_dir}")
   import tensorflow as tf
 
   result = {"status": "failed", "phase": args.phase}
@@ -298,6 +409,7 @@ def main():
       result = (prepare(args, tf, runtime) if args.phase == "prepare"
                 else measure(args, tf, runtime))
   except Exception as error:
+    result["error_type"] = type(error).__name__
     result["error"] = f"{type(error).__name__}: {error}"
     raise
   finally:
