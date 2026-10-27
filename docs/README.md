@@ -17,7 +17,7 @@ Multi-modal forest type segmentation with convolutional encoders and a
 | **Try the workflow locally** | [Synthetic CPU demo](local-demo.md) | [Usage guide](user.md) · [Tile input and output formats](apply.md) |
 | **Understand the model** | [Project summary](project-summary.md) | [Architecture and equations](design.md) |
 | **Inspect the evidence** | [Results and retained artifacts](../results/README.md) | [Optimization audit](optimization-audit.md) · [Validation protocol](gpu-validation.md) |
-| **Measure runtime performance** | [Performance guide](performance.md) | [GPU comparison notebook](../notebooks/colab_performance.ipynb) · [File-to-file timing](local-demo.md) |
+| **Measure runtime performance** | [Performance guide](performance.md) | [GPU profiling and batch scaling](gpu-profiling.md) · [GPU source comparison](../notebooks/colab_performance.ipynb) · [File-to-file timing](local-demo.md) |
 | **Develop the package** | [Developer guide](developer.md) | [API reference](reference.md) · [Tests](testing.md) · [Common tasks](tasks.md) · [Coding style](coding.md) |
 
 ## Run the local demonstration

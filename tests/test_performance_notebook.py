@@ -12,12 +12,14 @@ from types import SimpleNamespace
 import pytest
 
 
-NOTEBOOK = Path(__file__).resolve().parents[1] / "notebooks/colab_performance.ipynb"
+NOTEBOOKS = Path(__file__).resolve().parents[1] / "notebooks"
 
 
 @pytest.mark.parametrize("outcome", ["success", "failure", "interrupt", "timeout"])
-def test_driver_always_cleans_up_its_process_group(outcome):
-  notebook = json.loads(NOTEBOOK.read_text())
+@pytest.mark.parametrize("name", [
+    "colab_performance.ipynb", "colab_gpu_profiling.ipynb"])
+def test_driver_always_cleans_up_its_process_group(outcome, name):
+  notebook = json.loads((NOTEBOOKS / name).read_text())
   for cell in notebook["cells"]:
     if cell["cell_type"] == "code":
       compile("".join(cell["source"]), cell["id"], "exec")

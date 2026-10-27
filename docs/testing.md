@@ -126,6 +126,16 @@ suite needs is in `requirements.txt`.
   complete optimizer updates, report protection and changed-input rejection even
   under optimized Python. `test_performance_comparison.py` rejects mismatched
   sources, fixtures, runtimes, sample counts, medians and batch throughput.
+- `test_revision_profiling.py` captures a real reduced-model CPU XPlane trace,
+  verifies replicated-batch shapes/throughput and complete training updates,
+  excludes profiler samples from timing, and checks cleanup on capture errors.
+- `test_batch_study.py` checks source/fixture/batch integrity, throughput units,
+  alternating order, separate capture jobs, OOM exclusion and retained timing
+  after a profiling failure. It rejects missing or modified trace artifacts.
+- `test_profile_archives.py` verifies lossless bounded trace chunks, restore
+  hashes, metadata omissions and safe fresh-output behavior. Notebook tests
+  cover process-group cleanup, complete bundle downloads and delayed viewer
+  installation with measured-package constraints.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.

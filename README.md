@@ -117,6 +117,9 @@ rounds, inference median latency fell 6.4%–8.9%; training-step timings did not
 show a stable gain. A [three-round Tesla T4 comparison](results/performance_t4_20261026/README.md)
 found lower TensorFlow allocator peaks (12.75% for inference, 6.04% for
 training), with no stable inference or training latency gain at batch one.
+The next [profiling and batch-scaling study](docs/gpu-profiling.md) is ready
+to run in Colab; it captures traces separately from batch 1/2/4/8 timings and
+exports complete evidence in a small bundle when it fits.
 
 ### CNN-only ablation
 
@@ -146,7 +149,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **295 tests passed** | Local CPU verification; supports software behavior. |
+| **Software checks** | **365 tests passed** | CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |

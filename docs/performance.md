@@ -100,7 +100,11 @@ and at most eight changed pixels; baseline mixed-precision checks also varied
 across processes. These are pre-training checks on synthetic inputs and
 initialized weights, not accuracy or convergence measurements. No GPU
 file-to-file or validation-reuse speedup was measured. Profiling GPU execution
-and testing larger batches are the next performance studies.
+and testing larger batches are the next performance studies. The
+[profiling and batch-scaling guide](gpu-profiling.md) provides a pinned Colab
+notebook for batch sizes 1, 2, 4 and 8 with separate trace capture. That new
+GPU study is pending; CPU integration has verified its execution and lossless
+trace export/restore workflow.
 
 ## Run the source comparison locally
 
