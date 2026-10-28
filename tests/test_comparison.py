@@ -30,7 +30,8 @@ def _change_json(path, change):
 
 
 def _write_run(root, variant, seed, correct=7,
-               best_scores=(0.1, 0.40000001, 0.40000002)):
+               best_scores=(0.1, 0.40000001, 0.40000002),
+               selection_seed=None, updates_per_epoch=None):
   directory = root / f"{variant}_{seed}"
   directory.mkdir(parents=True)
   config = {
@@ -48,13 +49,16 @@ def _write_run(root, variant, seed, correct=7,
   }
   if variant in ("cnn_ssm", "cnn_only"):
     config["model_variant"] = variant
+  if selection_seed is not None:
+    config["selection_seed"] = selection_seed
   _write_json(directory / "config.json", config)
 
   def paths(split):
     return [f"local-records/forty_v1-{split}.tfrecord-{index:05d}-of-00004"
             for index in range(4)]
 
-  training_paths = random.Random(seed).sample(paths("train"), 2)
+  training_paths = random.Random(
+      seed if selection_seed is None else selection_seed).sample(paths("train"), 2)
   manifest = {
       "schema_version": 1, "selection_protocol": "python-random-seed-plus-epoch-v1",
       "gcs_root": "local-records", "total_shards_per_split": 4, "seed": seed,
@@ -63,6 +67,14 @@ def _write_run(root, variant, seed, correct=7,
       "epochs": [{"epoch": epoch, "shard_epoch": 0, "training_completed": True,
                   "paths": training_paths} for epoch in range(1, len(best_scores) + 1)],
   }
+  if selection_seed is not None:
+    manifest.update(selection_seed=selection_seed,
+                    effective_selection_seed=selection_seed)
+  if updates_per_epoch is not None:
+    counts = {"train_batches": 10, "optimizer_updates": updates_per_epoch,
+              "skipped_optimizer_updates": 10 - updates_per_epoch}
+    for entry in manifest["epochs"]:
+      entry.update(counts)
   _write_json(directory / "split_manifest.json", manifest)
   rows = []
   for epoch, score in enumerate(best_scores, 1):
@@ -73,6 +85,8 @@ def _write_run(root, variant, seed, correct=7,
         "train_seconds": epoch, "validation_seconds": 0.5,
         "train_examples": 20, "train_examples_per_second": 20 / epoch,
     })
+    if updates_per_epoch is not None:
+      rows[-1].update(counts)
   with (directory / "training_results.csv").open("w", newline="") as handle:
     writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
     writer.writeheader()
@@ -204,11 +218,56 @@ def test_single_seed_scores_deltas_selection_and_timing_are_auditable(tmp_path):
   assert pair["combo"]["epoch_timing"]["first_epoch"]["train_seconds"] == 1
   assert pair["combo"]["epoch_timing"]["later_epochs"]["train_seconds"] == 5
   assert pair["combo"]["train_wall_seconds"] is None
+  assert pair["combo"]["optimizer_updates"] is None
+  assert report["selection_scope"] == {
+      "selection_seed": None, "training_membership": "paired_within_each_seed"}
   assert report["summary"]["combo"]["scores_percent"]["overall_f1"] == {
       "mean": 70, "sample_sd": None}
   assert report["summary"]["combo"]["train_examples_per_second"] == 10
   assert report["test_coverage"] == {
       "shards": 1, "total_shards": 4, "full_split": False}
+
+
+def test_shared_cohort_and_skip_counts_do_not_force_identical_updates(tmp_path):
+  memberships = []
+  for seed in (42, 43, 44):
+    for variant, updates in (("cnn_ssm", 8), ("cnn_only", 10)):
+      directory = _write_run(tmp_path, variant, seed, selection_seed=2026,
+                             updates_per_epoch=updates)
+      memberships.append(json.loads(
+          (directory / "split_manifest.json").read_text())["epochs"][0]["paths"])
+  assert all(paths == memberships[0] for paths in memberships)
+  report = compare.summarize_runs(tmp_path, [42, 43, 44], "architecture")
+  assert report["selection_scope"] == {
+      "selection_seed": 2026, "training_membership": "shared_across_seeds"}
+  assert report["summary"]["cnn_ssm"]["optimizer_updates"]["mean"] == 24
+  assert report["summary"]["cnn_only"]["optimizer_updates"]["mean"] == 30
+  assert report["summary"]["cnn_ssm"]["skipped_optimizer_updates"]["mean"] == 6
+  wrong = tmp_path / "cnn_only_42/split_manifest.json"
+  _change_json(wrong, lambda value: value.update(selection_seed=7))
+  with pytest.raises(ValueError, match="selection seed"):
+    compare.summarize_runs(tmp_path, [42, 43, 44], "architecture")
+
+
+@pytest.mark.parametrize("change,message", [
+    ({"optimizer_updates": 9, "skipped_optimizer_updates": 0}, "batch budget"),
+    ({"train_batches": 11, "optimizer_updates": 11,
+      "skipped_optimizer_updates": 0}, "batch count"),
+    ({"optimizer_updates": 0, "skipped_optimizer_updates": 10}, "below 1"),
+])
+def test_comparator_rejects_inconsistent_update_progress(tmp_path, change, message):
+  directory = _write_run(tmp_path, "combo", 42, updates_per_epoch=10)
+  _write_run(tmp_path, "plain_ce", 42, updates_per_epoch=10)
+  path = directory / "training_results.csv"
+  with path.open() as handle:
+    rows = list(csv.DictReader(handle))
+  rows[0].update(change)
+  with path.open("w", newline="") as handle:
+    writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+    writer.writeheader()
+    writer.writerows(rows)
+  with pytest.raises(ValueError, match=message):
+    compare.summarize_runs(tmp_path, [42])
 
 
 def test_multiseed_sample_sd_and_percentage_point_pairing(tmp_path):

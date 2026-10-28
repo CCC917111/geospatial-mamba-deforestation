@@ -34,11 +34,18 @@ def parse_args() -> argparse.Namespace:
   parser.add_argument("--test-shards", type=int, default=64)
   parser.add_argument("--total-shards", type=int, default=data_lib.TOTAL_SHARDS)
   parser.add_argument("--seed", type=int, default=42)
+  parser.add_argument("--selection-seed", type=int,
+                      help="Independent shard-membership seed; defaults to --seed")
   parser.add_argument("--require-gpu", action="store_true",
                       help="Reject CPU-only runtimes before opening any shard")
   parser.add_argument("--output", default="preflight.json",
                       help="JSON report written on both success and failure")
-  return parser.parse_args()
+  args = parser.parse_args()
+  try:
+    data_lib.resolve_selection_seed(args.seed, args.selection_seed)
+  except ValueError as error:
+    parser.error(str(error))
+  return args
 
 
 def _metadata_values(feature, kind):
@@ -130,7 +137,9 @@ def run_preflight(args: argparse.Namespace) -> dict:
     report["splits"][split] = inspected
     try:
       selected = data_lib.selected_shard_paths(
-          split, budget, seed=args.seed, epoch=0, shuffle_shards=split == "train",
+          split, budget, seed=data_lib.resolve_selection_seed(
+              args.seed, getattr(args, "selection_seed", None)), epoch=0,
+          shuffle_shards=split == "train",
           gcs_root=args.gcs_root, total_shards=args.total_shards)
       inspected["selected_shard_paths"] = selected
       inspected["path"] = selected[0]

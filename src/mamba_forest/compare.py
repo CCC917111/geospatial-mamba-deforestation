@@ -32,6 +32,7 @@ _CONVENTIONS = {
     "overall_f1": "macro mean over all classes; absent classes have F1 0",
     "mean_iou": "mean over classes with nonzero true or predicted support",
 }
+_UPDATE_KEYS = ("train_batches", "optimizer_updates", "skipped_optimizer_updates")
 
 
 def _check(condition, message):
@@ -83,7 +84,9 @@ def _paths(config, split, count):
   _check(count <= total, f"{split} shard count exceeds total_shards")
   paths = [f"{config['gcs_root']}/forty_v1-{split}.tfrecord-{index:05d}"
            f"-of-{total:05d}" for index in range(total)]
-  return (random.Random(config["seed"]).sample(paths, count)
+  selection = config.get("selection_seed")
+  return (random.Random(config["seed"] if selection is None else selection).sample(
+      paths, count)
           if split == "train" else paths[:count])
 
 
@@ -95,6 +98,9 @@ def _read_history(path, epochs):
   with path.open(newline="", encoding="utf-8") as handle:
     reader = csv.DictReader(handle)
     _check(required <= set(reader.fieldnames or []), f"{path}: missing CSV columns")
+    update_fields = set(_UPDATE_KEYS) & set(reader.fieldnames or [])
+    _check(not update_fields or update_fields == set(_UPDATE_KEYS),
+           f"{path}: incomplete optimizer progress columns")
     rows = []
     for row in reader:
       converted = {key: _number(float(value), f"{path}: {key}")
@@ -116,6 +122,13 @@ def _read_history(path, epochs):
         _check(converted[key] > 0, f"{path}: {key} must be positive")
       converted["train_examples"] = _integer(converted["train_examples"],
                                              "train_examples", 1)
+      if update_fields:
+        for key in _UPDATE_KEYS:
+          converted[key] = _integer(converted[key], key,
+                                    0 if key == "skipped_optimizer_updates" else 1)
+        _check(converted["optimizer_updates"] + converted["skipped_optimizer_updates"]
+               == converted["train_batches"],
+               f"{path}: optimizer progress differs from the batch budget")
       rows.append(converted)
   _check([row["epoch"] for row in rows] == list(range(1, epochs + 1)),
          f"{path}: training must complete every configured epoch")
@@ -214,6 +227,9 @@ def _validate_config(config, variant, seed):
          f"{variant} objective configuration is incorrect")
   _check(_integer(config["seed"], "seed") == seed,
          "run seed differs from requested seed")
+  if config.get("selection_seed") is not None:
+    _check(_integer(config["selection_seed"], "selection_seed") <= 2**32 - 1,
+           "selection_seed exceeds the uint32 range")
   _check(config["fixed_train_subset"] is True,
          "comparison requires fixed training subsets")
   for key in (*_MODEL_KEYS, "total_shards", "train_shards", "val_shards",
@@ -256,6 +272,14 @@ def validate_training_run(directory, variant, seed) -> dict:
            and manifest["total_shards_per_split"] == config["total_shards"]
            and manifest["seed"] == seed and manifest["training_mode"] == "fixed",
            "manifest configuration differs from training")
+    selection_seed = config.get("selection_seed")
+    if selection_seed is not None or "selection_seed" in manifest:
+      _check(manifest.get("selection_seed") == selection_seed,
+             "manifest selection seed differs from training")
+    if "effective_selection_seed" in manifest:
+      _check(manifest["effective_selection_seed"] == (
+          seed if selection_seed is None else selection_seed),
+          "manifest effective selection seed differs from training")
     _check(manifest["validation_paths"]
            == _paths(config, "validation", config["val_shards"]),
            "validation paths differ from fixed selection")
@@ -264,6 +288,15 @@ def validate_training_run(directory, variant, seed) -> dict:
       _check(entry["epoch"] == index and entry["shard_epoch"] == 0
              and entry["training_completed"] is True and entry["paths"] == train_paths,
              "manifest training epochs are incomplete or do not reuse the fixed subset")
+      row = rows[index - 1]
+      if "train_batches" in row:
+        _check(row["train_batches"] == math.ceil(
+            row["train_examples"] / config["batch_size"]),
+            "training batch count differs from example budget")
+        for key in _UPDATE_KEYS:
+          if key in entry:
+            _check(entry[key] == row[key],
+                   "manifest optimizer progress differs from CSV")
     _check(manifest["completed_unique_train_shards"] == len(train_paths),
            "completed unique training coverage is incorrect")
     best = max(rows, key=lambda row: row["overall_f1"])
@@ -307,6 +340,8 @@ def _read_run(directory, variant, seed, score_keys=SCORE_KEYS):
                 "train_seconds": train_seconds,
                 "validation_seconds": sum(row["validation_seconds"] for row in rows),
                 "train_examples": train_examples,
+                **{key: (sum(row[key] for row in rows) if key in rows[0] else None)
+                   for key in _UPDATE_KEYS},
                 "train_examples_per_second": train_examples / train_seconds,
                 "train_wall_seconds": _wall_seconds(
                     directory / "train_wall_seconds.txt"),
@@ -331,7 +366,8 @@ def _read_run(directory, variant, seed, score_keys=SCORE_KEYS):
 def _effective_config(config, comparison="objective"):
   ignored = {"output_dir", "precision", "no_mixed_precision"}
   ignored |= _OBJECTIVE_KEYS if comparison == "objective" else {"model_variant"}
-  normalized = {**config, "model_variant": _model_variant(config)}
+  normalized = {**config, "model_variant": _model_variant(config),
+                "selection_seed": config.get("selection_seed")}
   return {key: value for key, value in normalized.items() if key not in ignored}
 
 
@@ -350,6 +386,19 @@ def _test_protocol(metrics, comparison="objective"):
                        if key not in ignored},
       "runtime": {key: metrics["runtime"][key]
                   for key in ("tensorflow_version", "precision_policy")},
+  }
+
+
+def _split_memberships(manifest):
+  """Compare split controls independently of optional update diagnostics."""
+  return {
+      **{key: manifest[key] for key in (
+          "schema_version", "selection_protocol", "gcs_root",
+          "total_shards_per_split", "seed", "training_mode", "validation_paths",
+          "completed_unique_train_shards")},
+      "epochs": [{key: entry[key] for key in (
+          "epoch", "shard_epoch", "training_completed", "paths")}
+                 for entry in manifest["epochs"]],
   }
 
 
@@ -376,7 +425,8 @@ def summarize_runs(run_root, seeds=(42, 43, 44), comparison="objective") -> dict
     protocol = _test_protocol(left["metrics"], comparison)
     _check(config == _effective_config(right["config"], comparison),
            f"seed {seed}: training config mismatch")
-    _check(left["manifest"] == right["manifest"],
+    _check(_split_memberships(left["manifest"])
+           == _split_memberships(right["manifest"]),
            f"seed {seed}: split manifests mismatch")
     _check(protocol == _test_protocol(right["metrics"], comparison),
            f"seed {seed}: test protocol mismatch")
@@ -415,12 +465,20 @@ def summarize_runs(run_root, seeds=(42, 43, 44), comparison="objective") -> dict
         **{key: (_stats([pair[variant][key] for pair in pairs])
                  if all(pair[variant][key] is not None for pair in pairs) else None)
            for key in ("train_wall_seconds", "test_wall_seconds")},
+        **{key: (_stats([pair[variant][key] for pair in pairs])
+                 if all(pair[variant][key] is not None for pair in pairs) else None)
+           for key in _UPDATE_KEYS},
     }
   summary["paired_delta_percentage_points"] = {
       key: _stats([pair["paired_delta_percentage_points"][key] for pair in pairs])
       for key in score_keys}
   return {"schema_version": 1, "run_root": str(root), "seeds": seeds,
           "comparison": comparison,
+          "selection_scope": {
+              "selection_seed": reference_config.get("selection_seed"),
+              "training_membership": (
+                  "shared_across_seeds" if reference_config.get("selection_seed")
+                  is not None else "paired_within_each_seed")},
           "delta_direction": f"{arms[0]}_minus_{arms[1]}",
           "pairs": pairs, "summary": summary,
           "test_coverage": {

@@ -21,13 +21,15 @@ import json
 import math
 import os
 from pathlib import Path
+import tempfile
 import time
 
 import numpy as np
 import tensorflow as tf
 
 from mamba_forest import data as data_lib
-from mamba_forest.checkpoint import weights_sha256
+from mamba_forest.checkpoint import save_weights_atomic
+from mamba_forest.checkpoint import weights_sha256  # noqa: F401 (legacy re-export)
 from mamba_forest.constants import DEFAULT_MODEL_VARIANT, MODEL_VARIANTS
 from mamba_forest.losses import DEFAULT_CLASS_WEIGHTS, ComboLoss
 from mamba_forest.model import MODEL_DEFAULTS, MambaForestSegmenter
@@ -40,6 +42,7 @@ TIMING_COLUMNS = [
     "train_seconds", "validation_seconds", "train_examples",
     "train_examples_per_second",
 ]
+UPDATE_COLUMNS = ["train_batches", "optimizer_updates", "skipped_optimizer_updates"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -95,7 +98,13 @@ def parse_args() -> argparse.Namespace:
   p.add_argument("--patience", type=int, default=8,
                  help="Early stopping patience in epochs (0 disables it)")
   p.add_argument("--seed", type=int, default=42)
+  p.add_argument("--selection-seed", type=int,
+                 help="Independent shard-membership seed; defaults to --seed")
   args = p.parse_args()
+  try:
+    data_lib.resolve_selection_seed(args.seed, args.selection_seed)
+  except ValueError as error:
+    p.error(str(error))
   if args.no_mixed_precision and args.precision == "mixed_float16":
     p.error("--no-mixed-precision conflicts with --precision mixed_float16")
   return args
@@ -134,10 +143,12 @@ def prepare_output_directory(output_dir: str) -> None:
 def build_train_dataset(args, epoch: int = 0):
   """Builds the explicitly selected training subset for a zero-based epoch."""
   shard_epoch = 0 if args.fixed_train_subset else epoch
+  selection = getattr(args, "selection_seed", None)
+  kwargs = {"selection_seed": selection} if selection is not None else {}
   return data_lib.make_dataset(
       "train", args.train_shards, batch_size=args.batch_size,
       training=True, seed=args.seed, gcs_root=args.gcs_root, epoch=shard_epoch,
-      total_shards=args.total_shards)
+      total_shards=args.total_shards, **kwargs)
 
 
 def build_datasets(args):
@@ -157,7 +168,8 @@ def training_epoch_manifest(args, epoch: int) -> dict:
       "shard_epoch": shard_epoch,
       "training_completed": False,
       "paths": data_lib.selected_shard_paths(
-          "train", args.train_shards, seed=args.seed, epoch=shard_epoch,
+          "train", args.train_shards, seed=data_lib.resolve_selection_seed(
+              args.seed, getattr(args, "selection_seed", None)), epoch=shard_epoch,
           shuffle_shards=True, gcs_root=args.gcs_root,
           total_shards=args.total_shards),
   }
@@ -171,6 +183,35 @@ def write_split_manifest(path: str, manifest: dict) -> None:
   with open(path + ".tmp", "w", encoding="utf-8") as handle:
     json.dump(manifest, handle, indent=2)
   os.replace(path + ".tmp", path)
+
+
+def write_training_history(path, columns, history):
+  """Replace CSV only after a complete sibling write, retaining exact scores."""
+  path = Path(path)
+  temporary = None
+  try:
+    with tempfile.NamedTemporaryFile("w", dir=path.parent, encoding="utf-8",
+                                     prefix=".training-", suffix=".csv.tmp",
+                                     delete=False) as handle:
+      temporary = Path(handle.name)
+      handle.write(",".join(columns) + "\n")
+      for row in history:
+        handle.write(f"{row[0]}," + ",".join(f"{v:.17g}" for v in row[1:]) + "\n")
+    os.replace(temporary, path)
+  finally:
+    if temporary is not None:
+      temporary.unlink(missing_ok=True)
+
+
+def optimizer_epoch_counts(start_iteration, end_iteration, train_batches):
+  """Expose completed iteration increments and loss-scale skips per epoch."""
+  updates = end_iteration - start_iteration
+  if updates == 0:
+    raise RuntimeError("training epoch made no optimizer updates")
+  if updates < 0 or updates > train_batches:
+    raise RuntimeError("optimizer iteration progress differs from the batch budget")
+  return {"train_batches": train_batches, "optimizer_updates": updates,
+          "skipped_optimizer_updates": train_batches - updates}
 
 
 def cosine_learning_rate(initial: float, alpha: float, epoch: int,
@@ -207,6 +248,16 @@ def unscale_gradients(optimizer, gradients):
   if _uses_keras2_loss_scaling(optimizer):
     return optimizer.get_unscaled_gradients(gradients)
   return gradients
+
+
+def gradients_are_finite(gradients):
+  """Public finite check for legacy loss scalers whose iterations count skips."""
+  values = [gradient.values if isinstance(gradient, tf.IndexedSlices) else gradient
+            for gradient in gradients if gradient is not None]
+  if not values:
+    raise ValueError("no gradients are available for an optimizer update")
+  return tf.reduce_all(tf.stack([
+      tf.reduce_all(tf.math.is_finite(value)) for value in values]))
 
 
 def f1_from_confusion(confusion: np.ndarray) -> np.ndarray:
@@ -316,6 +367,9 @@ def main() -> None:
       "gcs_root": args.gcs_root,
       "total_shards_per_split": args.total_shards,
       "seed": args.seed,
+      "selection_seed": args.selection_seed,
+      "effective_selection_seed": data_lib.resolve_selection_seed(
+          args.seed, args.selection_seed),
       "training_mode": "fixed" if args.fixed_train_subset else "rotating",
       "validation_paths": data_lib.selected_shard_paths(
           "validation", args.val_shards, gcs_root=args.gcs_root,
@@ -341,6 +395,11 @@ def main() -> None:
   optimizer = base_optimizer
   if resolved_precision == "mixed_float16":
     optimizer = tf.keras.mixed_precision.LossScaleOptimizer(base_optimizer)
+  legacy_update_count = (tf.Variable(0, dtype=tf.int64, trainable=False)
+                         if _uses_keras2_loss_scaling(optimizer) else None)
+  manifest["optimizer_update_counting"] = (
+      "finite_unscaled_gradients_legacy_loss_scaler" if legacy_update_count is not None
+      else "optimizer_iterations")
 
   train_loss = tf.keras.metrics.Mean()
 
@@ -369,6 +428,9 @@ def main() -> None:
     gradients = unscale_gradients(optimizer, gradients)
     pairs = [(g, v) for g, v in zip(gradients, model.trainable_variables)
              if g is not None]
+    if legacy_update_count is not None:
+      legacy_update_count.assign_add(tf.cast(
+          gradients_are_finite([gradient for gradient, _ in pairs]), tf.int64))
     optimizer.apply_gradients(pairs)
     train_loss.update_state(loss)
 
@@ -376,7 +438,7 @@ def main() -> None:
   results_path = os.path.join(args.output_dir, "training_results.csv")
   columns = BASE_COLUMNS + [
       "f1_" + name.lower().replace(" ", "_") for name in data_lib.CLASS_NAMES
-  ] + TIMING_COLUMNS
+  ] + TIMING_COLUMNS + UPDATE_COLUMNS
 
   for epoch in range(1, args.epochs + 1):
     if epoch > 1:
@@ -390,15 +452,24 @@ def main() -> None:
 
     train_loss.reset_state()
     train_examples = 0
+    train_batches = 0
+    update_counter = (optimizer.iterations if legacy_update_count is None
+                      else legacy_update_count)
+    iteration_start = int(update_counter.numpy())
     started = time.perf_counter()
     for batch in train_ds:
       inputs, labels = data_lib.split_inputs_labels(batch)
       train_step(inputs, labels)
       train_examples += int(labels.shape[0])
+      train_batches += 1
     loss_value = float(train_loss.result())  # Synchronize before stopping time.
+    iteration_end = int(update_counter.numpy())
     train_seconds = time.perf_counter() - started
     if not train_examples:
       raise ValueError("the training epoch yielded no examples")
+    update_counts = optimizer_epoch_counts(
+        iteration_start, iteration_end, train_batches)
+    selection.update(update_counts)
     selection["training_completed"] = True
     write_split_manifest(manifest_path, manifest)
 
@@ -411,7 +482,8 @@ def main() -> None:
             scores["overall_f1"], scores["forests_f1"]]
            + [float(v) for v in per_class_f1]
            + [train_seconds, validation_seconds, train_examples,
-              train_examples / train_seconds])
+              train_examples / train_seconds]
+           + [update_counts[key] for key in UPDATE_COLUMNS])
     history.append(row)
     print(f"epoch {epoch:3d}/{args.epochs} | lr {learning_rate:.2e} | "
           f"loss {row[1]:.4f} | val acc {accuracy:.4f} | mIoU {mean_iou:.4f} | "
@@ -419,22 +491,20 @@ def main() -> None:
           f"forests F1 {scores['forests_f1']:.4f}")
     print(f"  train {train_seconds:.2f}s | val {validation_seconds:.2f}s | "
           f"{train_examples / train_seconds:.2f} training tiles/s")
+    print(f"  optimizer updates {update_counts['optimizer_updates']} | "
+          f"skipped batches {update_counts['skipped_optimizer_updates']}")
     print(f"  N {scores['natural_forest_f1']:.4f} | "
           f"P {scores['planted_forest_f1']:.4f} | "
           f"TC {scores['tree_crops_f1']:.4f}")
 
-    with open(results_path, "w") as f:
-      f.write(",".join(columns) + "\n")
-      for r in history:
-        # Preserve the exact selection scores, including improvements that
-        # would tie after rounding to six decimal places.
-        f.write(f"{r[0]}," + ",".join(f"{v:.17g}" for v in r[1:]) + "\n")
+    write_training_history(results_path, columns, history)
 
-    model.save_weights(os.path.join(args.output_dir, "last.weights.h5"))
+    save_weights_atomic(model, os.path.join(args.output_dir, "last.weights.h5"))
     if scores["overall_f1"] > best_score:
       best_score = scores["overall_f1"]
       epochs_without_improvement = 0
-      model.save_weights(os.path.join(args.output_dir, "best.weights.h5"))
+      selected_weights_sha256 = save_weights_atomic(
+          model, os.path.join(args.output_dir, "best.weights.h5"))
       selection_path = os.path.join(args.output_dir, "checkpoint_selection.json")
       with open(selection_path + ".tmp", "w") as handle:
         json.dump({
@@ -445,8 +515,7 @@ def main() -> None:
             "epoch": epoch,
             "score": best_score,
             "weights": "best.weights.h5",
-            "weights_sha256": weights_sha256(
-                os.path.join(args.output_dir, "best.weights.h5")),
+            "weights_sha256": selected_weights_sha256,
         }, handle, indent=2)
       os.replace(selection_path + ".tmp", selection_path)
       print(f"  new best overall F1: {best_score:.4f}")

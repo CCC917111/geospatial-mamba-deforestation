@@ -129,9 +129,10 @@ def _small_record(shapes, seed):
       features=tf.train.Features(feature=features)).SerializeToString()
 
 
-@pytest.mark.parametrize("model_variant", ["cnn_ssm", "cnn_only"])
+@pytest.mark.parametrize("model_variant,selection_seed", [
+    ("cnn_ssm", None), ("cnn_only", 2026)])
 def test_training_main_two_epochs_saves_reusable_checkpoints(
-        tmp_path, monkeypatch, model_variant):
+        tmp_path, monkeypatch, model_variant, selection_seed):
   shapes = {
       "s2": (4, 16, 16, 10), "elevation": (16, 16, 3),
       "climate": (4, 14), "segmentation_labels": (16, 16),
@@ -147,7 +148,7 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
   root = str(tmp_path / "records")
   os.makedirs(root)
   output = tmp_path / "run"
-  subset_args = _subset_args(gcs_root=root)
+  subset_args = _subset_args(gcs_root=root, selection_seed=selection_seed)
   expected = [train.training_epoch_manifest(subset_args, epoch)
               for epoch in (1, 2)]
   validation_paths = data.selected_shard_paths(
@@ -166,6 +167,7 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
       "--d-state-spatial", "2", "--bottleneck-channels", "8",
       "--dropout", "0", "--patience", "0",
       "--model-variant", model_variant,
+      *([] if selection_seed is None else ["--selection-seed", str(selection_seed)]),
   ])
   models = []
 
@@ -220,11 +222,15 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     assert config["precision"] == "auto"
     assert config["resolved_precision"] == "float32"
     assert config["model_variant"] == model_variant
+    assert config["selection_seed"] == selection_seed
     assert models[0].compute_dtype == "float32"
     with open(output / "split_manifest.json", encoding="utf-8") as handle:
       manifest = json.load(handle)
     assert manifest["training_mode"] == "rotating"
     assert manifest["seed"] == subset_args.seed
+    assert manifest["selection_seed"] == selection_seed
+    assert manifest["effective_selection_seed"] == (
+        subset_args.seed if selection_seed is None else selection_seed)
     assert manifest["validation_paths"] == validation_paths
     assert [entry["paths"] for entry in manifest["epochs"]] == [
         entry["paths"] for entry in expected]
@@ -250,6 +256,8 @@ def test_training_main_two_epochs_saves_reusable_checkpoints(
     for row in rows:
       assert all(np.isfinite(float(value)) for value in row.values())
       assert float(row["train_examples"]) == 2
+      assert int(row["train_batches"]) == int(row["optimizer_updates"]) == 1
+      assert int(row["skipped_optimizer_updates"]) == 0
       assert float(row["train_seconds"]) > 0
       assert float(row["validation_seconds"]) > 0
       assert np.isclose(

@@ -61,6 +61,8 @@ def parse_args(argv=None):
   parser.add_argument("--test-shards", type=int,
                       help="Defaults to the full split (--total-shards)")
   parser.add_argument("--seeds", nargs="+", type=int, default=[42, 43, 44])
+  parser.add_argument("--selection-seed", type=int,
+                      help="Independent shared training-shard seed; defaults per run")
   parser.add_argument("--epochs", type=int, default=40)
   parser.add_argument("--batch-size", type=int, default=1)
   parser.add_argument("--precision", choices=("auto", "float32", "mixed_float16"),
@@ -83,6 +85,8 @@ def parse_args(argv=None):
     parser.error("--seeds must be unique")
   if any(seed < 0 or seed > 2**32 - 1 for seed in args.seeds):
     parser.error("--seeds must be in [0, 2**32 - 1]")
+  if args.selection_seed is not None and not 0 <= args.selection_seed <= 2**32 - 1:
+    parser.error("--selection-seed must be in [0, 2**32 - 1]")
   if not math.isfinite(args.dropout) or not 0 <= args.dropout < 1:
     parser.error("--dropout must be finite and in [0, 1)")
   if not args.data_root:
@@ -104,6 +108,7 @@ def make_plan(args):
       "total_shards": args.total_shards, "train_shards": args.train_shards,
       "val_shards": args.val_shards, "test_shards": args.test_shards,
       "seeds": args.seeds, "epochs": args.epochs, "batch_size": args.batch_size,
+      "selection_seed": args.selection_seed,
       "precision": precision, "evaluation_precision": "float32",
       "allow_cpu": args.allow_cpu,
       **{key: getattr(args, key) for key in _MODEL_KEYS},
@@ -113,6 +118,8 @@ def make_plan(args):
   model_flags = [value for key in _MODEL_KEYS for value in (
       "--" + key.replace("_", "-"), str(config[key]))]
   source_flags = ["--data-root", data_root, "--total-shards", str(args.total_shards)]
+  selection_flags = ([] if args.selection_seed is None else
+                     ["--selection-seed", str(args.selection_seed)])
   steps = [{
       "id": "runtime_probe", "phase": "probe",
       "argv": [python, "-c", _RUNTIME_PROBE, "cpu" if args.allow_cpu else "gpu"],
@@ -123,7 +130,8 @@ def make_plan(args):
         "argv": [python, "-m", "mamba_forest.validate_data", *source_flags,
                  "--train-shards", str(args.train_shards), "--val-shards",
                  str(args.val_shards), "--test-shards", str(args.test_shards),
-                 "--seed", str(seed), "--output", str(root / f"preflight_{seed}.json"),
+                 "--seed", str(seed), *selection_flags,
+                 "--output", str(root / f"preflight_{seed}.json"),
                  *([] if args.allow_cpu else ["--require-gpu"])],
         "artifact": str(root / f"preflight_{seed}.json"),
     })
@@ -136,7 +144,8 @@ def make_plan(args):
       steps.append({
           "id": f"train_{arm}_{seed}", "phase": "train", "seed": seed, "arm": arm,
           "argv": [python, "-m", "mamba_forest.train", *source_flags, *model_flags,
-                   "--seed", str(seed), "--fixed-train-subset", "--train-shards",
+                   "--seed", str(seed), *selection_flags,
+                   "--fixed-train-subset", "--train-shards",
                    str(args.train_shards), "--val-shards", str(args.val_shards),
                    "--batch-size", str(args.batch_size), "--epochs", str(args.epochs),
                    "--patience", "0", "--precision", precision, *objective,
@@ -230,6 +239,7 @@ def _verify_run(config, seed, arm):
       "train_shards": config["train_shards"], "val_shards": config["val_shards"],
       "batch_size": config["batch_size"], "epochs": config["epochs"],
       "seed": seed, "patience": 0, "fixed_train_subset": True,
+      "selection_seed": config.get("selection_seed"),
       "precision": config["precision"], "resolved_precision": config["precision"],
       "no_mixed_precision": False,
       **{key: config[key] for key in _MODEL_KEYS},
@@ -238,7 +248,8 @@ def _verify_run(config, seed, arm):
       "no_class_weights": arm == "plain_ce",
       "model_variant": arm if comparison == "architecture" else "cnn_ssm",
   }
-  normalized = {**observed, "model_variant": observed.get("model_variant", "cnn_ssm")}
+  normalized = {**observed, "model_variant": observed.get("model_variant", "cnn_ssm"),
+                "selection_seed": observed.get("selection_seed")}
   if any(normalized.get(key) != value for key, value in expected.items()):
     raise ValueError(f"Training configuration differs from plan: {directory}")
   manifest = training["manifest"]

@@ -80,6 +80,19 @@ def selected_shard_paths(split: str, shards_per_epoch: int,
   return paths[:shards_per_epoch]
 
 
+def resolve_selection_seed(seed: int | None,
+                           selection_seed: int | None = None) -> int | None:
+  """Separate shard membership from model/example randomness when requested."""
+  if selection_seed is None:
+    return seed
+  invalid = (isinstance(selection_seed, bool)
+             or not isinstance(selection_seed, Integral)
+             or not 0 <= selection_seed <= 2**32 - 1)
+  if invalid:
+    raise ValueError("selection_seed must be an integer in [0, 2**32 - 1]")
+  return int(selection_seed)
+
+
 def parse_example(example_proto):
   """Parses one serialized example into tensors of the documented shapes."""
   parsed = tf.io.parse_single_example(example_proto, _FEATURE_DESCRIPTION)
@@ -209,7 +222,8 @@ def make_dataset(split: str, shards_per_epoch: int, batch_size: int = 16,
                  shuffle_buffer: int = 0, seed: int | None = None,
                  gcs_root: str = GCS_ROOT, total_shards: int = TOTAL_SHARDS,
                  num_classes: int = NUM_CLASSES,
-                 epoch: int = 0) -> tf.data.Dataset:
+                 epoch: int = 0, selection_seed: int | None = None
+                 ) -> tf.data.Dataset:
   """Builds a batched dataset from a subset of the split's shards.
 
   Args:
@@ -228,6 +242,9 @@ def make_dataset(split: str, shards_per_epoch: int, batch_size: int = 16,
     total_shards: number of shards per split.
     num_classes: number of segmentation classes.
     epoch: non-negative epoch index used with ``seed`` to select training shards.
+    selection_seed: optional independent seed for shard membership only; the
+      existing ``seed`` still controls example shuffling. None preserves the
+      legacy behavior of selecting membership with ``seed``.
   """
   if not isinstance(batch_size, Integral) or batch_size < 1:
     raise ValueError("batch_size must be a positive integer")
@@ -239,7 +256,8 @@ def make_dataset(split: str, shards_per_epoch: int, batch_size: int = 16,
     shuffle_shards = training
 
   paths = selected_shard_paths(
-      split, shards_per_epoch, seed=seed, epoch=epoch,
+      split, shards_per_epoch,
+      seed=resolve_selection_seed(seed, selection_seed), epoch=epoch,
       shuffle_shards=shuffle_shards, gcs_root=gcs_root,
       total_shards=total_shards)
   files = tf.data.Dataset.from_tensor_slices(paths)

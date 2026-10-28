@@ -12,7 +12,9 @@ import hashlib
 import json
 import math
 import numbers
+import os
 from pathlib import Path
+import tempfile
 
 from mamba_forest.constants import (DEFAULT_MODEL_VARIANT, MODEL_DEFAULTS,
                                     MODEL_VARIANTS)
@@ -33,6 +35,34 @@ def weights_sha256(path: str | Path) -> str:
     for chunk in iter(lambda: checkpoint.read(1024 * 1024), b""):
       digest.update(chunk)
   return digest.hexdigest()
+
+
+def save_weights_atomic(model, path: str | Path) -> str:
+  """Save complete H5 weights before replacing the destination; return SHA-256.
+
+  The parent directory must already exist. A failed save, hash or replacement
+  leaves the previous destination untouched under normal filesystem rename
+  semantics. Temporary weights are cleaned even on interruption. This is an
+  atomic replacement on supporting filesystems, not a durability guarantee on
+  mounted storage such as Google Drive, and it does not save optimizer state.
+  """
+  destination = Path(path)
+  if not destination.name.endswith(".weights.h5"):
+    raise ValueError("checkpoint path must end with .weights.h5")
+  descriptor, temporary_name = tempfile.mkstemp(
+      prefix="." + destination.stem + "-", suffix=".weights.h5",
+      dir=destination.parent)
+  os.close(descriptor)
+  temporary = Path(temporary_name)
+  try:
+    model.save_weights(str(temporary))
+    if not temporary.is_file() or temporary.stat().st_size == 0:
+      raise ValueError("checkpoint save produced no nonempty weights file")
+    checksum = weights_sha256(temporary)
+    os.replace(temporary, destination)
+    return checksum
+  finally:
+    temporary.unlink(missing_ok=True)
 
 
 def add_model_arguments(parser: argparse.ArgumentParser) -> None:
