@@ -74,7 +74,8 @@ The flags worth knowing:
 | `--precision` | auto | float32 on CPU; mixed float16 with a visible GPU. Explicit policies are also accepted. |
 | `--no-mixed-precision` | off | Legacy alias for `--precision float32`. |
 | `--patience` | 8 | Epochs without improvement before stopping. |
-| `--seed` | 42 | Seed for Python, TensorFlow, Keras, NumPy and shard selection. |
+| `--seed` | 42 | Run randomness for initialization, example shuffle and augmentation; also the legacy shard-selection fallback. |
+| `--selection-seed` | unset | Separate shard-membership seed; use a fixed value across runs to keep one cohort across model seeds. |
 
 Written to `--output-dir`:
 

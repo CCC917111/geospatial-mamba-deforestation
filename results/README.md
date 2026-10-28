@@ -124,6 +124,11 @@ evaluation. These experiments have not run in the current CPU environment.
 
 ## Retained compute measurements
 
+- [`research_pipeline_smoke_20261028.json`](research_pipeline_smoke_20261028.json):
+  three-seed synthetic CPU research-workflow check with six best/six last
+  checkpoints, verified stage continuation and a training-before-test gate.
+  It establishes software behavior, not real-data accuracy. The
+  [real-data pilot](../docs/research-pilot.md) remains to be executed.
 - [`batch_study_t4_20261028/`](batch_study_t4_20261028/README.md): completed
   batch 1/2/4/8 capacity study with 24 timing processes and four real GPU
   traces. Batch-eight throughput was 48.82 inference / 22.61 training tiles/s,

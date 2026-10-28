@@ -113,6 +113,10 @@ Outputs written to `--output-dir`: `config.json` with the resolved flags,
 `training_results.csv` with metrics and elapsed training/validation times,
 `split_manifest.json` with exact shard paths, and the `best.weights.h5` and
 `last.weights.h5` checkpoints.
+An optional `--selection-seed` separates shard membership from run randomness.
+New histories record training batches, optimizer updates and skipped updates;
+zero-progress epochs fail. Histories and H5 files use temporary siblings and
+filesystem replacement to preserve previous complete artifacts on save failure.
 
 ## `mamba_forest.evaluate`
 
@@ -132,6 +136,7 @@ runtime precision.
 |---|---|
 | `add_model_arguments(parser)` | Adds architecture flags and mutually exclusive `--config` / `--no-config`. |
 | `resolve_model_arguments(args)` | Resolves CLI, saved config and defaults in that order; validates effective values and returns the updated namespace. |
+| `save_weights_atomic(model, path)` | Saves a nonempty sibling H5, hashes it and replaces the destination only after success; returns the SHA-256. Weights only, not optimizer resumption. |
 
 The resolver preserves the legacy `args.dropout` name and records
 `args.training_config_path`. It only reads the five recognized architecture
@@ -139,6 +144,21 @@ settings from a flat training JSON object. A missing implicit sidecar uses
 defaults; explicit missing files, malformed JSON and invalid effective values
 raise an error. Positive integer capacities and finite dropout in `[0, 1)`
 are required. `model.MODEL_DEFAULTS` is the shared source of model defaults.
+
+## Retained research modules
+
+- `python -m mamba_forest.stage_data`: stages only a fixed cohort with publisher
+  filenames, size/SHA receipts, immutable cache repair and byte/disk limits.
+- `python -m mamba_forest.research`: freezes a three-seed architecture pilot,
+  continues verified completed stages, preserves partial attempts and gates
+  test evaluation on complete training. Planning imports no TensorFlow.
+- `python -m mamba_forest.research_report`: validates complete checkpoint/data
+  evidence and writes numeric-ID metrics plus a retention manifest. Real-pilot
+  completion requires the official source and source/runtime/GPU/data receipts.
+
+See the [research guide](research-pilot.md) for protocols, continuation and
+limitations. Existing `experiment` executions remain fresh-root runs;
+`research` provides the separate continuation workflow.
 
 ## `mamba_forest.predict`
 

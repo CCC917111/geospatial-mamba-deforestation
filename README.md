@@ -138,6 +138,10 @@ python -m mamba_forest.experiment --comparison architecture \
 
 The [validation runbook](docs/gpu-validation.md#controlled-architecture-comparison)
 explains execution, shared controls and the different parameter counts.
+The [retained research pilot](docs/research-pilot.md) fixes one shard cohort
+across three run seeds and keeps all six best checkpoints in Drive, with
+verified stage continuation. Its three-seed synthetic CPU workflow check is
+complete; real-data multi-seed training remains pending.
 The [free Colab notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
 prepares a smaller real-source GPU check. The separate
 [performance notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_performance.ipynb)
@@ -150,7 +154,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **378 tests passed** | CPU verification; supports software behavior. |
+| **Software checks** | **484 tests passed** | CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |
@@ -172,6 +176,10 @@ architecture ranking has not been established.
 [Compute timings](results/performance_cpu_128.json) ·
 [Paired workflow check](results/paired_pipeline_smoke.json) ·
 [Audit](docs/optimization-audit.md)
+
+For application materials, use the [evidence-backed project brief](docs/application-brief.md).
+The 4.80× figure means synthetic inference compute throughput at batch eight
+versus batch one on T4, excluding IO; it is separate from architecture accuracy.
 
 ## Dataset
 

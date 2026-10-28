@@ -52,7 +52,7 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 378 passing tests and
+- **Software:** CPU verification includes 484 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
 - **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes
@@ -74,6 +74,11 @@ their scope. The [validation runbook](gpu-validation.md) documents prepared
 real-data experiments; it does not report completed runs.
 
 ## Next study
+
+The [retained research pilot](research-pilot.md) now provides a Drive-first
+three-seed workflow with one shard-selection seed, validation-selected weights
+and checked stage continuation. Its synthetic CPU integration retained six
+best and six last checkpoints; the real-data GPU pilot remains pending.
 
 Compare the selective-SSM model with a CNN control using identical split
 membership, objectives and training budgets, then repeat across seeds. Report

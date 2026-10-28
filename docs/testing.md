@@ -142,6 +142,18 @@ suite needs is in `requirements.txt`.
   hashes, metadata omissions and safe fresh-output behavior. Notebook tests
   cover process-group cleanup, complete bundle downloads and delayed viewer
   installation with measured-package constraints.
+- `test_selection_seed.py` checks one fixed cohort across run seeds while
+  preserving example-shuffle randomness, preflight agreement, atomic history
+  writes and actual optimizer progress. `test_atomic_checkpoint.py` checks
+  failed/partial saves preserve existing H5 bytes and verifies real Keras reload.
+- `test_stage_data.py` verifies original shard names, selected-file hashes,
+  offline reuse, immutable repair and byte/disk budgets. `test_research.py`
+  checks stage continuation, preserved partial attempts, test gating, lock
+  recovery and rejection of changed/missing identities or completed outputs.
+- `test_research_report.py` validates neutral numeric-ID metrics, the complete
+  frozen seed list, retention hashes and the stronger source/runtime/data/GPU
+  receipts required for real-data pilot completion. Research notebook tests
+  cover paused/completed displays, Drive-first retention and worker cleanup.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.

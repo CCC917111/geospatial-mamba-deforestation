@@ -17,11 +17,16 @@ measurements do not establish real-data accuracy or dataset compatibility.
 
 ## Controlled architecture comparison
 
+For a smaller retained three-seed study in Colab, use the
+[research pilot](research-pilot.md). It separates the shard-selection seed from
+run randomness and retains completed stages across sessions. The commands below
+describe the larger, single-execution protocol.
+
 Generate a plan without reading data or importing TensorFlow:
 
 ```bash
 python -m mamba_forest.experiment --comparison architecture \
-  --run-root runs/architecture-pair
+  --run-root runs/architecture-pair --selection-seed 2026
 ```
 
 The default plan pairs `cnn_ssm` and `cnn_only` for seeds 42, 43 and 44,
@@ -33,7 +38,7 @@ evaluation starts. Review `plan.json`, then use the same settings to execute:
 
 ```bash
 python -m mamba_forest.experiment --comparison architecture \
-  --run-root runs/architecture-pair --execute
+  --run-root runs/architecture-pair --selection-seed 2026 --execute
 python -m mamba_forest.compare --comparison architecture \
   --run-root runs/architecture-pair
 ```
