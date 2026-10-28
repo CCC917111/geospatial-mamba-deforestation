@@ -1,0 +1,2134 @@
+{
+  "schema_version": 1,
+  "analysis_runtime": {
+    "tensorflow": "2.21.0",
+    "python": "3.12.14"
+  },
+  "protobuf_schema": "tsl/profiler/protobuf/xplane.proto",
+  "protobuf_descriptor_sha256": "f7b6da3e34752af58b0f8cd12bea027b606ba034dfd83f454d5e38881f59e8ea",
+  "analysis_script_sha256": "dd128779eed859c3c415b1274bd41fa29c0f5c5d7b41a9fab14047786231c51f",
+  "method": {
+    "time_axis": "line.timestamp_ns * 1000 + event.offset_ps; all durations in picoseconds",
+    "step_boundary": "Host inference_step/training_step Trace annotations including synchronization",
+    "kernel_detection": "GPU event carrying kernel_details stat",
+    "op_attribution": "GPU event tf_op stat; ref_value resolves through plane.stat_metadata",
+    "active_time": "Union of clipped GPU event intervals across all streams, avoiding overlap double counting",
+    "scan_categories": "Literal /scan/ tf_op path, separated by presence of gradient_tape",
+    "forward_condition_category": "Memcpy event whose tf_op contains /scan/while/cond/"
+  },
+  "limitations": [
+    "Capture has profiler overhead; profiled host step times are not the unprofiled benchmark latencies.",
+    "Recorded GPU activity fraction is not SM occupancy, utilization or global GPU-idle measurement.",
+    "Summed operation durations may overlap and cannot be equated with synchronized wall time.",
+    "Scan event envelopes are not exclusive operation duration and may include other concurrent work.",
+    "Condition-copy counts and short GPU copy durations alone do not prove their host synchronization overhead dominates latency.",
+    "The worker places its entire measure scope under explicit tf.device('/GPU:0'); normal automatic production placement needs a controlled counterfactual before deployment-bottleneck claims.",
+    "This is direct public-schema event inspection, not the XProf viewer's GPU Kernel Stats aggregation."
+  ],
+  "captures": [
+    {
+      "name": "profile-inference-b1",
+      "mode": "inference",
+      "batch_size": 1,
+      "precision": "float32",
+      "trace_sha256": "d1500e7dd8c277251189239d41eaa53fbe9c23c8f49dddf7309ef3f708a6b799",
+      "trace_bytes": 3966730,
+      "recorded_source_commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+      "runtime": {
+        "tensorflow_version": "2.21.0",
+        "python_version": "3.13.16",
+        "requested_device": "/GPU:0",
+        "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+        "gpu_details": [
+          {
+            "compute_capability": [
+              7,
+              5
+            ],
+            "device_name": "Tesla T4"
+          }
+        ],
+        "thread_environment": {
+          "TF_NUM_INTRAOP_THREADS": null,
+          "TF_NUM_INTEROP_THREADS": null,
+          "OMP_NUM_THREADS": null
+        }
+      },
+      "xspace_errors": [],
+      "xspace_warnings": [],
+      "gpu_planes": [
+        {
+          "name": "/device:GPU:0",
+          "stats": {
+            "device_vendor": "Nvidia",
+            "gpu_device_name": "Tesla T4",
+            "clock_rate": 1590000,
+            "core_count": 40,
+            "memory_bandwidth": 320064000000,
+            "memory_size": 15637086208,
+            "compute_cap_major": 7,
+            "compute_cap_minor": 5
+          },
+          "streams": [
+            {
+              "id": 13,
+              "name": "Stream #13(MemcpyH2D,MemcpyD2D,Compute,Memset)",
+              "events": 6267
+            },
+            {
+              "id": 14,
+              "name": "Stream #14(MemcpyH2D)",
+              "events": 1542
+            },
+            {
+              "id": 15,
+              "name": "Stream #15(MemcpyD2H)",
+              "events": 774
+            }
+          ]
+        }
+      ],
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_event_totals_by_kind": {
+        "MemcpyD2D": {
+          "count": 1563,
+          "sum_gpu_duration_ms": 2.278957,
+          "union_gpu_duration_ms": 2.278957,
+          "median_event_duration_us": 1.312
+        },
+        "MemcpyD2H": {
+          "count": 774,
+          "sum_gpu_duration_ms": 0.97943,
+          "union_gpu_duration_ms": 0.97943,
+          "median_event_duration_us": 1.248
+        },
+        "MemcpyH2D": {
+          "count": 1545,
+          "sum_gpu_duration_ms": 0.694027,
+          "union_gpu_duration_ms": 0.694027,
+          "median_event_duration_us": 0.416
+        },
+        "compute_kernel": {
+          "count": 4695,
+          "sum_gpu_duration_ms": 36.438588,
+          "union_gpu_duration_ms": 36.438588,
+          "median_event_duration_us": 1.504
+        },
+        "memset": {
+          "count": 6,
+          "sum_gpu_duration_ms": 0.006848,
+          "union_gpu_duration_ms": 0.006848,
+          "median_event_duration_us": 1.104
+        }
+      },
+      "capture_summary": {
+        "profiled_host_steps_ms": 477.788729,
+        "recorded_gpu_activity_union_ms_within_steps": 40.356572,
+        "fraction_with_recorded_gpu_activity_within_steps": 0.08446530767786278,
+        "recorded_kernel_activity_union_ms_within_steps": 36.438588,
+        "recorded_memcpy_activity_union_ms_within_steps": 3.950078
+      },
+      "steps": [
+        {
+          "step_num": 0,
+          "profiled_host_step_ms": 136.996559,
+          "recorded_gpu_activity_union_ms": 13.444868,
+          "recorded_kernel_activity_union_ms": 12.141381,
+          "recorded_memcpy_activity_union_ms": 1.318206,
+          "forward_condition_copy_activity_union_ms": 0.557905,
+          "fraction_with_recorded_gpu_activity": 0.09814018759405482,
+          "fraction_without_recorded_gpu_activity": 0.9018598124059451,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 129.460082,
+            "gpu_activity_union_ms": 3.158629
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        },
+        {
+          "step_num": 1,
+          "profiled_host_step_ms": 186.649987,
+          "recorded_gpu_activity_union_ms": 13.455335,
+          "recorded_kernel_activity_union_ms": 12.152075,
+          "recorded_memcpy_activity_union_ms": 1.315835,
+          "forward_condition_copy_activity_union_ms": 0.556173,
+          "fraction_with_recorded_gpu_activity": 0.07208859328771343,
+          "fraction_without_recorded_gpu_activity": 0.9279114067122866,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 179.282429,
+            "gpu_activity_union_ms": 3.156075
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        },
+        {
+          "step_num": 2,
+          "profiled_host_step_ms": 154.142183,
+          "recorded_gpu_activity_union_ms": 13.456369,
+          "recorded_kernel_activity_union_ms": 12.145132,
+          "recorded_memcpy_activity_union_ms": 1.316037,
+          "forward_condition_copy_activity_union_ms": 0.553651,
+          "fraction_with_recorded_gpu_activity": 0.08729841979725952,
+          "fraction_without_recorded_gpu_activity": 0.9127015802027405,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 145.803196,
+            "gpu_activity_union_ms": 3.154708
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        }
+      ],
+      "forward_condition_copies": {
+        "count": 2313,
+        "sum_gpu_duration_ms": 1.667729,
+        "union_gpu_duration_ms": 1.667729,
+        "median_event_duration_us": 0.448,
+        "count_by_kind": {
+          "MemcpyH2D": 1542,
+          "MemcpyD2H": 771
+        },
+        "byte_sizes": {
+          "1": 2313
+        },
+        "total_bytes": 2313
+      },
+      "top_copy_ops_by_count": [
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less_1/_4:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.342167,
+          "union_gpu_duration_ms": 0.342167,
+          "median_event_duration_us": 0.416
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less/_2:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.350228,
+          "union_gpu_duration_ms": 0.350228,
+          "median_event_duration_us": 0.416
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd/_6:_HostRecv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.975334,
+          "union_gpu_duration_ms": 0.975334,
+          "median_event_duration_us": 1.248
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack_1/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.016714,
+          "union_gpu_duration_ms": 1.016714,
+          "median_event_duration_us": 1.312
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.017065,
+          "union_gpu_duration_ms": 1.017065,
+          "median_event_duration_us": 1.312
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/dynamic_multi_modal_fusion_1/concat:ConcatV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.013056,
+          "union_gpu_duration_ms": 0.013056,
+          "median_event_duration_us": 1.472
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/concat:ConcatV2",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.026303,
+          "union_gpu_duration_ms": 0.026303,
+          "median_event_duration_us": 4.3835
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/concat_1:ConcatV2",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.050207,
+          "union_gpu_duration_ms": 0.050207,
+          "median_event_duration_us": 8.3675
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/concat_2:ConcatV2",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.155612,
+          "union_gpu_duration_ms": 0.155612,
+          "median_event_duration_us": 25.872
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayV2Stack/TensorListStack:TensorListStack",
+          "count": 3,
+          "sum_gpu_duration_ms": 0.001632,
+          "union_gpu_duration_ms": 0.001632,
+          "median_event_duration_us": 0.544
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "",
+          "count": 3,
+          "sum_gpu_duration_ms": 0.004096,
+          "union_gpu_duration_ms": 0.004096,
+          "median_event_duration_us": 1.248
+        }
+      ],
+      "top_kernel_ops_by_sum_duration": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec3_1/conv2d_19_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 2.103116,
+          "union_gpu_duration_ms": 2.103116,
+          "median_event_duration_us": 348.1675
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec1_1/conv2d_15_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 2.102092,
+          "union_gpu_duration_ms": 2.102092,
+          "median_event_duration_us": 350.343
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec2_1/conv2d_17_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.817203,
+          "union_gpu_duration_ms": 1.817203,
+          "median_event_duration_us": 302.68
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec3_1/conv2d_20_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.423677,
+          "union_gpu_duration_ms": 1.423677,
+          "median_event_duration_us": 237.066
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_13_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.404478,
+          "union_gpu_duration_ms": 1.404478,
+          "median_event_duration_us": 234.298
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc1_1/conv2d_9_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.404221,
+          "union_gpu_duration_ms": 1.404221,
+          "median_event_duration_us": 229.5625
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec1_1/conv2d_16_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.401212,
+          "union_gpu_duration_ms": 1.401212,
+          "median_event_duration_us": 233.45
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec2_1/conv2d_18_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.219971,
+          "union_gpu_duration_ms": 1.219971,
+          "median_event_duration_us": 203.259
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_11_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.217602,
+          "union_gpu_duration_ms": 1.217602,
+          "median_event_duration_us": 202.763
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.164157,
+          "union_gpu_duration_ms": 1.164157,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.163984,
+          "union_gpu_duration_ms": 1.163984,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.163336,
+          "union_gpu_duration_ms": 1.163336,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/sub:Sub",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.157066,
+          "union_gpu_duration_ms": 1.157066,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd:LogicalAnd",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.113602,
+          "union_gpu_duration_ms": 1.113602,
+          "median_event_duration_us": 1.44
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_14_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 1.024903,
+          "union_gpu_duration_ms": 1.024903,
+          "median_event_duration_us": 170.4755
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_21_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.741645,
+          "union_gpu_duration_ms": 0.741645,
+          "median_event_duration_us": 122.733
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc1_1/conv2d_8_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.73275,
+          "union_gpu_duration_ms": 0.73275,
+          "median_event_duration_us": 121.837
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/optical_proj_1/conv2d_1_2/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.731757,
+          "union_gpu_duration_ms": 0.731757,
+          "median_event_duration_us": 121.485
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_12_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.707374,
+          "union_gpu_duration_ms": 0.707374,
+          "median_event_duration_us": 117.9165
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_10_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.634193,
+          "union_gpu_duration_ms": 0.634193,
+          "median_event_duration_us": 105.6455
+        }
+      ],
+      "top_kernel_ops_by_count": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd:LogicalAnd",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.113602,
+          "union_gpu_duration_ms": 1.113602,
+          "median_event_duration_us": 1.44
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.164157,
+          "union_gpu_duration_ms": 1.164157,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/sub:Sub",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.157066,
+          "union_gpu_duration_ms": 1.157066,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.163336,
+          "union_gpu_duration_ms": 1.163336,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.163984,
+          "union_gpu_duration_ms": 1.163984,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dynamic_multi_modal_fusion_1/sequential_1/dense_10_1/Softmax:Softmax",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.015712,
+          "union_gpu_duration_ms": 0.015712,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_transpose_1/conv_transpose:Conv2DBackpropInput",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.391222,
+          "union_gpu_duration_ms": 0.391222,
+          "median_event_duration_us": 27.424
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_transpose_1_2/conv_transpose:Conv2DBackpropInput",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.329624,
+          "union_gpu_duration_ms": 0.329624,
+          "median_event_duration_us": 10.399
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_transpose_2_1/conv_transpose:Conv2DBackpropInput",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.378743,
+          "union_gpu_duration_ms": 0.378743,
+          "median_event_duration_us": 18.848
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_22_1/Softmax:Softmax",
+          "count": 9,
+          "sum_gpu_duration_ms": 0.088221,
+          "union_gpu_duration_ms": 0.088221,
+          "median_event_duration_us": 11.488
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/elevation_proj_1/conv2d_3_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.062208,
+          "union_gpu_duration_ms": 0.062208,
+          "median_event_duration_us": 10.16
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/elevation_proj_1/conv2d_4_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 0.19974,
+          "union_gpu_duration_ms": 0.19974,
+          "median_event_duration_us": 33.119
+        }
+      ]
+    },
+    {
+      "name": "profile-inference-b8",
+      "mode": "inference",
+      "batch_size": 8,
+      "precision": "float32",
+      "trace_sha256": "56ba60663cd7eba8afb5cd5e1088d034cc0c96d7f741027e8fc3275bb42529d8",
+      "trace_bytes": 4059809,
+      "recorded_source_commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+      "runtime": {
+        "tensorflow_version": "2.21.0",
+        "python_version": "3.13.16",
+        "requested_device": "/GPU:0",
+        "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+        "gpu_details": [
+          {
+            "compute_capability": [
+              7,
+              5
+            ],
+            "device_name": "Tesla T4"
+          }
+        ],
+        "thread_environment": {
+          "TF_NUM_INTRAOP_THREADS": null,
+          "TF_NUM_INTEROP_THREADS": null,
+          "OMP_NUM_THREADS": null
+        }
+      },
+      "xspace_errors": [],
+      "xspace_warnings": [],
+      "gpu_planes": [
+        {
+          "name": "/device:GPU:0",
+          "stats": {
+            "device_vendor": "Nvidia",
+            "gpu_device_name": "Tesla T4",
+            "clock_rate": 1590000,
+            "core_count": 40,
+            "memory_bandwidth": 320064000000,
+            "memory_size": 15637086208,
+            "compute_cap_major": 7,
+            "compute_cap_minor": 5
+          },
+          "streams": [
+            {
+              "id": 13,
+              "name": "Stream #13(MemcpyH2D,Compute,MemcpyD2D)",
+              "events": 6408
+            },
+            {
+              "id": 14,
+              "name": "Stream #14(MemcpyH2D)",
+              "events": 1542
+            },
+            {
+              "id": 15,
+              "name": "Stream #15(MemcpyD2H)",
+              "events": 774
+            },
+            {
+              "id": 17,
+              "name": "Stream #17(Compute)",
+              "events": 117
+            },
+            {
+              "id": 18,
+              "name": "Stream #18(Compute)",
+              "events": 108
+            }
+          ]
+        }
+      ],
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_event_totals_by_kind": {
+        "MemcpyD2D": {
+          "count": 1536,
+          "sum_gpu_duration_ms": 2.656316,
+          "union_gpu_duration_ms": 2.656316,
+          "median_event_duration_us": 1.792
+        },
+        "MemcpyD2H": {
+          "count": 774,
+          "sum_gpu_duration_ms": 1.004166,
+          "union_gpu_duration_ms": 1.004166,
+          "median_event_duration_us": 1.248
+        },
+        "MemcpyH2D": {
+          "count": 1545,
+          "sum_gpu_duration_ms": 0.729419,
+          "union_gpu_duration_ms": 0.729419,
+          "median_event_duration_us": 0.416
+        },
+        "compute_kernel": {
+          "count": 5094,
+          "sum_gpu_duration_ms": 208.873551,
+          "union_gpu_duration_ms": 203.567354,
+          "median_event_duration_us": 1.568
+        }
+      },
+      "capture_summary": {
+        "profiled_host_steps_ms": 588.19145,
+        "recorded_gpu_activity_union_ms_within_steps": 207.92145,
+        "fraction_with_recorded_gpu_activity_within_steps": 0.3534928125867861,
+        "recorded_kernel_activity_union_ms_within_steps": 203.567354,
+        "recorded_memcpy_activity_union_ms_within_steps": 4.389901
+      },
+      "steps": [
+        {
+          "step_num": 0,
+          "profiled_host_step_ms": 202.284119,
+          "recorded_gpu_activity_union_ms": 65.292359,
+          "recorded_kernel_activity_union_ms": 64.018827,
+          "recorded_memcpy_activity_union_ms": 1.286075,
+          "forward_condition_copy_activity_union_ms": 0.549585,
+          "fraction_with_recorded_gpu_activity": 0.32277550666248794,
+          "fraction_without_recorded_gpu_activity": 0.677224493337512,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 175.251528,
+            "gpu_activity_union_ms": 3.210019
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        },
+        {
+          "step_num": 1,
+          "profiled_host_step_ms": 190.286993,
+          "recorded_gpu_activity_union_ms": 68.854422,
+          "recorded_kernel_activity_union_ms": 67.360154,
+          "recorded_memcpy_activity_union_ms": 1.50521,
+          "forward_condition_copy_activity_union_ms": 0.587537,
+          "fraction_with_recorded_gpu_activity": 0.36184513147464575,
+          "fraction_without_recorded_gpu_activity": 0.6381548685253542,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 163.455671,
+            "gpu_activity_union_ms": 3.631805
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        },
+        {
+          "step_num": 2,
+          "profiled_host_step_ms": 195.620338,
+          "recorded_gpu_activity_union_ms": 73.774669,
+          "recorded_kernel_activity_union_ms": 72.188373,
+          "recorded_memcpy_activity_union_ms": 1.598616,
+          "forward_condition_copy_activity_union_ms": 0.591023,
+          "fraction_with_recorded_gpu_activity": 0.3771318961732905,
+          "fraction_without_recorded_gpu_activity": 0.6228681038267094,
+          "scan_forward": {
+            "gpu_event_count": 2566,
+            "event_envelope_ms": 168.280699,
+            "gpu_activity_union_ms": 3.720697
+          },
+          "scan_backward": {
+            "gpu_event_count": 0,
+            "event_envelope_ms": null,
+            "gpu_activity_union_ms": 0.0
+          }
+        }
+      ],
+      "forward_condition_copies": {
+        "count": 2313,
+        "sum_gpu_duration_ms": 1.728145,
+        "union_gpu_duration_ms": 1.728145,
+        "median_event_duration_us": 0.512,
+        "count_by_kind": {
+          "MemcpyH2D": 1542,
+          "MemcpyD2H": 771
+        },
+        "byte_sizes": {
+          "1": 2313
+        },
+        "total_bytes": 2313
+      },
+      "top_copy_ops_by_count": [
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less_1/_4:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.36466,
+          "union_gpu_duration_ms": 0.36466,
+          "median_event_duration_us": 0.416
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less/_2:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.363319,
+          "union_gpu_duration_ms": 0.363319,
+          "median_event_duration_us": 0.416
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd/_6:_HostRecv",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.000166,
+          "union_gpu_duration_ms": 1.000166,
+          "median_event_duration_us": 1.248
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack_1/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.327328,
+          "union_gpu_duration_ms": 1.327328,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.328988,
+          "union_gpu_duration_ms": 1.328988,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayV2Stack/TensorListStack:TensorListStack",
+          "count": 3,
+          "sum_gpu_duration_ms": 0.00144,
+          "union_gpu_duration_ms": 0.00144,
+          "median_event_duration_us": 0.48
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "",
+          "count": 3,
+          "sum_gpu_duration_ms": 0.004,
+          "union_gpu_duration_ms": 0.004,
+          "median_event_duration_us": 1.248
+        }
+      ],
+      "top_kernel_ops_by_sum_duration": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec3_1/conv2d_19_1/Relu:_FusedConv2D",
+          "count": 231,
+          "sum_gpu_duration_ms": 20.623051,
+          "union_gpu_duration_ms": 15.316854,
+          "median_event_duration_us": 61.311
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec3_1/conv2d_20_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 9.248338,
+          "union_gpu_duration_ms": 9.248338,
+          "median_event_duration_us": 765.293
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc1_1/conv2d_9_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 9.167925,
+          "union_gpu_duration_ms": 9.167925,
+          "median_event_duration_us": 765.036
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec2_1/conv2d_17_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 6.966956,
+          "union_gpu_duration_ms": 6.966956,
+          "median_event_duration_us": 385.814
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_21_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 6.892878,
+          "union_gpu_duration_ms": 6.892878,
+          "median_event_duration_us": 384.918
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc1_1/conv2d_8_1/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 6.475448,
+          "union_gpu_duration_ms": 6.475448,
+          "median_event_duration_us": 830.9545
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/optical_proj_1/conv2d_1_2/Relu:_FusedConv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 6.395675,
+          "union_gpu_duration_ms": 6.395675,
+          "median_event_duration_us": 829.483
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_11_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 5.829578,
+          "union_gpu_duration_ms": 5.829578,
+          "median_event_duration_us": 385.238
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec1_1/conv2d_15_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 5.209785,
+          "union_gpu_duration_ms": 5.209785,
+          "median_event_duration_us": 194.971
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec2_1/conv2d_18_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 5.124155,
+          "union_gpu_duration_ms": 5.124155,
+          "median_event_duration_us": 385.814
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_13_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 4.573162,
+          "union_gpu_duration_ms": 4.573162,
+          "median_event_duration_us": 195.227
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/split:Split",
+          "count": 3,
+          "sum_gpu_duration_ms": 4.516012,
+          "union_gpu_duration_ms": 4.516012,
+          "median_event_duration_us": 1499.609
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 4.353297,
+          "union_gpu_duration_ms": 4.353297,
+          "median_event_duration_us": 688.815
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 4.352815,
+          "union_gpu_duration_ms": 4.352815,
+          "median_event_duration_us": 604.72
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 4.347888,
+          "union_gpu_duration_ms": 4.347888,
+          "median_event_duration_us": 603.985
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_10_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 3.748255,
+          "union_gpu_duration_ms": 3.748255,
+          "median_event_duration_us": 242.042
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec1_1/conv2d_16_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 3.716801,
+          "union_gpu_duration_ms": 3.716801,
+          "median_event_duration_us": 195.611
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_4_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 3.702529,
+          "union_gpu_duration_ms": 3.702529,
+          "median_event_duration_us": 516.082
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/separable_conv1d_1_1/separable_conv2d:Conv2D",
+          "count": 6,
+          "sum_gpu_duration_ms": 2.959316,
+          "union_gpu_duration_ms": 2.959316,
+          "median_event_duration_us": 418.3735
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_12_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 2.659037,
+          "union_gpu_duration_ms": 2.659037,
+          "median_event_duration_us": 112.541
+        }
+      ],
+      "top_kernel_ops_by_count": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd:LogicalAnd",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.175616,
+          "union_gpu_duration_ms": 1.175616,
+          "median_event_duration_us": 1.408
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.246975,
+          "union_gpu_duration_ms": 1.246975,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/sub:Sub",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.234425,
+          "union_gpu_duration_ms": 1.234425,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.244503,
+          "union_gpu_duration_ms": 1.244503,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.244638,
+          "union_gpu_duration_ms": 1.244638,
+          "median_event_duration_us": 1.504
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/dec3_1/conv2d_19_1/Relu:_FusedConv2D",
+          "count": 231,
+          "sum_gpu_duration_ms": 20.623051,
+          "union_gpu_duration_ms": 15.316854,
+          "median_event_duration_us": 61.311
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc1_1/conv2d_9_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 9.167925,
+          "union_gpu_duration_ms": 9.167925,
+          "median_event_duration_us": 765.036
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_10_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 3.748255,
+          "union_gpu_duration_ms": 3.748255,
+          "median_event_duration_us": 242.042
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc2_1/conv2d_11_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 5.829578,
+          "union_gpu_duration_ms": 5.829578,
+          "median_event_duration_us": 385.238
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_12_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 2.659037,
+          "union_gpu_duration_ms": 2.659037,
+          "median_event_duration_us": 112.541
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/enc3_1/conv2d_13_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 4.573162,
+          "union_gpu_duration_ms": 4.573162,
+          "median_event_duration_us": 195.227
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/conv2d_14_1/Relu:_FusedConv2D",
+          "count": 15,
+          "sum_gpu_duration_ms": 2.608252,
+          "union_gpu_duration_ms": 2.608252,
+          "median_event_duration_us": 99.005
+        }
+      ]
+    },
+    {
+      "name": "profile-training-b1",
+      "mode": "training",
+      "batch_size": 1,
+      "precision": "mixed_float16",
+      "trace_sha256": "3fef36d3229e4824e4a90af97113337df7672930175ba01c4f72b9317b9bfd4c",
+      "trace_bytes": 17510393,
+      "recorded_source_commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+      "runtime": {
+        "tensorflow_version": "2.21.0",
+        "python_version": "3.13.16",
+        "requested_device": "/GPU:0",
+        "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+        "gpu_details": [
+          {
+            "compute_capability": [
+              7,
+              5
+            ],
+            "device_name": "Tesla T4"
+          }
+        ],
+        "thread_environment": {
+          "TF_NUM_INTRAOP_THREADS": null,
+          "TF_NUM_INTEROP_THREADS": null,
+          "OMP_NUM_THREADS": null
+        }
+      },
+      "xspace_errors": [],
+      "xspace_warnings": [],
+      "gpu_planes": [
+        {
+          "name": "/device:GPU:0",
+          "stats": {
+            "device_vendor": "Nvidia",
+            "gpu_device_name": "Tesla T4",
+            "clock_rate": 1590000,
+            "core_count": 40,
+            "memory_bandwidth": 320064000000,
+            "memory_size": 15637086208,
+            "compute_cap_major": 7,
+            "compute_cap_minor": 5
+          },
+          "streams": [
+            {
+              "id": 13,
+              "name": "Stream #13(MemcpyD2D,Compute,Memset,MemcpyH2D)",
+              "events": 28794
+            },
+            {
+              "id": 15,
+              "name": "Stream #15(MemcpyD2H)",
+              "events": 4686
+            },
+            {
+              "id": 14,
+              "name": "Stream #14(MemcpyH2D)",
+              "events": 5508
+            }
+          ]
+        }
+      ],
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_event_totals_by_kind": {
+        "MemcpyD2D": {
+          "count": 2313,
+          "sum_gpu_duration_ms": 4.895397,
+          "union_gpu_duration_ms": 4.895397,
+          "median_event_duration_us": 2.112
+        },
+        "MemcpyD2H": {
+          "count": 4686,
+          "sum_gpu_duration_ms": 8.315916,
+          "union_gpu_duration_ms": 8.315916,
+          "median_event_duration_us": 1.792
+        },
+        "MemcpyH2D": {
+          "count": 5523,
+          "sum_gpu_duration_ms": 3.809259,
+          "union_gpu_duration_ms": 3.809259,
+          "median_event_duration_us": 0.672
+        },
+        "compute_kernel": {
+          "count": 26217,
+          "sum_gpu_duration_ms": 168.873885,
+          "union_gpu_duration_ms": 168.873885,
+          "median_event_duration_us": 2.752
+        },
+        "memset": {
+          "count": 249,
+          "sum_gpu_duration_ms": 0.425331,
+          "union_gpu_duration_ms": 0.425331,
+          "median_event_duration_us": 1.344
+        }
+      },
+      "capture_summary": {
+        "profiled_host_steps_ms": 1295.277251,
+        "recorded_gpu_activity_union_ms_within_steps": 185.970223,
+        "fraction_with_recorded_gpu_activity_within_steps": 0.14357561121097773,
+        "recorded_kernel_activity_union_ms_within_steps": 168.873885,
+        "recorded_memcpy_activity_union_ms_within_steps": 17.009596000000002
+      },
+      "steps": [
+        {
+          "step_num": 0,
+          "profiled_host_step_ms": 410.976019,
+          "recorded_gpu_activity_union_ms": 58.549736,
+          "recorded_kernel_activity_union_ms": 53.044563,
+          "recorded_memcpy_activity_union_ms": 5.483319,
+          "forward_condition_copy_activity_union_ms": 0.736202,
+          "fraction_with_recorded_gpu_activity": 0.1424650911322395,
+          "fraction_without_recorded_gpu_activity": 0.8575349088677605,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 192.832199,
+            "gpu_activity_union_ms": 4.783034
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 326.31292,
+            "gpu_activity_union_ms": 9.200363
+          }
+        },
+        {
+          "step_num": 1,
+          "profiled_host_step_ms": 422.655606,
+          "recorded_gpu_activity_union_ms": 61.993314,
+          "recorded_kernel_activity_union_ms": 56.240714,
+          "recorded_memcpy_activity_union_ms": 5.737053,
+          "forward_condition_copy_activity_union_ms": 0.775786,
+          "fraction_with_recorded_gpu_activity": 0.14667571687195366,
+          "fraction_without_recorded_gpu_activity": 0.8533242831280463,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 211.804131,
+            "gpu_activity_union_ms": 5.13093
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 336.004545,
+            "gpu_activity_union_ms": 9.647893
+          }
+        },
+        {
+          "step_num": 2,
+          "profiled_host_step_ms": 461.645626,
+          "recorded_gpu_activity_union_ms": 65.427173,
+          "recorded_kernel_activity_union_ms": 59.588608,
+          "recorded_memcpy_activity_union_ms": 5.789224,
+          "forward_condition_copy_activity_union_ms": 0.774569,
+          "fraction_with_recorded_gpu_activity": 0.14172596752817496,
+          "fraction_without_recorded_gpu_activity": 0.858274032471825,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 239.017261,
+            "gpu_activity_union_ms": 5.367184
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 370.800041,
+            "gpu_activity_union_ms": 10.146908
+          }
+        }
+      ],
+      "forward_condition_copies": {
+        "count": 2313,
+        "sum_gpu_duration_ms": 2.286557,
+        "union_gpu_duration_ms": 2.286557,
+        "median_event_duration_us": 0.672,
+        "count_by_kind": {
+          "MemcpyD2H": 771,
+          "MemcpyH2D": 1542
+        },
+        "byte_sizes": {
+          "1": 2313
+        },
+        "total_bytes": 2313
+      },
+      "top_copy_ops_by_count": [
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd/_132:_HostRecv",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.241305,
+          "union_gpu_duration_ms": 1.241305,
+          "median_event_duration_us": 1.6
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less_1/_46:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.522321,
+          "union_gpu_duration_ms": 0.522321,
+          "median_event_duration_us": 0.672
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less/_44:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.522931,
+          "union_gpu_duration_ms": 0.522931,
+          "median_event_duration_us": 0.672
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack_1/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.617362,
+          "union_gpu_duration_ms": 1.617362,
+          "median_event_duration_us": 2.112
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.613179,
+          "union_gpu_duration_ms": 1.613179,
+          "median_event_duration_us": 2.112
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayV2Stack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.644472,
+          "union_gpu_duration_ms": 1.644472,
+          "median_event_duration_us": 2.144
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read/TensorListGetItem_grad/TensorListReserve/TensorListPopBack_1/_138:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.386591,
+          "union_gpu_duration_ms": 1.386591,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read_1/TensorListGetItem_grad/TensorListReserve/TensorListPopBack/_140:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.387776,
+          "union_gpu_duration_ms": 1.387776,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read_1/TensorListGetItem_grad/TensorListReserve/TensorListPopBack_1/_142:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.386428,
+          "union_gpu_duration_ms": 1.386428,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Write/TensorListSetItem_grad/TensorListSetItem/TensorListPopBack/_152:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.388185,
+          "union_gpu_duration_ms": 1.388185,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read/TensorListGetItem_grad/TensorListReserve/TensorListPopBack/_136:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.389859,
+          "union_gpu_duration_ms": 1.389859,
+          "median_event_duration_us": 1.792
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "Func/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/input/_634/_134:_Recv",
+          "count": 768,
+          "sum_gpu_duration_ms": 0.525873,
+          "union_gpu_duration_ms": 0.525873,
+          "median_event_duration_us": 0.672
+        }
+      ],
+      "top_kernel_ops_by_sum_duration": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_4_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 8.083953,
+          "union_gpu_duration_ms": 8.083953,
+          "median_event_duration_us": 2698.075
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul/MatMul:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.808376,
+          "union_gpu_duration_ms": 2.808376,
+          "median_event_duration_us": 937.224
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul/MatMul:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.807704,
+          "union_gpu_duration_ms": 2.807704,
+          "median_event_duration_us": 937.224
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.638845,
+          "union_gpu_duration_ms": 2.638845,
+          "median_event_duration_us": 880.938
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.621406,
+          "union_gpu_duration_ms": 2.621406,
+          "median_event_duration_us": 875.21
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.621308,
+          "union_gpu_duration_ms": 2.621308,
+          "median_event_duration_us": 875.145
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN_3:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.217359,
+          "union_gpu_duration_ms": 2.217359,
+          "median_event_duration_us": 2.848
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN_2:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.21658,
+          "union_gpu_duration_ms": 2.21658,
+          "median_event_duration_us": 2.848
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.07093,
+          "union_gpu_duration_ms": 2.07093,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN_1:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.070161,
+          "union_gpu_duration_ms": 2.070161,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.058946,
+          "union_gpu_duration_ms": 2.058946,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.057227,
+          "union_gpu_duration_ms": 2.057227,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.056562,
+          "union_gpu_duration_ms": 2.056562,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.055563,
+          "union_gpu_duration_ms": 2.055563,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/separable_conv1d_1/separable_conv2d/DepthwiseConv2dNativeBackpropFilter:DepthwiseConv2dNativeBackpropFilter",
+          "count": 12,
+          "sum_gpu_duration_ms": 2.027276,
+          "union_gpu_duration_ms": 2.027276,
+          "median_event_duration_us": 38.575
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.917401,
+          "union_gpu_duration_ms": 1.917401,
+          "median_event_duration_us": 2.496
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like_1:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.917242,
+          "union_gpu_duration_ms": 1.917242,
+          "median_event_duration_us": 2.496
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.868756,
+          "union_gpu_duration_ms": 1.868756,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.866482,
+          "union_gpu_duration_ms": 1.866482,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.861533,
+          "union_gpu_duration_ms": 1.861533,
+          "median_event_duration_us": 2.432
+        }
+      ],
+      "top_kernel_ops_by_count": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd:LogicalAnd",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.780783,
+          "union_gpu_duration_ms": 1.780783,
+          "median_event_duration_us": 2.304
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.868756,
+          "union_gpu_duration_ms": 1.868756,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/sub:Sub",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.857583,
+          "union_gpu_duration_ms": 1.857583,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.866482,
+          "union_gpu_duration_ms": 1.866482,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.861533,
+          "union_gpu_duration_ms": 1.861533,
+          "median_event_duration_us": 2.432
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.917401,
+          "union_gpu_duration_ms": 1.917401,
+          "median_event_duration_us": 2.496
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like_1:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.917242,
+          "union_gpu_duration_ms": 1.917242,
+          "median_event_duration_us": 2.496
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.07093,
+          "union_gpu_duration_ms": 2.07093,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.057227,
+          "union_gpu_duration_ms": 2.057227,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.058946,
+          "union_gpu_duration_ms": 2.058946,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.055563,
+          "union_gpu_duration_ms": 2.055563,
+          "median_event_duration_us": 2.656
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 2.056562,
+          "union_gpu_duration_ms": 2.056562,
+          "median_event_duration_us": 2.656
+        }
+      ]
+    },
+    {
+      "name": "profile-training-b8",
+      "mode": "training",
+      "batch_size": 8,
+      "precision": "mixed_float16",
+      "trace_sha256": "00c3d231837ccaef3259c3229a4f34ae6989ac23e7ac97fa51fd4f8dcbaca305",
+      "trace_bytes": 18058225,
+      "recorded_source_commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+      "runtime": {
+        "tensorflow_version": "2.21.0",
+        "python_version": "3.13.16",
+        "requested_device": "/GPU:0",
+        "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+        "gpu_details": [
+          {
+            "compute_capability": [
+              7,
+              5
+            ],
+            "device_name": "Tesla T4"
+          }
+        ],
+        "thread_environment": {
+          "TF_NUM_INTRAOP_THREADS": null,
+          "TF_NUM_INTEROP_THREADS": null,
+          "OMP_NUM_THREADS": null
+        }
+      },
+      "xspace_errors": [],
+      "xspace_warnings": [],
+      "gpu_planes": [
+        {
+          "name": "/device:GPU:0",
+          "stats": {
+            "device_vendor": "Nvidia",
+            "gpu_device_name": "Tesla T4",
+            "clock_rate": 1590000,
+            "core_count": 40,
+            "memory_bandwidth": 320064000000,
+            "memory_size": 15637086208,
+            "compute_cap_major": 7,
+            "compute_cap_minor": 5
+          },
+          "streams": [
+            {
+              "id": 13,
+              "name": "Stream #13(MemcpyD2D,Compute,MemcpyH2D,Memset)",
+              "events": 28995
+            },
+            {
+              "id": 15,
+              "name": "Stream #15(MemcpyD2H)",
+              "events": 4686
+            },
+            {
+              "id": 14,
+              "name": "Stream #14(MemcpyH2D)",
+              "events": 5508
+            }
+          ]
+        }
+      ],
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_event_totals_by_kind": {
+        "MemcpyD2D": {
+          "count": 2304,
+          "sum_gpu_duration_ms": 3.047437,
+          "union_gpu_duration_ms": 3.047437,
+          "median_event_duration_us": 1.312
+        },
+        "MemcpyD2H": {
+          "count": 4686,
+          "sum_gpu_duration_ms": 6.530662,
+          "union_gpu_duration_ms": 6.530662,
+          "median_event_duration_us": 1.344
+        },
+        "MemcpyH2D": {
+          "count": 5523,
+          "sum_gpu_duration_ms": 2.403871,
+          "union_gpu_duration_ms": 2.403871,
+          "median_event_duration_us": 0.384
+        },
+        "compute_kernel": {
+          "count": 26427,
+          "sum_gpu_duration_ms": 460.551857,
+          "union_gpu_duration_ms": 460.551857,
+          "median_event_duration_us": 1.632
+        },
+        "memset": {
+          "count": 249,
+          "sum_gpu_duration_ms": 0.570196,
+          "union_gpu_duration_ms": 0.570196,
+          "median_event_duration_us": 1.056
+        }
+      },
+      "capture_summary": {
+        "profiled_host_steps_ms": 1609.836571,
+        "recorded_gpu_activity_union_ms_within_steps": 472.44010000000003,
+        "fraction_with_recorded_gpu_activity_within_steps": 0.2934708457433845,
+        "recorded_kernel_activity_union_ms_within_steps": 460.55185700000004,
+        "recorded_memcpy_activity_union_ms_within_steps": 11.968722
+      },
+      "steps": [
+        {
+          "step_num": 0,
+          "profiled_host_step_ms": 499.913933,
+          "recorded_gpu_activity_union_ms": 157.610589,
+          "recorded_kernel_activity_union_ms": 153.686729,
+          "recorded_memcpy_activity_union_ms": 3.97935,
+          "forward_condition_copy_activity_union_ms": 0.519635,
+          "fraction_with_recorded_gpu_activity": 0.3152754476239013,
+          "fraction_without_recorded_gpu_activity": 0.6847245523760987,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 215.63716,
+            "gpu_activity_union_ms": 3.048458
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 329.298527,
+            "gpu_activity_union_ms": 6.115216
+          }
+        },
+        {
+          "step_num": 1,
+          "profiled_host_step_ms": 590.583153,
+          "recorded_gpu_activity_union_ms": 157.812553,
+          "recorded_kernel_activity_union_ms": 153.810398,
+          "recorded_memcpy_activity_union_ms": 3.975658,
+          "forward_condition_copy_activity_union_ms": 0.528752,
+          "fraction_with_recorded_gpu_activity": 0.26721478965045925,
+          "fraction_without_recorded_gpu_activity": 0.7327852103495407,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 249.882258,
+            "gpu_activity_union_ms": 3.086404
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 416.092519,
+            "gpu_activity_union_ms": 6.04307
+          }
+        },
+        {
+          "step_num": 2,
+          "profiled_host_step_ms": 519.339485,
+          "recorded_gpu_activity_union_ms": 157.016958,
+          "recorded_kernel_activity_union_ms": 153.05473,
+          "recorded_memcpy_activity_union_ms": 4.013714,
+          "forward_condition_copy_activity_union_ms": 0.526355,
+          "fraction_with_recorded_gpu_activity": 0.30233972677814014,
+          "fraction_without_recorded_gpu_activity": 0.6976602732218599,
+          "scan_forward": {
+            "gpu_event_count": 2822,
+            "event_envelope_ms": 225.533374,
+            "gpu_activity_union_ms": 3.078496
+          },
+          "scan_backward": {
+            "gpu_event_count": 4868,
+            "event_envelope_ms": 354.582329,
+            "gpu_activity_union_ms": 6.294706
+          }
+        }
+      ],
+      "forward_condition_copies": {
+        "count": 2313,
+        "sum_gpu_duration_ms": 1.574742,
+        "union_gpu_duration_ms": 1.574742,
+        "median_event_duration_us": 0.416,
+        "count_by_kind": {
+          "MemcpyD2H": 771,
+          "MemcpyH2D": 1542
+        },
+        "byte_sizes": {
+          "1": 2313
+        },
+        "total_bytes": 2313
+      },
+      "top_copy_ops_by_count": [
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd/_132:_HostRecv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.942054,
+          "union_gpu_duration_ms": 0.942054,
+          "median_event_duration_us": 1.184
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less_1/_46:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.31567,
+          "union_gpu_duration_ms": 0.31567,
+          "median_event_duration_us": 0.384
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/Less/_44:_Recv",
+          "count": 771,
+          "sum_gpu_duration_ms": 0.317018,
+          "union_gpu_duration_ms": 0.317018,
+          "median_event_duration_us": 0.384
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack_1/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 0.988322,
+          "union_gpu_duration_ms": 0.988322,
+          "median_event_duration_us": 1.28
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayUnstack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 0.98756,
+          "union_gpu_duration_ms": 0.98756,
+          "median_event_duration_us": 1.28
+        },
+        {
+          "kind": "MemcpyD2D",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/TensorArrayV2Stack/TensorListFromTensor:TensorListFromTensor",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.071555,
+          "union_gpu_duration_ms": 1.071555,
+          "median_event_duration_us": 1.408
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Write/TensorListSetItem_grad/TensorListSetItem/TensorListPopBack/_152:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.099111,
+          "union_gpu_duration_ms": 1.099111,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read/TensorListGetItem_grad/TensorListReserve/TensorListPopBack/_136:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.109525,
+          "union_gpu_duration_ms": 1.109525,
+          "median_event_duration_us": 1.375
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read/TensorListGetItem_grad/TensorListReserve/TensorListPopBack_1/_138:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.104477,
+          "union_gpu_duration_ms": 1.104477,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read_1/TensorListGetItem_grad/TensorListReserve/TensorListPopBack_1/_142:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.089502,
+          "union_gpu_duration_ms": 1.089502,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "MemcpyD2H",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/TensorArrayV2Read_1/TensorListGetItem_grad/TensorListReserve/TensorListPopBack/_140:_HostRecv",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.081452,
+          "union_gpu_duration_ms": 1.081452,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "MemcpyH2D",
+          "tf_op": "Func/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/input/_634/_134:_Recv",
+          "count": 768,
+          "sum_gpu_duration_ms": 0.309815,
+          "union_gpu_duration_ms": 0.309815,
+          "median_event_duration_us": 0.384
+        }
+      ],
+      "top_kernel_ops_by_sum_duration": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_4_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 42.218004,
+          "union_gpu_duration_ms": 42.218004,
+          "median_event_duration_us": 6811.721
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 14.429311,
+          "union_gpu_duration_ms": 14.429311,
+          "median_event_duration_us": 2394.304
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 13.949195,
+          "union_gpu_duration_ms": 13.949195,
+          "median_event_duration_us": 2315.554
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 13.520661,
+          "union_gpu_duration_ms": 13.520661,
+          "median_event_duration_us": 2245.7
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 13.431767,
+          "union_gpu_duration_ms": 13.431767,
+          "median_event_duration_us": 2225.796
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/separable_conv1d_1/separable_conv2d/DepthwiseConv2dNativeBackpropFilter:DepthwiseConv2dNativeBackpropFilter",
+          "count": 12,
+          "sum_gpu_duration_ms": 12.683949,
+          "union_gpu_duration_ms": 12.683949,
+          "median_event_duration_us": 352.182
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 11.329968,
+          "union_gpu_duration_ms": 11.329968,
+          "median_event_duration_us": 1851.086
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1/MatMul/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 8.760853,
+          "union_gpu_duration_ms": 8.760853,
+          "median_event_duration_us": 1449.849
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_4_1/MatMul/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 5.687752,
+          "union_gpu_duration_ms": 5.687752,
+          "median_event_duration_us": 932.487
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/enc1_1/max_pooling2d_1/MaxPool2d/MaxPoolGrad:MaxPoolGrad",
+          "count": 6,
+          "sum_gpu_duration_ms": 4.847294,
+          "union_gpu_duration_ms": 4.847294,
+          "median_event_duration_us": 805.482
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 3.845431,
+          "union_gpu_duration_ms": 3.845431,
+          "median_event_duration_us": 637.423
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_1_2/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 3.600863,
+          "union_gpu_duration_ms": 3.600863,
+          "median_event_duration_us": 596.528
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_2_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 3.59952,
+          "union_gpu_duration_ms": 3.59952,
+          "median_event_duration_us": 597.616
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_5_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 2.987216,
+          "union_gpu_duration_ms": 2.987216,
+          "median_event_duration_us": 485.267
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/separable_conv1d_1/BiasAdd/BiasAddGrad:BiasAddGrad",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.912721,
+          "union_gpu_duration_ms": 2.912721,
+          "median_event_duration_us": 968.39
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_3_1/MatMul/MatMul_1:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 2.864499,
+          "union_gpu_duration_ms": 2.864499,
+          "median_event_duration_us": 463.091
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/split:Split",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.747319,
+          "union_gpu_duration_ms": 2.747319,
+          "median_event_duration_us": 910.056
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1/dense_4_1/MatMul:BatchMatMulV2",
+          "count": 9,
+          "sum_gpu_duration_ms": 2.734934,
+          "union_gpu_duration_ms": 2.734934,
+          "median_event_duration_us": 448.756
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/dense_1/BiasAdd/BiasAddGrad:BiasAddGrad",
+          "count": 3,
+          "sum_gpu_duration_ms": 2.666328,
+          "union_gpu_duration_ms": 2.666328,
+          "median_event_duration_us": 887.368
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1/concat:ConcatV2",
+          "count": 6,
+          "sum_gpu_duration_ms": 2.600763,
+          "union_gpu_duration_ms": 2.600763,
+          "median_event_duration_us": 432.085
+        }
+      ],
+      "top_kernel_ops_by_count": [
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/cond/_0/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/LogicalAnd:LogicalAnd",
+          "count": 771,
+          "sum_gpu_duration_ms": 1.018849,
+          "union_gpu_duration_ms": 1.018849,
+          "median_event_duration_us": 1.28
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.082189,
+          "union_gpu_duration_ms": 1.082189,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/sub:Sub",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.069929,
+          "union_gpu_duration_ms": 1.069929,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.079487,
+          "union_gpu_duration_ms": 1.079487,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "mamba_forest_segmenter_1/mamba_block_1_2/scan/while/body/_1/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/add:AddV2",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.078818,
+          "union_gpu_duration_ms": 1.078818,
+          "median_event_duration_us": 1.376
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.025474,
+          "union_gpu_duration_ms": 1.025474,
+          "median_event_duration_us": 1.344
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "zeros_like_1:ZerosLike",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.023137,
+          "union_gpu_duration_ms": 1.023137,
+          "median_event_duration_us": 1.343
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/AddN:AddN",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.160413,
+          "union_gpu_duration_ms": 1.160413,
+          "median_event_duration_us": 1.472
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.211138,
+          "union_gpu_duration_ms": 1.211138,
+          "median_event_duration_us": 1.536
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.214496,
+          "union_gpu_duration_ms": 1.214496,
+          "median_event_duration_us": 1.536
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.213031,
+          "union_gpu_duration_ms": 1.213031,
+          "median_event_duration_us": 1.536
+        },
+        {
+          "kind": "compute_kernel",
+          "tf_op": "gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mamba_forest_segmenter_1/mamba_block_1_2/scan/while_grad/body/_86/gradient_tape/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/gradients/mamba_forest_segmenter_1/mamba_block_1_2/scan/while/mul_1_grad/Mul_1:Mul",
+          "count": 768,
+          "sum_gpu_duration_ms": 1.211308,
+          "union_gpu_duration_ms": 1.211308,
+          "median_event_duration_us": 1.536
+        }
+      ]
+    }
+  ]
+}

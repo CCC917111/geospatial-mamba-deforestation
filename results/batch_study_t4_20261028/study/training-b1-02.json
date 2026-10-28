@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "phase": "measure",
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.13.16",
+    "requested_device": "/GPU:0",
+    "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "gpu_details": [
+      {
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_name": "Tesla T4"
+      }
+    ],
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "OMP_NUM_THREADS": null
+    }
+  },
+  "source": {
+    "package_directory": "/content/geospatial-batch-study/source-20261028T181821Z-3a259325/src/mamba_forest",
+    "module_sha256": {
+      "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+      "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+      "train.py": "40b70d66bd8799b8ae4551624dc90f0b0ec127a9bb0a3108e921079a6cde9b80",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+    "worktree_status": ""
+  },
+  "mode": "training",
+  "precision": "mixed_float16",
+  "model_config": {
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_ssm"
+  },
+  "parameters": 7732800,
+  "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+  "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+  "forward_agreement": {
+    "passed": true,
+    "rtol": 0.005,
+    "atol": 0.0005,
+    "max_absolute_error": 0.0,
+    "argmax_agreement": 1.0
+  },
+  "batch_size": 1,
+  "input_shapes": {
+    "s2": [
+      1,
+      4,
+      128,
+      128,
+      10
+    ],
+    "elevation": [
+      1,
+      128,
+      128,
+      3
+    ],
+    "climate": [
+      1,
+      4,
+      14
+    ],
+    "labels": [
+      1,
+      128,
+      128
+    ]
+  },
+  "batch_replication": {
+    "kind": "repeat_single_fixture_tile",
+    "repeat_count": 1,
+    "fixture_batch_size": 1
+  },
+  "warmup_steps": 5,
+  "warmup_optimizer_updates": 5,
+  "steps": 30,
+  "latencies_seconds": [
+    0.2439641369999208,
+    0.2548936050000066,
+    0.25086260600005517,
+    0.2365753209999184,
+    0.24168594499997198,
+    0.3019626719999451,
+    0.23878297300007034,
+    0.24062819999994645,
+    0.24898646099995858,
+    0.24703231199987385,
+    0.27348555800017493,
+    0.24433066100004908,
+    0.23646819200007485,
+    0.24122001700015971,
+    0.28079796199995144,
+    0.24529072799987262,
+    0.2523305770000661,
+    0.25516993799988086,
+    0.2864728950000881,
+    0.2511713439998857,
+    0.25076109900010124,
+    0.25691210300010425,
+    0.272307273000024,
+    0.25369464899995364,
+    0.24919585599991478,
+    0.2630655680000018,
+    0.2818677430000207,
+    0.24411937300010322,
+    0.26171836299999995,
+    0.2578710539999065
+  ],
+  "median_seconds": 0.25101697499997044,
+  "p95_seconds": 0.28440057660005774,
+  "tiles_per_second": 3.9145964573944645,
+  "optimizer_updates": 30,
+  "training_loss_samples": [
+    1.7037065029144287,
+    1.701521635055542,
+    1.6947847604751587,
+    1.6969387531280518,
+    1.6933097839355469,
+    1.6898505687713623,
+    1.6911089420318604,
+    1.6892642974853516,
+    1.687809944152832,
+    1.6886130571365356,
+    1.6864205598831177,
+    1.6891913414001465,
+    1.6834063529968262,
+    1.683893084526062,
+    1.6852010488510132,
+    1.684072494506836,
+    1.6858086585998535,
+    1.683591365814209,
+    1.6818807125091553,
+    1.6837272644042969,
+    1.6835367679595947,
+    1.6820075511932373,
+    1.6819941997528076,
+    1.6822700500488281,
+    1.6824662685394287,
+    1.679720401763916,
+    1.680759072303772,
+    1.6829049587249756,
+    1.6818569898605347,
+    1.6798720359802246
+  ],
+  "memory": {
+    "status": "available",
+    "starting_current_bytes": 113325056,
+    "ending_current_bytes": 113325056,
+    "peak_bytes": 252894464,
+    "peak_above_starting_current_bytes": 139569408
+  },
+  "scope": "Synthetic compute and scalar synchronization, one model per process; excludes imports, tracing, data IO, preprocessing, loading and exports. Memory is TensorFlow allocator usage, not total GPU VRAM. Dropout draws may differ between equivalent output selections. No accuracy or semantic class claim."
+}

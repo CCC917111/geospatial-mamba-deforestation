@@ -4,9 +4,16 @@
 
 The completed [T4 source comparison](../results/performance_t4_20261026/README.md)
 found lower TensorFlow allocator peaks without a stable latency gain at batch
-one. This next study measures batch capacity and captures execution traces
-before selecting further optimizations. Its GPU execution is pending; CPU
-integration checks verify the workflow and real CPU trace export/restore.
+one. The subsequent [T4 batch study](../results/batch_study_t4_20261028/README.md)
+completed all 29 stages and four real GPU captures. Batch eight reached
+48.82 inference tiles/s and 22.61 training tiles/s, or 4.80× and 5.82× batch-one
+throughput, on the repeated synthetic fixture. The evidence supports batch
+capacity; it does not establish production file-to-file gains or convergence.
+
+The recorded traces show many spatial-scan control transfers. Their GPU
+transfer durations are short, and the benchmark's explicit GPU placement may
+affect loop-condition placement. Use the retained analysis to plan a controlled
+production-placement comparison before attributing a deployment bottleneck.
 
 ## Run on Colab
 

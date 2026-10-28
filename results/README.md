@@ -124,6 +124,12 @@ evaluation. These experiments have not run in the current CPU environment.
 
 ## Retained compute measurements
 
+- [`batch_study_t4_20261028/`](batch_study_t4_20261028/README.md): completed
+  batch 1/2/4/8 capacity study with 24 timing processes and four real GPU
+  traces. Batch-eight throughput was 48.82 inference / 22.61 training tiles/s,
+  or 4.80× / 5.82× batch one on the repeated synthetic fixture. All rounds
+  improved. Raw reports and reproducible trace analysis are retained; IO,
+  convergence and production automatic-placement speed are separate questions.
 - [`performance_t4_20261026/`](performance_t4_20261026/README.md): completed
   Tesla T4 baseline/candidate comparison with shared inputs/weights, three
   alternating rounds, float32 inference and mixed-float16 training. No stable

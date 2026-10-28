@@ -1,0 +1,737 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "model_parameters": 7732800,
+  "summary": {
+    "inference": {
+      "batches": [
+        {
+          "median_seconds": 0.09433590399999048,
+          "p95_seconds": 0.1182327362000251,
+          "samples": 90,
+          "tiles_per_second": 10.17947363689468,
+          "round_medians_seconds": [
+            0.09519250200000329,
+            0.09559707149998076,
+            0.0907490995000444
+          ],
+          "round_tiles_per_second": [
+            9.64622623171702,
+            10.169542093901942,
+            10.786277389848001
+          ],
+          "batch_size": 1,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.09433590399999048,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 40409088,
+              "ending_current_bytes": 40409088,
+              "peak_bytes": 67280384,
+              "peak_above_starting_current_bytes": 26871296
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 40409088,
+              "ending_current_bytes": 40409088,
+              "peak_bytes": 67280384,
+              "peak_above_starting_current_bytes": 26871296
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 40409088,
+              "ending_current_bytes": 40409088,
+              "peak_bytes": 67280384,
+              "peak_above_starting_current_bytes": 26871296
+            }
+          ],
+          "median_allocator_peak_bytes": 67280384,
+          "throughput_ratio_to_batch_one": 1.0
+        },
+        {
+          "median_seconds": 0.09992936500000837,
+          "p95_seconds": 0.12419410070000367,
+          "samples": 90,
+          "tiles_per_second": 19.4165229088988,
+          "round_medians_seconds": [
+            0.10171778449998214,
+            0.09844456600001195,
+            0.09952536800000189
+          ],
+          "round_tiles_per_second": [
+            18.56797487549242,
+            20.4620558870708,
+            19.312301415890374
+          ],
+          "batch_size": 2,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.04996468250000419,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 45512960,
+              "ending_current_bytes": 45512960,
+              "peak_bytes": 97517312,
+              "peak_above_starting_current_bytes": 52004352
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 45512960,
+              "ending_current_bytes": 45512960,
+              "peak_bytes": 97517312,
+              "peak_above_starting_current_bytes": 52004352
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 45512960,
+              "ending_current_bytes": 45512960,
+              "peak_bytes": 97517312,
+              "peak_above_starting_current_bytes": 52004352
+            }
+          ],
+          "median_allocator_peak_bytes": 97517312,
+          "throughput_ratio_to_batch_one": 1.9074191457724472
+        },
+        {
+          "median_seconds": 0.12968248350000522,
+          "p95_seconds": 0.14858125145002532,
+          "samples": 90,
+          "tiles_per_second": 30.981258342932065,
+          "round_medians_seconds": [
+            0.11801023499998564,
+            0.13284925450000173,
+            0.13433383399990362
+          ],
+          "round_tiles_per_second": [
+            34.0362685610605,
+            30.250576163002894,
+            29.07391713782147
+          ],
+          "batch_size": 4,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.032420620875001305,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 61696000,
+              "ending_current_bytes": 61696000,
+              "peak_bytes": 174944512,
+              "peak_above_starting_current_bytes": 113248512
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 61696000,
+              "ending_current_bytes": 61696000,
+              "peak_bytes": 185430272,
+              "peak_above_starting_current_bytes": 123734272
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 61696000,
+              "ending_current_bytes": 61696000,
+              "peak_bytes": 185430272,
+              "peak_above_starting_current_bytes": 123734272
+            }
+          ],
+          "median_allocator_peak_bytes": 185430272,
+          "throughput_ratio_to_batch_one": 3.043502979431372
+        },
+        {
+          "median_seconds": 0.16325727849999794,
+          "p95_seconds": 0.18637438250006538,
+          "samples": 90,
+          "tiles_per_second": 48.81600696986035,
+          "round_medians_seconds": [
+            0.14971751150000046,
+            0.1631701194999664,
+            0.17405290699991838
+          ],
+          "round_tiles_per_second": [
+            53.367017539325836,
+            48.242579096374286,
+            45.47829805471096
+          ],
+          "batch_size": 8,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.020407159812499742,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 79054592,
+              "ending_current_bytes": 79054592,
+              "peak_bytes": 467503616,
+              "peak_above_starting_current_bytes": 388449024
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 79054592,
+              "ending_current_bytes": 79054592,
+              "peak_bytes": 467503360,
+              "peak_above_starting_current_bytes": 388448768
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 79054592,
+              "ending_current_bytes": 79054592,
+              "peak_bytes": 467503360,
+              "peak_above_starting_current_bytes": 388448768
+            }
+          ],
+          "median_allocator_peak_bytes": 467503360,
+          "throughput_ratio_to_batch_one": 4.795533512944193
+        }
+      ],
+      "highest_observed_throughput_batch": 8
+    },
+    "training": {
+      "batches": [
+        {
+          "median_seconds": 0.2551120619999665,
+          "p95_seconds": 0.2782619703499563,
+          "samples": 90,
+          "tiles_per_second": 3.88559561948592,
+          "round_medians_seconds": [
+            0.2550450220000471,
+            0.2570182229999318,
+            0.25101697499997044
+          ],
+          "round_tiles_per_second": [
+            3.8647114263995967,
+            3.8778222606217496,
+            3.9145964573944645
+          ],
+          "batch_size": 1,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.2551120619999665,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 106439168,
+              "ending_current_bytes": 106439168,
+              "peak_bytes": 247195648,
+              "peak_above_starting_current_bytes": 140756480
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 109239808,
+              "ending_current_bytes": 109239808,
+              "peak_bytes": 250240256,
+              "peak_above_starting_current_bytes": 141000448
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 113325056,
+              "ending_current_bytes": 113325056,
+              "peak_bytes": 252894464,
+              "peak_above_starting_current_bytes": 139569408
+            }
+          ],
+          "median_allocator_peak_bytes": 250240256,
+          "throughput_ratio_to_batch_one": 1.0
+        },
+        {
+          "median_seconds": 0.2699965625000118,
+          "p95_seconds": 0.30197477410001167,
+          "samples": 90,
+          "tiles_per_second": 7.3084341588905355,
+          "round_medians_seconds": [
+            0.2642914454999641,
+            0.2739830025000174,
+            0.27131717700001445
+          ],
+          "round_tiles_per_second": [
+            7.432365408817659,
+            7.241682807023612,
+            7.254339425996879
+          ],
+          "batch_size": 2,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.1349982812500059,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 120098304,
+              "ending_current_bytes": 120098304,
+              "peak_bytes": 380043520,
+              "peak_above_starting_current_bytes": 259945216
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 123283712,
+              "ending_current_bytes": 123283712,
+              "peak_bytes": 386193152,
+              "peak_above_starting_current_bytes": 262909440
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 122633984,
+              "ending_current_bytes": 122633984,
+              "peak_bytes": 384583680,
+              "peak_above_starting_current_bytes": 261949696
+            }
+          ],
+          "median_allocator_peak_bytes": 384583680,
+          "throughput_ratio_to_batch_one": 1.8809044673201147
+        },
+        {
+          "median_seconds": 0.27986767600009443,
+          "p95_seconds": 0.31013529300002457,
+          "samples": 90,
+          "tiles_per_second": 14.068882888945723,
+          "round_medians_seconds": [
+            0.27896124799997324,
+            0.2877277605000472,
+            0.2788507904999733
+          ],
+          "round_tiles_per_second": [
+            14.195288761858698,
+            13.843450662164882,
+            14.173477756698096
+          ],
+          "batch_size": 4,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.06996691900002361,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 137004288,
+              "ending_current_bytes": 137004288,
+              "peak_bytes": 646442496,
+              "peak_above_starting_current_bytes": 509438208
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 135693568,
+              "ending_current_bytes": 135693568,
+              "peak_bytes": 634011136,
+              "peak_above_starting_current_bytes": 498317568
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 139001344,
+              "ending_current_bytes": 139001344,
+              "peak_bytes": 645697536,
+              "peak_above_starting_current_bytes": 506696192
+            }
+          ],
+          "median_allocator_peak_bytes": 645697536,
+          "throughput_ratio_to_batch_one": 3.620778965878877
+        },
+        {
+          "median_seconds": 0.35043288149995533,
+          "p95_seconds": 0.37867902185001295,
+          "samples": 90,
+          "tiles_per_second": 22.61347808297784,
+          "round_medians_seconds": [
+            0.3510958234999748,
+            0.3505568955000058,
+            0.3467575524999802
+          ],
+          "round_tiles_per_second": [
+            22.53952089807457,
+            22.508554464752194,
+            22.794528692193126
+          ],
+          "batch_size": 8,
+          "status": "passed",
+          "completed_rounds": 3,
+          "amortized_median_seconds_per_tile": 0.043804110187494416,
+          "allocator_memory_by_round": [
+            {
+              "status": "available",
+              "starting_current_bytes": 168394240,
+              "ending_current_bytes": 168394240,
+              "peak_bytes": 1158982400,
+              "peak_above_starting_current_bytes": 990588160
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 163556864,
+              "ending_current_bytes": 163556864,
+              "peak_bytes": 1175759616,
+              "peak_above_starting_current_bytes": 1012202752
+            },
+            {
+              "status": "available",
+              "starting_current_bytes": 166765568,
+              "ending_current_bytes": 166765568,
+              "peak_bytes": 1175759616,
+              "peak_above_starting_current_bytes": 1008994048
+            }
+          ],
+          "median_allocator_peak_bytes": 1175759616,
+          "throughput_ratio_to_batch_one": 5.81982282705211
+        }
+      ],
+      "highest_observed_throughput_batch": 8
+    }
+  },
+  "fixture": {
+    "schema_version": 1,
+    "scope": "Shared synthetic compute fixture; no accuracy claim",
+    "runtime": {
+      "tensorflow_version": "2.21.0",
+      "python_version": "3.13.16",
+      "requested_device": "/GPU:0",
+      "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+      "gpu_details": [
+        {
+          "compute_capability": [
+            7,
+            5
+          ],
+          "device_name": "Tesla T4"
+        }
+      ],
+      "thread_environment": {
+        "TF_NUM_INTRAOP_THREADS": null,
+        "TF_NUM_INTEROP_THREADS": null,
+        "OMP_NUM_THREADS": null
+      }
+    },
+    "source": {
+      "package_directory": "/content/geospatial-batch-study/source-20261028T181821Z-3a259325/src/mamba_forest",
+      "module_sha256": {
+        "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+        "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+        "train.py": "40b70d66bd8799b8ae4551624dc90f0b0ec127a9bb0a3108e921079a6cde9b80",
+        "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+        "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+      },
+      "commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+      "worktree_status": ""
+    },
+    "seed": 42,
+    "model_config": {
+      "num_classes": 9,
+      "d_model": 32,
+      "dropout_rate": 0.2,
+      "d_state_temporal": 8,
+      "d_state_spatial": 16,
+      "bottleneck_channels": 512,
+      "model_variant": "cnn_ssm"
+    },
+    "input_shapes": {
+      "s2": [
+        1,
+        4,
+        128,
+        128,
+        10
+      ],
+      "elevation": [
+        1,
+        128,
+        128,
+        3
+      ],
+      "climate": [
+        1,
+        4,
+        14
+      ],
+      "labels": [
+        1,
+        128,
+        128
+      ]
+    },
+    "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+    "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+    "golden": {
+      "float32": {
+        "file": "golden-float32.npy",
+        "sha256": "a452be71da39aef7a9b877c5a14e719f067a039f0050bf6f92c0300470b225b7"
+      },
+      "mixed_float16": {
+        "file": "golden-mixed_float16.npy",
+        "sha256": "e691423acbf5ee7e1c84a53e7807d633155aef1b949ace16a2ed03b92ef21a29"
+      }
+    },
+    "supplied_weights": null
+  },
+  "plan": {
+    "schema_version": 1,
+    "study_type": "batch_scaling",
+    "source_root": "/content/geospatial-batch-study/source-20261028T181821Z-3a259325",
+    "device": "/GPU:0",
+    "batch_sizes": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "rounds": 3,
+    "steps": 30,
+    "warmup": 5,
+    "profile_steps": 3,
+    "profiles_requested": true,
+    "training_precision": "mixed_float16",
+    "tile_size": 128,
+    "harness_sha256": "c33174e54d80988eb41b967511c9096f03cee37a41e77763f781c170a8120ea3",
+    "measurements": [
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 1,
+        "round": 0,
+        "file": "inference-b1-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 2,
+        "round": 0,
+        "file": "inference-b2-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 4,
+        "round": 0,
+        "file": "inference-b4-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 8,
+        "round": 0,
+        "file": "inference-b8-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 1,
+        "round": 0,
+        "file": "training-b1-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 2,
+        "round": 0,
+        "file": "training-b2-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 4,
+        "round": 0,
+        "file": "training-b4-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 8,
+        "round": 0,
+        "file": "training-b8-00.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 8,
+        "round": 1,
+        "file": "inference-b8-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 4,
+        "round": 1,
+        "file": "inference-b4-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 2,
+        "round": 1,
+        "file": "inference-b2-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 1,
+        "round": 1,
+        "file": "inference-b1-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 8,
+        "round": 1,
+        "file": "training-b8-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 4,
+        "round": 1,
+        "file": "training-b4-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 2,
+        "round": 1,
+        "file": "training-b2-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 1,
+        "round": 1,
+        "file": "training-b1-01.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 1,
+        "round": 2,
+        "file": "inference-b1-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 2,
+        "round": 2,
+        "file": "inference-b2-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 4,
+        "round": 2,
+        "file": "inference-b4-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 8,
+        "round": 2,
+        "file": "inference-b8-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 1,
+        "round": 2,
+        "file": "training-b1-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 2,
+        "round": 2,
+        "file": "training-b2-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 4,
+        "round": 2,
+        "file": "training-b4-02.json"
+      },
+      {
+        "phase": "measure",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 8,
+        "round": 2,
+        "file": "training-b8-02.json"
+      }
+    ],
+    "profiles": [
+      {
+        "phase": "profile",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 1,
+        "file": "profile-inference-b1.json"
+      },
+      {
+        "phase": "profile",
+        "mode": "inference",
+        "precision": "float32",
+        "batch_size": 8,
+        "file": "profile-inference-b8.json"
+      },
+      {
+        "phase": "profile",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 1,
+        "file": "profile-training-b1.json"
+      },
+      {
+        "phase": "profile",
+        "mode": "training",
+        "precision": "mixed_float16",
+        "batch_size": 8,
+        "file": "profile-training-b8.json"
+      }
+    ]
+  },
+  "scope": "Synthetic batch-capacity study on one revision and one repeated tile. Batch latency and amortized time are distinct. Throughput excludes IO, preparation, loading and exports. Profiler captures are separate fresh processes and excluded from timing/memory samples. Memory is TensorFlow allocator usage, not total VRAM. No accuracy, convergence or statistical significance claim.",
+  "profiles": [
+    {
+      "phase": "profile",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 1,
+      "file": "profile-inference-b1.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 8,
+      "file": "profile-inference-b8.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 1,
+      "file": "profile-training-b1.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 8,
+      "file": "profile-training-b8.json"
+    }
+  ],
+  "gpu_trace_coverage": "unverified_in_viewer"
+}

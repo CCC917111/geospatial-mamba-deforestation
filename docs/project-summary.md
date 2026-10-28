@@ -52,7 +52,7 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 365 passing tests and
+- **Software:** CPU verification includes 378 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
 - **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes
@@ -63,7 +63,10 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
   different model configurations and timing boundaries. A three-round
   [Tesla T4 comparison](../results/performance_t4_20261026/README.md) found
   12.75% lower inference and 6.04% lower training TensorFlow allocator peaks,
-  with no stable latency gain. Full-scale real-data training and full-test
+  with no stable latency gain. A subsequent
+  [batch-capacity study](../results/batch_study_t4_20261028/README.md) measured
+  4.80× inference and 5.82× training throughput at batch eight versus one,
+  using repeated synthetic inputs. Full-scale real-data training and full-test
   evaluation remain unverified; synthetic timings do not establish accuracy.
 
 The [results record](../results/README.md) links the raw artifacts and explains

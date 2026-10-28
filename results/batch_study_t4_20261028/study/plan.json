@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "study_type": "batch_scaling",
+  "source_root": "/content/geospatial-batch-study/source-20261028T181821Z-3a259325",
+  "device": "/GPU:0",
+  "batch_sizes": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "rounds": 3,
+  "steps": 30,
+  "warmup": 5,
+  "profile_steps": 3,
+  "profiles_requested": true,
+  "training_precision": "mixed_float16",
+  "tile_size": 128,
+  "harness_sha256": "c33174e54d80988eb41b967511c9096f03cee37a41e77763f781c170a8120ea3",
+  "measurements": [
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 1,
+      "round": 0,
+      "file": "inference-b1-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 2,
+      "round": 0,
+      "file": "inference-b2-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 4,
+      "round": 0,
+      "file": "inference-b4-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 8,
+      "round": 0,
+      "file": "inference-b8-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 1,
+      "round": 0,
+      "file": "training-b1-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 2,
+      "round": 0,
+      "file": "training-b2-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 4,
+      "round": 0,
+      "file": "training-b4-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 8,
+      "round": 0,
+      "file": "training-b8-00.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 8,
+      "round": 1,
+      "file": "inference-b8-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 4,
+      "round": 1,
+      "file": "inference-b4-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 2,
+      "round": 1,
+      "file": "inference-b2-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 1,
+      "round": 1,
+      "file": "inference-b1-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 8,
+      "round": 1,
+      "file": "training-b8-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 4,
+      "round": 1,
+      "file": "training-b4-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 2,
+      "round": 1,
+      "file": "training-b2-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 1,
+      "round": 1,
+      "file": "training-b1-01.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 1,
+      "round": 2,
+      "file": "inference-b1-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 2,
+      "round": 2,
+      "file": "inference-b2-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 4,
+      "round": 2,
+      "file": "inference-b4-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 8,
+      "round": 2,
+      "file": "inference-b8-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 1,
+      "round": 2,
+      "file": "training-b1-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 2,
+      "round": 2,
+      "file": "training-b2-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 4,
+      "round": 2,
+      "file": "training-b4-02.json"
+    },
+    {
+      "phase": "measure",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 8,
+      "round": 2,
+      "file": "training-b8-02.json"
+    }
+  ],
+  "profiles": [
+    {
+      "phase": "profile",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 1,
+      "file": "profile-inference-b1.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "inference",
+      "precision": "float32",
+      "batch_size": 8,
+      "file": "profile-inference-b8.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 1,
+      "file": "profile-training-b1.json"
+    },
+    {
+      "phase": "profile",
+      "mode": "training",
+      "precision": "mixed_float16",
+      "batch_size": 8,
+      "file": "profile-training-b8.json"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+  "batch_sizes": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "rounds": 3,
+  "steps": 30,
+  "warmup": 5,
+  "profile_steps": 3
+}

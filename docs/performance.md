@@ -100,11 +100,43 @@ and at most eight changed pixels; baseline mixed-precision checks also varied
 across processes. These are pre-training checks on synthetic inputs and
 initialized weights, not accuracy or convergence measurements. No GPU
 file-to-file or validation-reuse speedup was measured. Profiling GPU execution
-and testing larger batches are the next performance studies. The
-[profiling and batch-scaling guide](gpu-profiling.md) provides a pinned Colab
-notebook for batch sizes 1, 2, 4 and 8 with separate trace capture. That new
-GPU study is pending; CPU integration has verified its execution and lossless
-trace export/restore workflow.
+and testing larger batches are covered in the subsequent study below.
+
+## Retained T4 batch scaling and profiles
+
+The [batch-study record](../results/batch_study_t4_20261028/README.md) retains
+24 timing processes and four separate real GPU captures at clean source
+`fac8b8d`. It uses one initialized full-model checkpoint and one repeated
+synthetic 128 × 128 tile, three alternating batch-order rounds, five warmups
+and 30 samples per case. Inference is float32; training is mixed float16.
+
+![T4 throughput across batch sizes](figures/t4-batch-scaling.svg)
+
+| Batch | Inference tiles/s | Training tiles/s | Inference batch median | Training batch median |
+|---:|---:|---:|---:|---:|
+| 1 | 10.18 | 3.89 | 94.34 ms | 255.11 ms |
+| 2 | 19.42 | 7.31 | 99.93 ms | 270.00 ms |
+| 4 | 30.98 | 14.07 | 129.68 ms | 279.87 ms |
+| 8 | **48.82** | **22.61** | 163.26 ms | 350.43 ms |
+
+Batch eight has 4.80× inference and 5.82× training throughput versus batch one,
+with improvements in every round. Its median allocator peaks are 445.85 MiB
+and 1121.29 MiB, respectively; no case ran out of memory. Whole-batch latency
+increases. These results establish synthetic capacity under the recorded
+protocol, not single-request latency, production IO speed or training quality.
+Batch eight is the highest tested batch and is not proven optimal.
+
+Each trace has actual GPU compute/copy events and 2,313 one-byte forward
+spatial-scan condition transfers over three steps. The transfer GPU durations
+are only 1.58–2.29 ms per capture; counts alone do not prove a latency cause.
+The worker forces its entire scope onto the GPU, whereas production uses
+automatic placement. Investigate that difference before changing recurrence
+code. Recorded GPU-event time fractions include profiler effects and are not
+utilization or occupancy. See the retained method, hashes and limitations.
+
+The [profiling guide](gpu-profiling.md) reproduces the study and trace exports.
+Prediction now accepts optional bounded batches; its real file-to-file GPU
+throughput remains a separate measurement using `benchmark_predict`.
 
 ## Run the source comparison locally
 
@@ -178,5 +210,5 @@ and session duration vary; no runtime guarantee is assumed.
   postprocessing and requested exports. See the [timing guide](local-demo.md).
 
 Do not combine these boundaries into one throughput or infer a GPU speedup
-from a CPU result. Remote shard staging and larger prediction batches remain
-future optimizations; no unbounded dataset cache is enabled.
+from a CPU result. Prediction batching is optional and bounded; remote shard
+staging remains future work and no unbounded dataset cache is enabled.

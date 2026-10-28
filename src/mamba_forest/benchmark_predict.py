@@ -3,7 +3,8 @@
 Each warmup or measured repeat is a complete input pass, including exports.
 The model and compiled predictor are reused. The default records 30 measured
 passes after one warmup pass. Source caches are not cleared. This measures
-performance only; it establishes no accuracy or GPU performance claims.
+performance only for the recorded runtime and export boundary; it does not
+establish trained segmentation accuracy.
 """
 
 from __future__ import annotations
@@ -27,6 +28,8 @@ def parse_args(argv=None):
   parser.add_argument("--output-dir", required=True, type=Path,
                       help="Fresh or empty directory for outputs and JSON reports")
   parser.add_argument("--pattern", default="*.npz")
+  parser.add_argument("--batch-size", type=int, default=1,
+                      help="Maximum consecutive equal-shape tiles per inference call")
   parser.add_argument("--repeats", type=int, default=30,
                       help="Measured input passes with distinct output directories")
   parser.add_argument("--warmup", type=int, default=1,
@@ -37,6 +40,8 @@ def parse_args(argv=None):
   args = parser.parse_args(argv)
   if args.repeats < 1 or args.warmup < 0:
     parser.error("--repeats must be positive and --warmup must be non-negative")
+  if args.batch_size < 1:
+    parser.error("--batch-size must be positive")
   try:
     checkpoint.resolve_model_arguments(args)
   except (ValueError, OSError) as error:
@@ -62,6 +67,9 @@ def latency_summary(values):
 
 def run_benchmark(args):
   """Runs one initialized predictor through warmup and measured input passes."""
+  batch_size = getattr(args, "batch_size", 1)
+  if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size < 1:
+    raise ValueError("batch_size must be a positive integer")
   started = time.perf_counter()
   root = Path(args.output_dir).expanduser().resolve()
   if root.exists() and (not root.is_dir() or any(root.iterdir())):
@@ -82,19 +90,22 @@ def run_benchmark(args):
   steady = [sample for sample in measured if not sample["first_inference"]]
   measured_passes = [item for item in prediction["passes"]
                      if item["phase"] == "measured"]
+  batches = prediction.get("batches", [])
+  measured_batches = [batch for batch in batches if batch["phase"] == "measured"]
+  steady_batches = [batch for batch in measured_batches if not batch["first_inference"]]
   wall = sum(item["wall_seconds"] for item in measured_passes)
   fields = ("read_validate_seconds", "preprocess_seconds", "inference_sync_seconds",
             "postprocess_seconds", "array_image_export_seconds", "pipeline_seconds")
   report = {
-      "schema_version": 1, "metadata": prediction["metadata"],
+      "schema_version": 2, "metadata": prediction["metadata"],
       "scope": {
           **prediction["scope"],
           "start": ("run_benchmark entry; excludes process startup, parsing "
                     "and config resolution"),
           "framework_import": ("timed separately; cached when already "
                                "imported by caller"),
-          "steady_state": ("measured tiles excluding the first inference "
-                           "even when warmup is zero"),
+          "steady_state": ("measured tiles and batches excluding the entire "
+                           "first inference batch even when warmup is zero"),
           "console": ("per-tile console output disabled; "
                       "all prediction file exports retained"),
           "report_write": ("prediction report write included in benchmark total; "
@@ -109,14 +120,21 @@ def run_benchmark(args):
       "cold_start_to_first_prediction_seconds":
           prediction["cold_start_to_first_prediction_seconds"],
       "measured_tile_count": len(measured), "steady_state_tile_count": len(steady),
+      "requested_batch_size": batch_size,
+      "measured_batch_count": len(measured_batches),
+      "steady_state_batch_count": len(steady_batches),
       "measured_pass_wall_seconds": wall,
       "measured_tiles_per_second": len(measured) / wall if wall > 0 else None,
       "steady_state_stages": {
           field: latency_summary(sample[field] for sample in steady)
           for field in fields},
+      "steady_state_batch_stages": {
+          field: latency_summary(batch[field] for batch in steady_batches)
+          for field in ("batch_assembly_seconds", "inference_sync_seconds")},
       "csv_export": latency_summary(
           item["csv_export_seconds"] for item in measured_passes),
       "samples": prediction["samples"], "passes": prediction["passes"],
+      "batches": batches,
       "prediction_report": str(args.timings),
   }
   report["benchmark_total_wall_seconds"] = time.perf_counter() - started

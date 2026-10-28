@@ -70,6 +70,8 @@ def parse_args() -> argparse.Namespace:
                  help="Where the class maps and the summary table are written")
   p.add_argument("--pattern", default="*.npz",
                  help="Glob used to select tiles inside --input-dir")
+  p.add_argument("--batch-size", type=int, default=1,
+                 help="Maximum consecutive equal-shape tiles per inference call")
   p.add_argument("--save-png", action="store_true",
                  help="Also write a colour-mapped PNG next to each class map")
   p.add_argument("--save-probabilities", action="store_true",
@@ -78,6 +80,8 @@ def parse_args() -> argparse.Namespace:
                  help="Write stage timings to a new JSON file")
   checkpoint.add_model_arguments(p)
   args = p.parse_args()
+  if args.batch_size < 1:
+    p.error("--batch-size must be positive")
   try:
     checkpoint.resolve_model_arguments(args)
   except (ValueError, OSError) as error:
@@ -194,13 +198,65 @@ def _synchronize_preprocessing(inputs):
     raise FloatingPointError("preprocessing produced non-finite values")
 
 
-def _runtime_metadata(args, sources, weights_sha256):
+def _input_batches(paths, batch_size, first_prepared=None):
+  """Yield bounded, ordered groups; a shape change needs one lookahead tile.
+
+  Each tile is normalized before grouping. In particular, climate statistics
+  remain seasonal statistics of one example rather than statistics over a
+  batch. Consumers should clear yielded lists once their tensors are unused.
+  """
+  batch, shape = [], None
+  for index, path in enumerate(paths):
+    prepared = first_prepared if index == 0 and first_prepared is not None else (
+        _read_inputs(path))
+    first_prepared = None
+    current_shape = tuple(tuple(prepared[0][key].shape[1:])
+                          for key in REQUIRED_ARRAYS)
+    if batch and current_shape != shape:
+      yield batch
+      batch = []
+    shape = current_shape
+    batch.append((index, path, prepared))
+    prepared = None
+    if len(batch) == batch_size:
+      yield batch
+      batch, shape = [], None
+  if batch:
+    yield batch
+
+
+def _assemble_batch(batch):
+  """Concatenate already-normalized tiles and complete the shared copy work."""
+  if len(batch) == 1:
+    return batch[0][2][0], 0.0
+  started = time.perf_counter()
+  inputs = {key: tf.concat([item[2][0][key] for item in batch], axis=0)
+            for key in REQUIRED_ARRAYS}
+  _synchronize_preprocessing(inputs)
+  return inputs, time.perf_counter() - started
+
+
+def _variable_devices(model):
+  devices = set()
+  for variable in getattr(model, "trainable_variables", ()):
+    device = getattr(variable, "device", None)
+    if not device:
+      device = getattr(getattr(variable, "handle", None), "device", None)
+    if device:
+      devices.add(device)
+  return sorted(devices)
+
+
+def _runtime_metadata(args, sources, weights_sha256, model, output_devices):
   return {
       "weights": str(args.weights),
       "weights_sha256": weights_sha256,
       "training_config_path": getattr(args, "training_config_path", None),
       "output_dir": str(args.output_dir), "input_dir": str(args.input_dir),
       "pattern": args.pattern, "source_file_count": len(sources),
+      "requested_batch_size": getattr(args, "batch_size", 1),
+      "model_trainable_variable_devices": _variable_devices(model),
+      "first_predictor_output_devices": output_devices,
       "sources": list(sources.values()),
       "save_options": {"png": args.save_png, "probabilities": args.save_probabilities},
       "model_config": {name: getattr(args, name) for name in (
@@ -223,11 +279,16 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
   ``warmup`` and ``repeats`` count complete passes over the input files. Warmup
   passes also export outputs but are excluded from measured samples. Multiple
   passes use separate subdirectories; the normal one-pass CLI keeps its flat
-  output layout. Arrays are held for one tile at a time. Timing starts inside
-  this function, after imports, argument parsing and configuration resolution.
+  output layout. Input buffering holds a bounded batch and at most one
+  differently-shaped lookahead tile; model and graph allocations are
+  additional. Timing starts inside this function, after imports, argument
+  parsing and configuration resolution.
   """
   if repeats < 1 or warmup < 0:
     raise ValueError("repeats must be positive and warmup must be non-negative")
+  batch_size = getattr(args, "batch_size", 1)
+  if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size < 1:
+    raise ValueError("batch_size must be a positive integer")
   timings_path = getattr(args, "timings", None)
   if timings_path is not None:
     timings_path = Path(timings_path)
@@ -271,8 +332,9 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
     matplotlib.use("Agg")
     from matplotlib import image as mpimg
   export_setup_seconds = time.perf_counter() - started
-  sources, samples, passes = {}, [], []
+  sources, samples, passes, batches = {}, [], [], []
   cold_start_seconds = None
+  first_output_devices = None
   for pass_index in range(warmup + repeats):
     phase = "warmup" if pass_index < warmup else "measured"
     index = pass_index if phase == "warmup" else pass_index - warmup
@@ -287,70 +349,93 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
     with table_path.open("w", newline="", encoding="utf-8") as handle:
       csv_seconds += time.perf_counter() - opened
       writer = None
-      for tile_index, path in enumerate(paths):
-        if prepared is None:
-          prepared = _read_inputs(path)
-        inputs, source, read_seconds, preprocess_seconds = prepared
-        prepared = None
-        sources[str(path)] = source
+      pass_batches = 0
+      iterator = _input_batches(paths, batch_size, prepared)
+      prepared = None
+      for batch_index, batch in enumerate(iterator):
+        inputs, assembly_seconds = _assemble_batch(batch)
+        count = len(batch)
+        first_inference = not batches
         started = time.perf_counter()
         # Materialize exactly the tensors used by the production exporter.
-        arrays = {key: value.numpy() for key, value in predict(inputs).items()}
+        outputs = predict(inputs)
+        if first_inference:
+          first_output_devices = {key: getattr(value, "device", None) or "unknown"
+                                  for key, value in outputs.items()}
+        arrays = {key: value.numpy() for key, value in outputs.items()}
+        del outputs
         inference_seconds = time.perf_counter() - started
-        if not samples:
+        if first_inference:
           cold_start_seconds = time.perf_counter() - total_started
-        started = time.perf_counter()
-        class_map = arrays["class_map"][0]
-        shares = class_shares(class_map, num_classes)
-        totals += shares
-        forest = float(shares[list(data_lib.FOREST_CLASS_INDICES)].sum())
-        row = {
-            "tile": path.stem, "height": class_map.shape[0],
-            "width": class_map.shape[1],
-            "mean_confidence": float(arrays["mean_confidence"][0]),
-            "forest_share": forest,
-            **{f"share_{name.lower().replace(' ', '_')}": float(value)
-               for name, value in zip(data_lib.CLASS_NAMES, shares)},
-        }
-        png = colourise(class_map) if args.save_png else None
-        postprocess_seconds = time.perf_counter() - started
-        started = time.perf_counter()
-        np.save(directory / f"{path.stem}_class_map.npy", class_map)
-        if args.save_probabilities:
-          np.save(directory / f"{path.stem}_probabilities.npy",
-                  arrays["probabilities"][0].astype(np.float32, copy=False))
-        if args.save_png:
-          mpimg.imsave(directory / f"{path.stem}_class_map.png", png)
-        export_seconds = time.perf_counter() - started
-        started = time.perf_counter()
-        if writer is None:
-          writer = csv.DictWriter(handle, fieldnames=list(row))
-          writer.writeheader()
-        writer.writerow(row)
-        csv_seconds += time.perf_counter() - started
-        sample = {
-            "phase": phase, "pass_index": index, "tile_index": tile_index,
-            "path": str(path), "output_dir": str(directory),
-            "first_inference": not samples,
-            "read_validate_seconds": read_seconds,
-            "preprocess_seconds": preprocess_seconds,
+        batches.append({
+            "phase": phase, "pass_index": index,
+            "batch_index": batch_index, "batch_size": count,
+            "tile_indices": [item[0] for item in batch],
+            "paths": [str(item[1]) for item in batch],
+            "first_inference": first_inference,
+            "batch_assembly_seconds": assembly_seconds,
             "inference_sync_seconds": inference_seconds,
-            "postprocess_seconds": postprocess_seconds,
-            "array_image_export_seconds": export_seconds,
-        }
-        sample["pipeline_seconds"] = sum(sample[key] for key in (
-            "read_validate_seconds", "preprocess_seconds", "inference_sync_seconds",
-            "postprocess_seconds", "array_image_export_seconds"))
-        samples.append(sample)
-        if not quiet:
-          print(f"  {path.stem}: forest {100 * forest:5.1f}% | "
-                f"natural {100 * shares[data_lib.NATURAL_FOREST_INDEX]:4.1f}% | "
-                f"planted {100 * shares[data_lib.PLANTED_FOREST_INDEX]:4.1f}% | "
-                f"tree crops {100 * shares[data_lib.TREE_CROPS_INDEX]:4.1f}%")
-        del inputs, arrays
+        })
+        pass_batches += 1
+        for offset, (tile_index, path, prepared_tile) in enumerate(batch):
+          source, read_seconds, preprocess_seconds = prepared_tile[1:]
+          sources[str(path)] = source
+          started = time.perf_counter()
+          class_map = arrays["class_map"][offset]
+          shares = class_shares(class_map, num_classes)
+          totals += shares
+          forest = float(shares[list(data_lib.FOREST_CLASS_INDICES)].sum())
+          row = {
+              "tile": path.stem, "height": class_map.shape[0],
+              "width": class_map.shape[1],
+              "mean_confidence": float(arrays["mean_confidence"][offset]),
+              "forest_share": forest,
+              **{f"share_{name.lower().replace(' ', '_')}": float(value)
+                 for name, value in zip(data_lib.CLASS_NAMES, shares)},
+          }
+          png = colourise(class_map) if args.save_png else None
+          postprocess_seconds = time.perf_counter() - started
+          started = time.perf_counter()
+          np.save(directory / f"{path.stem}_class_map.npy", class_map)
+          if args.save_probabilities:
+            np.save(directory / f"{path.stem}_probabilities.npy",
+                    arrays["probabilities"][offset].astype(np.float32, copy=False))
+          if args.save_png:
+            mpimg.imsave(directory / f"{path.stem}_class_map.png", png)
+          export_seconds = time.perf_counter() - started
+          started = time.perf_counter()
+          if writer is None:
+            writer = csv.DictWriter(handle, fieldnames=list(row))
+            writer.writeheader()
+          writer.writerow(row)
+          csv_seconds += time.perf_counter() - started
+          sample = {
+              "phase": phase, "pass_index": index, "tile_index": tile_index,
+              "batch_index": batch_index, "batch_size": count,
+              "path": str(path), "output_dir": str(directory),
+              "first_inference": first_inference,
+              "read_validate_seconds": read_seconds,
+              "preprocess_seconds": preprocess_seconds + assembly_seconds / count,
+              "batch_assembly_share_seconds": assembly_seconds / count,
+              "inference_sync_seconds": inference_seconds / count,
+              "postprocess_seconds": postprocess_seconds,
+              "array_image_export_seconds": export_seconds,
+          }
+          sample["pipeline_seconds"] = sum(sample[key] for key in (
+              "read_validate_seconds", "preprocess_seconds", "inference_sync_seconds",
+              "postprocess_seconds", "array_image_export_seconds"))
+          samples.append(sample)
+          if not quiet:
+            print(f"  {path.stem}: forest {100 * forest:5.1f}% | "
+                  f"natural {100 * shares[data_lib.NATURAL_FOREST_INDEX]:4.1f}% | "
+                  f"planted {100 * shares[data_lib.PLANTED_FOREST_INDEX]:4.1f}% | "
+                  f"tree crops {100 * shares[data_lib.TREE_CROPS_INDEX]:4.1f}%")
+        batch.clear()
+        del inputs, arrays, prepared_tile, class_map, png
       started = time.perf_counter()
     csv_seconds += time.perf_counter() - started  # Includes buffered close/flush.
     passes.append({"phase": phase, "pass_index": index, "tiles": len(paths),
+                   "batches": pass_batches,
                    "csv_export_seconds": csv_seconds,
                    "wall_seconds": time.perf_counter() - pass_started,
                    "includes_initialization": pass_index == 0})
@@ -360,16 +445,27 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
         print(f"  {name:18s} {100 * value:5.2f}%")
       print(f"\nclass maps and {table_path.name} written to {directory}")
   report = {
-      "schema_version": 1,
-      "metadata": _runtime_metadata(args, sources, loaded_checkpoint_sha256),
+      "schema_version": 2,
+      "metadata": _runtime_metadata(
+          args, sources, loaded_checkpoint_sha256, model, first_output_devices),
       "scope": {
           "start": ("run_prediction entry; excludes imports, CLI parsing "
                     "and config resolution"),
           "synchronization": "all actual predictor return tensors copied to NumPy",
           "preprocessing": ("normalization tensors completed with a scalar "
-                            "host barrier before inference timing starts"),
+                            "host barrier per tile; batch concatenation also "
+                            "completed before inference timing starts"),
+          "batching": ("consecutive equal-shape tiles only, no padding; "
+                       "per-tile normalization before concatenation; input "
+                       "buffering bounded by batch plus one shape-change lookahead; "
+                       "model and graph allocations are additional"),
+          "batch_cost_allocation": (
+              "batches records actual assembly and inference times once per call; "
+              "tile preprocessing includes an equal share of batch assembly; "
+              "tile inference is an equal share of synchronized batch inference, "
+              "not independent per-request latency"),
           "first_inference": ("includes first graph tracing and execution; "
-                              "never steady state"),
+                              "every tile of that batch is excluded from steady state"),
           "writes": ("file writes and close/flush to OS cache; "
                      "no fsync or physical-disk claim"),
           "warmup": ("complete input passes including exports; recorded "
@@ -381,14 +477,16 @@ def run_prediction(args, *, repeats=1, warmup=0, quiet=False):
           "cache": ("OS file caches are not cleared; "
                     "repeated source reads may be cached"),
           "report_write": "timing-report JSON serialization/write is excluded",
-          "accuracy": "no trained accuracy or real-data/GPU performance is established",
+          "accuracy": ("timing does not establish trained segmentation accuracy; "
+                       "performance applies only to the recorded runtime "
+                       "and export boundary"),
       },
       "repeats": repeats, "warmup_passes": warmup,
       "model_build_load_seconds": model_load_seconds,
       "cold_start_to_first_prediction_seconds": cold_start_seconds,
       "export_setup_seconds": export_setup_seconds,
-      "samples": samples, "passes": passes,
-      "first_inference_sync_seconds": samples[0]["inference_sync_seconds"],
+      "samples": samples, "passes": passes, "batches": batches,
+      "first_inference_sync_seconds": batches[0]["inference_sync_seconds"],
   }
   report["total_wall_seconds"] = time.perf_counter() - total_started
   if timings_path is not None:

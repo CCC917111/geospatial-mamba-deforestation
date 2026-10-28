@@ -84,6 +84,18 @@ python -m mamba_forest.predict \
     --save-png
 ```
 
+Use `--batch-size 8` to process up to eight consecutive equal-size tiles per
+inference call. The default is one. Each tile is normalized independently,
+including its seasonal climate statistics, before tensors are concatenated.
+Size changes and the final incomplete group flush a smaller batch; inputs are
+not padded or reordered. Input buffering holds a bounded batch plus at most
+one lookahead tile; model and graph allocations are additional. Choose a
+batch that fits the available memory; an out-of-memory
+error is reported without silently retrying with different settings.
+Floating-point kernels can vary with batch shape and device. Validate
+probabilities with tolerances and inspect near-tied class decisions when
+moving a checkpoint to another execution setting.
+
 Prediction automatically reads model settings from `config.json` beside the
 weights. Keep that file when moving a trained checkpoint, or pass
 `--config /path/to/training/config.json`. Explicit architecture flags override

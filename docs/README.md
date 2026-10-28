@@ -43,7 +43,7 @@ software integration; they do not measure accuracy on satellite observations.
 |---|---|---|
 | **Local software verification** | Automated tests and synthetic CPU training, checkpoint restoration, evaluation, and prediction | [Testing guide](testing.md) · [Completed demo record](../results/local_demo_cpu.json) |
 | **CPU timing measurements** | Compute diagnostics and a separately measured file-to-file prediction workflow, each with its own architecture and timing boundary | [Measurement guide](local-demo.md) · [Raw prediction timing](../results/performance_predict_cpu.json) · [Audit](optimization-audit.md) |
-| **T4 compute measurements** | Three-round synthetic comparison: lower TensorFlow allocator peaks, no stable latency gain | [Performance guide](performance.md) · [Raw T4 reports](../results/performance_t4_20261026/README.md) |
+| **T4 compute measurements** | Source comparison plus batch scaling and four real GPU traces; synthetic timing boundaries | [Performance guide](performance.md) · [Source comparison](../results/performance_t4_20261026/README.md) · [Batch study](../results/batch_study_t4_20261028/README.md) |
 | **Historical ForTy scores** | Context from earlier reported results; original logs and weights are unavailable, and literature baselines use different protocols | [Results discussion](../results/README.md) |
 
 Full-scale live-data accuracy and multi-seed architecture comparisons remain

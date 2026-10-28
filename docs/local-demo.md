@@ -117,6 +117,21 @@ python -m mamba_forest.benchmark_predict \
     --warmup 1 --repeats 30 --save-png --save-probabilities
 ```
 
+Add `--batch-size 8` to either prediction or its benchmark for bounded batches
+of consecutive equal-shape tiles. Tiles retain their own seasonal climate
+normalization; shape changes and the final partial batch are flushed without
+padding or reordering. Compare separate fresh runs at batch one and the
+chosen larger batch with identical checkpoints, inputs, precision and exports.
+
+Version-two prediction/benchmark reports retain actual assembly and inference
+times once per batch in `batches`. Per-tile preprocessing includes an equal
+share of assembly, and per-tile inference receives an equal share of batch
+time. Those allocated values are amortized costs, not observed independent
+tile latencies. All tiles in the first inference batch are excluded from
+steady-state stage summaries. Use `steady_state_batch_stages` for measured
+batch latency and full measured-pass wall time for end-to-end tiles/s.
+The retained synthetic T4 batch gain must not be substituted for this IO path.
+
 Warmup and repeat counts refer to full input passes. The benchmark reuses one
 loaded model; repeated reads may benefit from the operating system's file
 cache. File-export timing covers writes and closes to the filesystem cache,

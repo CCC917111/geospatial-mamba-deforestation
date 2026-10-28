@@ -162,6 +162,11 @@ The same architecture/config resolution as `evaluate` applies.
 `--timings PATH` saves stage measurements from the normal prediction path.
 The report separates first-inference tracing from later predictions and
 records the checkpoint, input dimensions and selected export options.
+`--batch-size N` defaults to one and groups consecutive equal-shape tiles up
+to that bound after per-tile normalization. Shape changes flush partial
+batches. Version-two reports retain actual timings in `batches`; tile sample
+costs allocate shared assembly/inference time equally and are labeled as
+amortized costs. The entire first batch is marked as first inference.
 
 ## `mamba_forest.benchmark_predict`
 
@@ -169,6 +174,9 @@ Repeats the production prediction path with full-input warmup passes and
 measured passes. It retains raw timing samples and distinct output directories
 while loading the checkpoint once. Process startup is excluded; runtime import
 cost is recorded separately. See [Local demo and timing](local-demo.md).
+The same `--batch-size` control applies. Full-pass tiles/s includes input and
+output handling. Separate `steady_state_batch_stages` and tile-stage summaries
+keep observed batch latency distinct from allocated per-tile costs.
 
 ## `mamba_forest.demo`
 

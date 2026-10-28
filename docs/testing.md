@@ -118,6 +118,12 @@ suite needs is in `requirements.txt`.
 - `test_benchmark_predict.py` checks warmup and first-trace exclusion,
   framework-free argument parsing, raw timing summaries and fresh-output
   protection, including normalized path aliases.
+- `test_predict_batching.py` compares an actual reduced checkpoint at batch
+  one/two across distinct climate inputs and heterogeneous tile sizes, verifies
+  final partial groups and output order, checks owned input-buffer lifetimes,
+  and rejects invalid batch settings before IO. It checks raw batch timings
+  against allocated tile costs and excludes the entire first batch from
+  steady-state summaries.
 - `test_demo.py` checks the actual 128 × 128 TFRecord schema, distinct split
   examples, seed reproducibility, matching NPZ inputs, output protection,
   failure diagnostics and restoration of the caller's cache environment.

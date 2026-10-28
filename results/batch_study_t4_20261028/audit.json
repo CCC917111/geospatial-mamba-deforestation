@@ -1,0 +1,75 @@
+{
+  "status": "passed",
+  "checks": [
+    "Recomputed batch summary equals uploaded summary",
+    "29 process stages succeeded; 24 timing reports contain 720 samples",
+    "All 12 timed training workers completed 30 updates; all 4 profiles captured three steps",
+    "Source commits, worktree status, module hashes and harness hash match pinned Git source",
+    "All metadata, archive chunks and complete traces passed their recorded sizes and SHA256 hashes",
+    "All four traces contain actual CUDA GPU stream and compute-kernel events"
+  ],
+  "limitations": [
+    "Binary input, initial weights and golden arrays were excluded; their bytes cannot be rehashed locally",
+    "Throughput compares one initialized model using a single repeated synthetic tile, not learning effectiveness or production IO",
+    "The benchmark encloses the entire worker in an explicit GPU device scope; default production placement needs separate measurement",
+    "Profiler event fractions are not SM utilization or occupancy; capture wall time includes profiler overhead"
+  ],
+  "batch8_paired_round_throughput_ratios": {
+    "inference": [
+      5.532424417318124,
+      4.743830022130735,
+      4.216310818922101
+    ],
+    "training": [
+      5.83213554939925,
+      5.804431702123266,
+      5.822957472189879
+    ]
+  },
+  "trace_capture_summary": [
+    {
+      "name": "profile-inference-b1",
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_events": 8583,
+      "compute_kernel_events": 4695,
+      "profiled_host_step_sum_ms": 477.788729,
+      "recorded_gpu_activity_union_sum_ms": 40.356572,
+      "recorded_activity_fraction": 0.08446530767786278,
+      "forward_condition_copy_count": 2313,
+      "forward_condition_copy_gpu_sum_ms": 1.667729
+    },
+    {
+      "name": "profile-inference-b8",
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_events": 8949,
+      "compute_kernel_events": 5094,
+      "profiled_host_step_sum_ms": 588.19145,
+      "recorded_gpu_activity_union_sum_ms": 207.92145,
+      "recorded_activity_fraction": 0.3534928125867861,
+      "forward_condition_copy_count": 2313,
+      "forward_condition_copy_gpu_sum_ms": 1.728145
+    },
+    {
+      "name": "profile-training-b1",
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_events": 38988,
+      "compute_kernel_events": 26217,
+      "profiled_host_step_sum_ms": 1295.277251,
+      "recorded_gpu_activity_union_sum_ms": 185.970223,
+      "recorded_activity_fraction": 0.14357561121097773,
+      "forward_condition_copy_count": 2313,
+      "forward_condition_copy_gpu_sum_ms": 2.286557
+    },
+    {
+      "name": "profile-training-b8",
+      "coverage": "actual_gpu_stream_and_kernel_events_present",
+      "gpu_events": 39189,
+      "compute_kernel_events": 26427,
+      "profiled_host_step_sum_ms": 1609.836571,
+      "recorded_gpu_activity_union_sum_ms": 472.44010000000003,
+      "recorded_activity_fraction": 0.2934708457433845,
+      "forward_condition_copy_count": 2313,
+      "forward_condition_copy_gpu_sum_ms": 1.574742
+    }
+  ]
+}

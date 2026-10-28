@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "phase": "profile",
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "python_version": "3.13.16",
+    "requested_device": "/GPU:0",
+    "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "gpu_details": [
+      {
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_name": "Tesla T4"
+      }
+    ],
+    "thread_environment": {
+      "TF_NUM_INTRAOP_THREADS": null,
+      "TF_NUM_INTEROP_THREADS": null,
+      "OMP_NUM_THREADS": null
+    }
+  },
+  "source": {
+    "package_directory": "/content/geospatial-batch-study/source-20261028T181821Z-3a259325/src/mamba_forest",
+    "module_sha256": {
+      "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+      "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+      "train.py": "40b70d66bd8799b8ae4551624dc90f0b0ec127a9bb0a3108e921079a6cde9b80",
+      "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+      "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790"
+    },
+    "commit": "fac8b8da180b6bca2ce7dc6267d850bba551526b",
+    "worktree_status": ""
+  },
+  "mode": "inference",
+  "precision": "float32",
+  "model_config": {
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_ssm"
+  },
+  "parameters": 7732800,
+  "weights_sha256": "54ef0d0937924c4fad02466fad89f7472decd6e5b542ddd67f9695e76809f898",
+  "inputs_sha256": "68d9c310ff3c0fb88bb011f2e1ae482b933164d9aed4aa3c806277861d556c8f",
+  "forward_agreement": {
+    "passed": true,
+    "rtol": 2e-05,
+    "atol": 2e-06,
+    "max_absolute_error": 0.0,
+    "argmax_agreement": 1.0
+  },
+  "batch_size": 1,
+  "input_shapes": {
+    "s2": [
+      1,
+      4,
+      128,
+      128,
+      10
+    ],
+    "elevation": [
+      1,
+      128,
+      128,
+      3
+    ],
+    "climate": [
+      1,
+      4,
+      14
+    ],
+    "labels": [
+      1,
+      128,
+      128
+    ]
+  },
+  "batch_replication": {
+    "kind": "repeat_single_fixture_tile",
+    "repeat_count": 1,
+    "fixture_batch_size": 1
+  },
+  "warmup_steps": 5,
+  "warmup_optimizer_updates": null,
+  "steps": 3,
+  "profile": {
+    "status": "captured",
+    "directory": "/content/geospatial-batch-study/batch-study-20261028T181821Z-3a259325/study/profiles/profile-inference-b1",
+    "steps": 3,
+    "artifacts": [
+      {
+        "path": "plugins/profile/2026_10_28_18_32_30/97ae78754e4c.xplane.pb",
+        "bytes": 3966730,
+        "sha256": "d1500e7dd8c277251189239d41eaa53fbe9c23c8f49dddf7309ef3f708a6b799"
+      }
+    ],
+    "tracer_options": {
+      "host_tracer_level": 2,
+      "python_tracer_level": 0,
+      "device_tracer_level": 1
+    },
+    "layer_scopes": {
+      "temporal_mamba": {
+        "name": "mamba_block",
+        "path": "mamba_forest_segmenter/mamba_block",
+        "class": "MambaBlock"
+      },
+      "temporal_norm": {
+        "name": "layer_normalization_1",
+        "path": "mamba_forest_segmenter/layer_normalization_1",
+        "class": "LayerNormalization"
+      },
+      "optical_proj": {
+        "name": "optical_proj",
+        "path": "mamba_forest_segmenter/optical_proj",
+        "class": "Sequential"
+      },
+      "elevation_proj": {
+        "name": "elevation_proj",
+        "path": "mamba_forest_segmenter/elevation_proj",
+        "class": "Sequential"
+      },
+      "climate_proj": {
+        "name": "climate_proj",
+        "path": "mamba_forest_segmenter/climate_proj",
+        "class": "Sequential"
+      },
+      "fusion_layer": {
+        "name": "dynamic_multi_modal_fusion",
+        "path": "mamba_forest_segmenter/dynamic_multi_modal_fusion",
+        "class": "DynamicMultiModalFusion"
+      },
+      "enc1": {
+        "name": "enc1",
+        "path": "mamba_forest_segmenter/enc1",
+        "class": "Sequential"
+      },
+      "enc2": {
+        "name": "enc2",
+        "path": "mamba_forest_segmenter/enc2",
+        "class": "Sequential"
+      },
+      "enc3": {
+        "name": "enc3",
+        "path": "mamba_forest_segmenter/enc3",
+        "class": "Sequential"
+      },
+      "bottleneck_conv": {
+        "name": "conv2d_14",
+        "path": "mamba_forest_segmenter/conv2d_14",
+        "class": "Conv2D"
+      },
+      "spatial_mamba": {
+        "name": "mamba_block_1",
+        "path": "mamba_forest_segmenter/mamba_block_1",
+        "class": "MambaBlock"
+      },
+      "spatial_norm": {
+        "name": "layer_normalization_4",
+        "path": "mamba_forest_segmenter/layer_normalization_4",
+        "class": "LayerNormalization"
+      },
+      "sasf": {
+        "name": "sasf",
+        "path": "mamba_forest_segmenter/sasf",
+        "class": "StructureAwareStateFusion"
+      },
+      "up1": {
+        "name": "conv2d_transpose",
+        "path": "mamba_forest_segmenter/conv2d_transpose",
+        "class": "Conv2DTranspose"
+      },
+      "dec1": {
+        "name": "dec1",
+        "path": "mamba_forest_segmenter/dec1",
+        "class": "Sequential"
+      },
+      "up2": {
+        "name": "conv2d_transpose_1",
+        "path": "mamba_forest_segmenter/conv2d_transpose_1",
+        "class": "Conv2DTranspose"
+      },
+      "dec2": {
+        "name": "dec2",
+        "path": "mamba_forest_segmenter/dec2",
+        "class": "Sequential"
+      },
+      "up3": {
+        "name": "conv2d_transpose_2",
+        "path": "mamba_forest_segmenter/conv2d_transpose_2",
+        "class": "Conv2DTranspose"
+      },
+      "dec3": {
+        "name": "dec3",
+        "path": "mamba_forest_segmenter/dec3",
+        "class": "Sequential"
+      },
+      "head_conv": {
+        "name": "conv2d_21",
+        "path": "mamba_forest_segmenter/conv2d_21",
+        "class": "Conv2D"
+      },
+      "head_output": {
+        "name": "conv2d_22",
+        "path": "mamba_forest_segmenter/conv2d_22",
+        "class": "Conv2D"
+      }
+    },
+    "gpu_trace_coverage": "unverified",
+    "coverage_note": "A saved XPlane file does not prove GPU kernel coverage; inspect device planes in the profiler viewer."
+  },
+  "optimizer_updates": null,
+  "training_loss_samples": [],
+  "scope": "Warmed synthetic compute trace in a separate invocation. Profiler overhead is not a latency or throughput measurement. No accuracy, semantic class or total GPU VRAM claim."
+}
