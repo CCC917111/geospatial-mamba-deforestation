@@ -3,7 +3,7 @@
 Multi-modal forest type segmentation with convolutional encoders and a
 **Mamba-inspired selective state-space model**.
 
-**Project lead:** Yike Chen
+**Project lead and primary technical contributor:** Yike Chen
 
 **Team:** Qianhua Wan, Cherng Khai Hng, and Jiawei Li
 
@@ -18,6 +18,7 @@ Multi-modal forest type segmentation with convolutional encoders and a
 | **Understand the model** | [Project summary](project-summary.md) | [Architecture and equations](design.md) |
 | **Inspect the evidence** | [Results and retained artifacts](../results/README.md) | [Optimization audit](optimization-audit.md) · [Validation protocol](gpu-validation.md) |
 | **Run a retained research study** | [Multi-seed research pilot](research-pilot.md) | [Drive-first Colab notebook](../notebooks/colab_research_pilot.ipynb) · [Application brief](application-brief.md) |
+| **Preserve trained weights** | [Checkpoint backup guide](checkpoint-backup.md) | [CPU backup notebook](../notebooks/colab_checkpoint_backup.ipynb) · [Interview preparation](application-interview.md) |
 | **Measure runtime performance** | [Performance guide](performance.md) | [GPU profiling and batch scaling](gpu-profiling.md) · [GPU source comparison](../notebooks/colab_performance.ipynb) · [File-to-file timing](local-demo.md) |
 | **Develop the package** | [Developer guide](developer.md) | [API reference](reference.md) · [Tests](testing.md) · [Common tasks](tasks.md) · [Coding style](coding.md) |
 

@@ -4,7 +4,7 @@
 
 **Project:** Reproducible Multimodal Forest-Type Segmentation and GPU Performance Engineering
 
-**Role:** Yike Chen, Project Lead, team project
+**Role:** Yike Chen, Project Lead and Primary Technical Contributor, team project
 
 **Team:** Yike Chen, Qianhua Wan, Cherng Khai Hng and Jiawei Li
 
@@ -59,19 +59,23 @@ Unknown protocol remain awaiting publisher clarification.
 
 ## CV wording
 
-> **Project Lead — Multimodal Forest-Type Segmentation**
+> **Project Lead and Primary Technical Contributor — Multimodal Forest-Type Segmentation**
 
-> Led a team project developing a reproducible forest-type segmentation pipeline
-> with CNNs and a Mamba-inspired selective state-space model. A controlled
-> three-seed ForTy pilot measured a +1.10 percentage-point mean Macro F1 change
-> versus CNN-only, with seed-sensitive outcomes and 53.6% more parameters.
+> - Led a four-person team project developing a reproducible TensorFlow pipeline
+>   for multimodal forest-type segmentation with CNNs and a Mamba-inspired
+>   selective state-space model.
+> - Fixed-cohort, three-seed architecture pilot:
+>   +1.10 percentage-point mean Macro F1 change versus CNN-only, improvement in
+>   two of three seeds and 53.6% more parameters.
+> - Tesla T4 batch benchmark: 4.80× synthetic inference compute throughput at batch 8
+>   versus batch 1 on repeated synthetic input with initialized weights,
+>   excluding data IO and exports.
 
-> Profiled Tesla T4 execution and measured 4.80× synthetic inference compute
-> throughput at batch 8 versus batch 1 on one repeated synthetic tile with
-> initialized weights, excluding data IO and exports.
-
-Describe individual responsibilities using the actual division of work.
-The lead role and team attribution are retained together.
+The confirmed role combines project leadership and primary technical
+contribution. Describe specific module ownership through actual commits,
+design decisions and collaboration; keep the team attribution alongside it.
+The [interview preparation](application-interview.md) includes a three-minute
+project talk, a short statement paragraph and technical questions.
 
 ## Technical discussion
 

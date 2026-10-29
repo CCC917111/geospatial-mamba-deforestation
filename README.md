@@ -15,7 +15,7 @@ state-space model** to map forest types from four-season Sentinel-2 imagery,
 terrain and climate. The TensorFlow package includes training, evaluation,
 tile prediction and an offline demonstration.
 
-**Project lead:** Yike Chen · **Team:** Qianhua Wan, Cherng Khai Hng and Jiawei Li.
+**Project lead and primary technical contributor:** Yike Chen · **Team:** Qianhua Wan, Cherng Khai Hng and Jiawei Li.
 
 A deep-learning course project at the Chinese University of Hong Kong, Shenzhen.
 
@@ -158,7 +158,7 @@ protocols are linked from the [results record](results/README.md).
 | Evidence | Retained result | Interpretation |
 |---|---|---|
 | **Three-seed ForTy pilot** | Macro F1 **39.30 ± 1.38%** with SSM versus **38.19 ± 0.88%** CNN-only | Same fixed cohort and ten epochs; improves in 2/3 seeds; **53.6% more parameters**. Small pilot, not a full-benchmark or stable architecture ranking. |
-| **Software checks** | **486 tests passed** | CPU verification; supports software behavior. |
+| **Software checks** | **520 tests passed** | CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |
@@ -188,6 +188,10 @@ boundary. The publisher's class mapping remains unresolved.
 [Audit](docs/optimization-audit.md)
 
 For application materials, use the [evidence-backed project brief](docs/application-brief.md).
+The [interview preparation](docs/application-interview.md) provides a project
+talk, statement paragraph and technical questions. Use the
+[checkpoint backup guide](docs/checkpoint-backup.md) to preserve the actual
+weights and model configurations, then verify downloads on your computer.
 The 4.80× figure means synthetic inference compute throughput at batch eight
 versus batch one on T4, excluding IO; it is separate from architecture accuracy.
 

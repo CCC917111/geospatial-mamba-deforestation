@@ -1,4 +1,4 @@
-"""Stopping the Colab driver also terminates its GPU worker process group."""
+"""Stopping a Colab driver also terminates its worker process group."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ NOTEBOOKS = Path(__file__).resolve().parents[1] / "notebooks"
 @pytest.mark.parametrize("outcome", ["success", "failure", "interrupt", "timeout"])
 @pytest.mark.parametrize("name", [
     "colab_performance.ipynb", "colab_gpu_profiling.ipynb",
-    "colab_research_pilot.ipynb"])
+    "colab_research_pilot.ipynb", "colab_checkpoint_backup.ipynb"])
 def test_driver_always_cleans_up_its_process_group(outcome, name):
   notebook = json.loads((NOTEBOOKS / name).read_text())
   for cell in notebook["cells"]:

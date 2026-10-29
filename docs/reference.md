@@ -213,3 +213,17 @@ Plots the training loss and the validation metrics from a
 python scripts/plot_results.py runs/mamba_forest/training_results.csv \
     --output runs/mamba_forest/training_curves.png
 ```
+
+## `scripts/checkpoint_backup.py`
+
+Creates and verifies checkpoint backups using only Python's standard library.
+`create` reads a study directory and a trusted retention manifest, checks actual
+checkpoint/configuration bytes, and publishes one bounded ZIP per checkpoint
+plus a portable metadata archive. It requires a fresh local output directory.
+`verify` checks the supplied downloaded directory and can write a separate
+verification receipt with `--report`. Both modes accept `--manifest-sha256` to
+anchor the reference to a known original digest.
+
+See the [checkpoint backup guide](checkpoint-backup.md) for CPU Colab,
+portable local commands and the distinction between runtime archive preparation
+and verification on the receiving computer.

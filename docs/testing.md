@@ -154,6 +154,12 @@ suite needs is in `requirements.txt`.
   frozen seed list, retention hashes and the stronger source/runtime/data/GPU
   receipts required for real-data pilot completion. Research notebook tests
   cover paused/completed displays, Drive-first retention and worker cleanup.
+- `test_checkpoint_backup.py` checks complete twelve-file backups, model
+  configurations, portable verification, source/download corruption, unsafe ZIP
+  members, path and overwrite protection, archive/disk limits, interruption
+  cleanup and atomic publication races. The CPU backup notebook shares the
+  process-group cleanup checks. Fixtures do not verify the project's actual
+  Drive weights or complete browser downloads.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.

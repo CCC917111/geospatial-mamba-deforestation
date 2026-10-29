@@ -5,7 +5,7 @@
 Multi-modal forest type segmentation with convolutional encoders and a
 Mamba-inspired selective state-space model.
 
-**Project lead:** Yike Chen · **Context:** Team deep-learning course project
+**Project lead and primary technical contributor:** Yike Chen · **Context:** Team deep-learning course project
 
 **Team:** Qianhua Wan, Cherng Khai Hng, and Jiawei Li
 
@@ -53,7 +53,7 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 486 passing tests and
+- **Software:** CPU verification includes 520 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
 - **Controlled real-data pilot:** Six Tesla T4 runs compare CNN-only and
