@@ -53,7 +53,7 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 520 passing tests and
+- **Software:** CPU verification includes 526 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
 - **Controlled real-data pilot:** Six Tesla T4 runs compare CNN-only and

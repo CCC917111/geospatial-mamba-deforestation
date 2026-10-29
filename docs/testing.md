@@ -160,6 +160,9 @@ suite needs is in `requirements.txt`.
   cleanup and atomic publication races. The CPU backup notebook shares the
   process-group cleanup checks. Fixtures do not verify the project's actual
   Drive weights or complete browser downloads.
+- `test_backup_notebook.py` verifies trusted offline source-bundle uploads,
+  wrapped ZIP selection, hash failures, unsafe or ambiguous archive paths and
+  the source-upload byte limit before checkout.
 - `test_validate_data.py` checks local-record schema diagnostics, sampled
   metadata, invalid labels and inputs, duplicate observed IDs, saved failure
   reports, and the GPU requirement before any record IO.

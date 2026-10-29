@@ -22,6 +22,14 @@ select **CPU**, and run the cells in order. It uses the completed study:
 /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1
 ```
 
+The offline delivery package also includes the notebook and
+`checkpoint-backup-source.bundle`. If the notebook is not yet available on
+GitHub, upload `notebooks/colab_checkpoint_backup.ipynb` to Colab. Its default
+`UPLOAD_SOURCE_BUNDLE=True` prompts for the supplied bundle or full delivery
+ZIP, checks the fixed bundle hash, then restores the pinned helper locally.
+This mode needs no GitHub clone. Once that source is published, setting
+`UPLOAD_SOURCE_BUNDLE=False` selects the GitHub clone path instead.
+
 Allow notebook credential access and consent to all requested permissions in
 the Google authorization window. The notebook requests a read-only Drive
 mount. If Drive is already mounted, the utility still opens study files only
