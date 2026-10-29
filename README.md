@@ -15,9 +15,9 @@ state-space model** to map forest types from four-season Sentinel-2 imagery,
 terrain and climate. The TensorFlow package includes training, evaluation,
 tile prediction and an offline demonstration.
 
-**Project lead and primary technical contributor:** Yike Chen · **Team:** Qianhua Wan, Cherng Khai Hng and Jiawei Li.
-
-A deep-learning course project at the Chinese University of Hong Kong, Shenzhen.
+Yike Chen led the project as its **primary technical contributor**, working with
+Qianhua Wan, Cherng Khai Hng and Jiawei Li for a deep-learning course at the
+Chinese University of Hong Kong, Shenzhen.
 
 | Task | Inputs | Implementation |
 |---|---|---|
@@ -27,7 +27,7 @@ A deep-learning course project at the Chinese University of Hong Kong, Shenzhen.
 
 ### Setup
 
-Use Python **3.10–3.12**. The retained checks used Python 3.12 and TensorFlow
+Use Python **3.10–3.12**. The recorded checks used Python 3.12 and TensorFlow
 2.21; a pinned CPU recipe is available in the
 [environment guide](docs/cloud-environment.md#install-into-a-new-virtual-environment).
 
@@ -56,7 +56,7 @@ tiles. Each run writes a fresh directory under `runs/`.
 > **Demo scope:** Generated arrays exercise the full software workflow.
 > The short training run is not a measure of real-world segmentation accuracy.
 
-Follow the [demo and timing guide](docs/local-demo.md) for a retained preview,
+Follow the [demo and timing guide](docs/local-demo.md) for an example run,
 output details and repeated file-to-file benchmarks.
 
 ### Check the installation
@@ -102,10 +102,10 @@ device-dependent overhead are documented separately from measured performance.
 
 ## What the repository implements
 
-- **Auditable experiments:** seeded data selection, per-epoch split manifests,
+- **Experiment records:** seeded data selection, per-epoch split manifests,
   validation-selected checkpoints and confusion-derived F1 metrics.
-- **Verified comparisons:** paired architecture and objective plans check data paths, training
-  budgets, saved configurations and checkpoint hashes.
+- **Controlled comparisons:** paired architecture and objective plans check
+  data paths, training budgets, saved configurations and checkpoint hashes.
 - **Practical prediction:** shared preprocessing, saved-architecture restoration,
   optional bounded batches, class maps and a CSV of predicted class shares.
 - **Local inspection:** an offline demo, CPU software checks, compute-only
@@ -119,8 +119,10 @@ found lower TensorFlow allocator peaks (12.75% for inference, 6.04% for
 training), with no stable inference or training latency gain at batch one.
 The completed [T4 batch study](results/batch_study_t4_20261028/README.md) found
 4.80× inference and 5.82× training throughput at batch eight versus one, using
-the same repeated synthetic tile. Four traces contain real GPU events.
-These compute-only results do not establish file-to-file throughput or accuracy.
+the same repeated synthetic tile and initialized weights. Four traces contain
+real GPU events. These compute-only measurements exclude IO, preprocessing,
+checkpoint loading and exports; they do not establish file-to-file throughput
+or accuracy.
 
 ### CNN-only ablation
 
@@ -138,13 +140,13 @@ python -m mamba_forest.experiment --comparison architecture \
 
 The [validation runbook](docs/gpu-validation.md#controlled-architecture-comparison)
 explains execution, shared controls and the different parameter counts.
-The [retained research pilot](docs/research-pilot.md) fixes one shard cohort
-across three run seeds and keeps all six best checkpoints in Drive, with
-verified stage continuation. The completed
+The [research pilot](docs/research-pilot.md) fixes one shard cohort across three
+run seeds and records Drive locations for all six best checkpoints, with verified
+stage continuation. The completed
 [three-seed ForTy pilot](results/architecture_pilot_t4_20261029/README.md)
 observed a small, seed-sensitive average benefit from the SSM model, with
-higher parameter count and training-process wall time. Its original metadata,
-independent metric reconstruction and paired-seed figure are retained.
+more parameters and longer training-process wall time. The report includes
+original metadata, independently reconstructed metrics and a paired-seed figure.
 The [free Colab notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
 prepares a smaller real-source GPU check. The separate
 [performance notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_performance.ipynb)
@@ -152,8 +154,8 @@ runs the synthetic before/after GPU comparison recorded above.
 
 ## Results
 
-Each result below has a different validation scope. Source artifacts and
-protocols are linked from the [results record](results/README.md).
+The table separates real-data results, software checks and runtime measurements.
+The [results record](results/README.md) links their source artifacts and protocols.
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
@@ -163,22 +165,23 @@ protocols are linked from the [results record](results/README.md).
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |
 | **Controlled T4 compute** | Inference/training allocator peaks **12.75% / 6.04% lower** | Same three-round synthetic protocol; no stable latency gain; memory is not total GPU VRAM. |
-| **T4 batch scaling** | Batch-eight throughput **4.80× inference / 5.82× training** versus batch one | Three alternating rounds on one repeated synthetic tile; four real GPU captures; excludes IO. |
+| **T4 batch scaling** | Batch-eight throughput **4.80× inference / 5.82× training** versus batch one | Compute only, initialized weights, three alternating rounds on one repeated synthetic tile; four real GPU captures; excludes IO. |
 | **Historical ForTy report** | Overall F1 **56.89%**; forest mean F1 **48.81%** | Original logs and checkpoint are not retained; scores are not independently reproducible. |
 
 The historical run and published UNet3D, UTAE and MTSViT references differ in
 training budget, modalities and test membership, so they do not form a
 controlled ranking. Full-scale real ForTy training and full-test evaluation
-remain pending. The retained GPU compute record does not establish accuracy.
+remain pending.
 
-In the retained pilot, the paired Macro F1 difference was **+1.10 ± 2.11
+In the pilot, the paired Macro F1 difference was **+1.10 ± 2.11
 percentage points** across three seeds (mean ± sample SD). The CNN-only
 control has fewer parameters and uses temporal mean pooling, so this result
 does not isolate recurrence from capacity or temporal-order handling. Numeric
 ID 7 received no predictions from any of the six models despite positive test
 support. The [full report](results/architecture_pilot_t4_20261029/README.md)
-records this failure, process-time costs and the metadata-only verification
-boundary. The publisher's class mapping remains unresolved.
+records this failure and the process-time costs. Metrics and metadata were
+verified; verification of the actual checkpoint bytes and their current Drive
+availability remains pending. The publisher's class mapping remains unresolved.
 
 **Inspect the evidence:** [Real-data architecture pilot](results/architecture_pilot_t4_20261029/README.md) ·
 [Demo record](results/local_demo_cpu.json) ·
@@ -187,13 +190,11 @@ boundary. The publisher's class mapping remains unresolved.
 [Paired workflow check](results/paired_pipeline_smoke.json) ·
 [Audit](docs/optimization-audit.md)
 
-For application materials, use the [evidence-backed project brief](docs/application-brief.md).
+The [application brief](docs/application-brief.md) summarizes the project and its evidence.
 The [interview preparation](docs/application-interview.md) provides a project
 talk, statement paragraph and technical questions. Use the
 [checkpoint backup guide](docs/checkpoint-backup.md) to preserve the actual
 weights and model configurations, then verify downloads on your computer.
-The 4.80× figure means synthetic inference compute throughput at batch eight
-versus batch one on T4, excluding IO; it is separate from architecture accuracy.
 
 ## Dataset
 

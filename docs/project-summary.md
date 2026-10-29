@@ -5,22 +5,22 @@
 Multi-modal forest type segmentation with convolutional encoders and a
 Mamba-inspired selective state-space model.
 
-**Project lead and primary technical contributor:** Yike Chen · **Context:** Team deep-learning course project
-
-**Team:** Qianhua Wan, Cherng Khai Hng, and Jiawei Li
+Yike Chen led this deep-learning course project as its **primary technical
+contributor**, working with Qianhua Wan, Cherng Khai Hng and Jiawei Li at the
+Chinese University of Hong Kong, Shenzhen.
 
 ## Research question
 
-Developed at the Chinese University of Hong Kong, Shenzhen, CNN-Mamba studies
-forest type segmentation using seasonal satellite observations and environmental
-context. Natural forest, planted forest and tree crops can share canopy cover
-while representing different land uses. The implemented task predicts nine
-land-cover classes for each pixel of a 128 × 128 tile in the ForTy v1 format.
+CNN-Mamba studies forest type segmentation using seasonal satellite observations
+and environmental context. Natural forest, planted forest and tree crops can
+share canopy cover while representing different land uses. The implemented task
+predicts nine land-cover classes for each pixel of a 128 × 128 tile in the
+ForTy v1 format.
 
 The research question is whether selective state-space processing improves
-segmentation over a convolutional component control under the same data and
-training budget. A retained three-seed pilot found a small, seed-sensitive
-average improvement with greater model capacity and training cost.
+segmentation over a CNN-only control under the same data and training budget.
+A three-seed pilot found a small, seed-sensitive average improvement with greater
+model capacity and training cost.
 Deforestation change detection requires separate temporal validation.
 
 ## Approach
@@ -34,8 +34,8 @@ pixel-level predictions. A spatial selective-SSM block scans the downsampled
 bottleneck with local neighborhood fusion.
 
 The state-space recurrence uses input-dependent updates, a shared low-rank
-state projection and TensorFlow's `tf.scan`. It is a custom adaptation rather
-than an official Mamba or Mamba-2 implementation. The
+state projection and TensorFlow's `tf.scan`. This custom adaptation differs
+from the official Mamba and Mamba-2 implementations. The
 [design notes](design.md) describe its equations, scan direction and limits.
 
 ## Engineering and reproducibility
@@ -43,9 +43,10 @@ than an official Mamba or Mamba-2 implementation. The
 The repository provides training, checkpoint restoration, evaluation and tile
 prediction. Seeded shard manifests retain data membership; validation selects
 checkpoints; evaluation saves confusion matrices, class support, configuration
-and checkpoint hashes. Paired architecture and objective runners check common training budgets and
-artifacts before reporting differences; architecture parameter counts differ. Geographic independence of the
-published splits has not been independently verified here.
+and checkpoint hashes. Paired architecture and objective runners check shared
+training budgets and artifacts before reporting differences. The architecture
+comparison uses models with different parameter counts. Geographic independence
+of the published splits has not been independently verified here.
 
 A [one-command CPU demo](local-demo.md) generates the standard record schema
 and exercises training, evaluation and prediction on synthetic data. It retains
@@ -53,9 +54,9 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 526 passing tests and
-  synthetic CPU pipeline runs. These establish software behavior, not accuracy
-  on satellite observations.
+- **Software:** 526 passing tests and synthetic CPU pipeline runs check
+  training, evaluation, checkpoint restoration and prediction. Accuracy on
+  satellite observations requires separate real-data evaluation.
 - **Controlled real-data pilot:** Six Tesla T4 runs compare CNN-only and
   CNN+SSM at seeds 42/43/44 on one fixed 8/4/8-shard training/validation/test
   cohort, with ten epochs per run. Test Macro F1 over all nine numeric IDs is
@@ -65,20 +66,20 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
   standard deviations, not significance claims. The shared test cohort has
   146 tiles; each run uses 1,195 training examples per epoch. See the
   [audited results](../results/architecture_pilot_t4_20261029/README.md).
-- **Research tradeoffs:** Parameter count increases from 5,035,392 to
+- **Model size and training cost:** Parameter count increases from 5,035,392 to
   7,732,800 (+53.6%). Mean training-process wall time was 339.42 seconds for
   CNN-only versus 785.15 seconds for CNN+SSM in one sequential session,
   including startup, validation and checkpoint writes; this is not a kernel
   or steady-state inference benchmark. Numeric ID 7 has 9,770 true test pixels
   but zero predictions in every model. Class semantics and the official
   Unknown protocol remain unconfirmed, so primary results use numeric IDs.
-- **Evidence boundary:** Recomputed metrics match all six confusion matrices;
+- **Artifact verification:** Recomputed metrics match all six confusion matrices;
   all 95 export-manifest file hashes and 13 source-module hashes were verified.
   The metadata records six best and six last H5 files in Drive, representing
   seven unique weight hashes. The uploaded archive excludes weights and
-  TFRecords, so their bytes and current Drive availability were not
-  independently verified. This small-cohort pilot does not establish
-  full-benchmark performance or a capacity-matched architectural effect.
+  TFRecords, so verification of their actual bytes and current Drive availability
+  remains pending. This small-cohort pilot does not establish full-benchmark
+  performance or a capacity-matched architectural effect.
 - **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes
   and 48.81% across the three forest types. Original logs and weights are
   unavailable. Published baselines use different protocols, so these values
@@ -89,20 +90,22 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
   12.75% lower inference and 6.04% lower training TensorFlow allocator peaks,
   with no stable latency gain. A subsequent
   [batch-capacity study](../results/batch_study_t4_20261028/README.md) measured
-  4.80× inference and 5.82× training throughput at batch eight versus one,
-  using repeated synthetic inputs. Full-scale real-data training and full-test
-  evaluation remain unverified; synthetic timings do not establish accuracy.
+  4.80× inference and 5.82× training compute throughput at batch eight versus
+  one, using initialized weights and one repeated synthetic tile. These timings
+  exclude IO, preprocessing, checkpoint loading and exports. Full-scale real-data
+  training and full-test evaluation remain pending; synthetic timings do not
+  establish accuracy.
 
-The [results record](../results/README.md) links the raw artifacts and explains
-their scope. The [validation runbook](gpu-validation.md) documents broader
-real-data protocols; the larger controlled full-scale training and full-test
-protocols remain unexecuted.
+The [results record](../results/README.md) links the raw artifacts. The
+[validation runbook](gpu-validation.md) describes the broader real-data
+protocols for full-scale training and full-test evaluation.
 
 ## Next study
 
-The [retained research pilot](research-pilot.md) provides a Drive-first workflow
+The [research pilot](research-pilot.md) provides a Drive-first workflow
 with one shard-selection seed, validation-selected checkpoints and checked
-stage continuation. Its completed real-data result should remain frozen.
+stage continuation. The completed pilot remains a fixed reference for further
+experiments.
 
 The next study can test longer training and a capacity-matched CNN control,
 with additional seeds and a predeclared evaluation cohort. Investigate class

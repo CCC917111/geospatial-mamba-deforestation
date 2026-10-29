@@ -2,10 +2,9 @@
 
 # Prepare a cloud environment
 
-**Status: prepared, not deployed.** The setup files prepare software in a new
-virtual environment. No VM, GPU, network policy or cloud identity has been
-provisioned by this work. The current tools can inspect environment settings;
-resource creation and configuration changes use the provider or Codex UI.
+The setup script installs dependencies and checks the runtime in a new
+virtual environment. Create the VM, attach any GPU and configure network
+access through your cloud provider before running it.
 
 For a free hosted GPU attempt, start with the [Colab notebook](colab-free.md).
 It reuses Colab's configured TensorFlow runtime and prepares a small paired
@@ -21,32 +20,29 @@ known. Set a spending limit and shutdown policy in that provider's controls.
 Batch size, VRAM needs, throughput and experiment cost require measurement on
 the selected machine.
 
-A Codex managed environment can support code development without exposing a
-GPU. Treat GPU availability as unconfirmed until TensorFlow executes the
-strict GPU probe. Installing CUDA dependencies does not provide hardware.
+A hosted development environment may have no GPU. Confirm GPU availability
+with the TensorFlow probe below; installing CUDA dependencies alone does not
+provide hardware.
 
 ## Configure the environment
 
-For a new Codex cloud task, select repository
-`CCC917111/geospatial-mamba-deforestation` and the `codex/...` branch containing
-these setup files. Configure a writable persistent workspace and Python 3.12.
-Use a separate GPU VM if the chosen Codex runtime cannot expose a GPU.
-If the setup files have not been pushed to GitHub, restore the supplied Git
-bundle first or publish the prepared branch before using repository checkout.
+Check out the `main` branch of
+`CCC917111/geospatial-mamba-deforestation` in a writable persistent workspace
+with Python 3.12. Use a GPU VM for GPU experiments. For offline setup, restore
+the supplied Git bundle at its recorded revision.
 
 Through the supported network settings, allow the required GitHub and Python
 package destinations, including `github.com`, `raw.githubusercontent.com`,
 `codeload.github.com`, `pypi.org` and `files.pythonhosted.org`. Real ForTy access
 also needs `storage.googleapis.com`. Permit the identity provider's required
 authentication endpoints when applicable; for Google ADC flows using OAuth,
-this can include `oauth2.googleapis.com`. Review and apply those settings in
-the provider configuration. Editing `/etc/codex/network-policy.json` cannot
-grant access.
+this can include `oauth2.googleapis.com`. Apply network changes through the
+provider's supported controls.
 
-Use an existing configured provider identity or application-default
-credentials (ADC), supplied through secure environment configuration. Preserve
-the runtime's injected authentication and proxy settings. Keep credential
-values out of the repository, chat, logs and artifact archives.
+Use a configured provider identity or application-default credentials (ADC)
+supplied through secure environment configuration. Preserve the runtime's
+authentication and proxy settings. Keep credential values out of the
+repository, logs and artifact archives.
 
 ## Install into a new virtual environment
 
@@ -68,8 +64,8 @@ make test
 make lint
 ```
 
-The [setup script](../scripts/setup_cloud_env.sh) does not provision hardware,
-install host NVIDIA drivers or change global Git identity. It uses the pinned
+The default GPU profile in the [setup script](../scripts/setup_cloud_env.sh)
+requires an NVIDIA GPU and working host drivers. It uses the pinned
 [GPU dependencies](../cloud/requirements-gpu.txt), including TensorFlow 2.21.0
 with its CUDA dependency extra. The GPU probe rejects CPU fallback; a driver
 listing alone is insufficient. It executes a convolution forward and backward
@@ -134,6 +130,7 @@ ignored checkpoints and run data need their separate artifact archive.
 
 Use the runbook's [artifact-retention instructions](gpu-validation.md#evaluate-every-selected-checkpoint-on-the-full-test-split)
 to retain configs, manifests, logs, checkpoint hashes and metric files together.
-Record the durable archive location in the handoff, and exclude credentials.
+Record the durable archive location with the experiment records, and exclude
+credentials.
 Re-run environment and data preflights after recovery before claiming a new
 runtime is ready.

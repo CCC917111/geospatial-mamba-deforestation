@@ -2,16 +2,15 @@
 
 # Preserve and verify the trained checkpoints
 
-The uploaded research metadata records six best and six last checkpoint files
-in Drive. It does not contain their binary weights. This workflow reads those
-actual files, verifies them against the published retention manifest and
-prepares a portable backup with model configurations and provenance.
+The research metadata lists six best and six last checkpoint files in Drive;
+the weights are stored separately. This workflow checks those files against
+the published retention manifest and packages them with the model
+configurations and source records.
 
-The backup utility is implemented and tested with local fixtures. **The
-project's real Drive weights and downloaded local copies have not yet been
-verified by this workflow.** Those steps require running it in the signed-in
-Colab session and on the computer receiving the downloads. The earlier
-metadata audit remains a metadata-only check.
+**Weight backup verification is pending.** The utility has passed local fixture
+tests. To verify the study's actual weights, run it in the signed-in Colab
+session, then verify the downloads on the receiving computer. The completed
+metadata audit covers the recorded manifests and metrics, not the weight files.
 
 ## Run the CPU backup notebook
 
@@ -22,13 +21,12 @@ select **CPU**, and run the cells in order. It uses the completed study:
 /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1
 ```
 
-The offline delivery package also includes the notebook and
-`checkpoint-backup-source.bundle`. If the notebook is not yet available on
-GitHub, upload `notebooks/colab_checkpoint_backup.ipynb` to Colab. Its default
-`UPLOAD_SOURCE_BUNDLE=True` prompts for the supplied bundle or full delivery
-ZIP, checks the fixed bundle hash, then restores the pinned helper locally.
-This mode needs no GitHub clone. Once that source is published, setting
-`UPLOAD_SOURCE_BUNDLE=False` selects the GitHub clone path instead.
+The offline delivery package includes the notebook and
+`checkpoint-backup-source.bundle`. You can upload the notebook directly to
+Colab. With the default `UPLOAD_SOURCE_BUNDLE=True`, upload the supplied bundle
+or full delivery ZIP when prompted. The notebook checks the fixed bundle hash
+and restores the pinned helper locally. Set `UPLOAD_SOURCE_BUNDLE=False` to
+clone the same helper revision from GitHub instead.
 
 Allow notebook credential access and consent to all requested permissions in
 the Google authorization window. The notebook requests a read-only Drive
