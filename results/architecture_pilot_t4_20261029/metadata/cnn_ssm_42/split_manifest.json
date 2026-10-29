@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "selection_protocol": "python-random-seed-plus-epoch-v1",
+  "gcs_root": "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+  "total_shards_per_split": 1024,
+  "seed": 42,
+  "selection_seed": 2026,
+  "effective_selection_seed": 2026,
+  "training_mode": "fixed",
+  "validation_paths": [
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00000-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00001-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00002-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00003-of-01024"
+  ],
+  "epochs": [
+    {
+      "epoch": 1,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 2,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 3,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 4,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 5,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 6,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 7,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 8,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 9,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    },
+    {
+      "epoch": 10,
+      "shard_epoch": 0,
+      "training_completed": true,
+      "paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "train_batches": 150,
+      "optimizer_updates": 150,
+      "skipped_optimizer_updates": 0
+    }
+  ],
+  "completed_unique_train_shards": 8,
+  "optimizer_update_counting": "optimizer_iterations"
+}

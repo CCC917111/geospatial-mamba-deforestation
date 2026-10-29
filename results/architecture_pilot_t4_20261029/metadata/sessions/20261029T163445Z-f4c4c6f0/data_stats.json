@@ -1,0 +1,102 @@
+{
+  "forty_v1-test.tfrecord-00000-of-01024": {
+    "bytes": 109128159,
+    "inode": 5773201,
+    "mtime_ns": 1793291577532465108
+  },
+  "forty_v1-test.tfrecord-00001-of-01024": {
+    "bytes": 125497381,
+    "inode": 5773202,
+    "mtime_ns": 1793291596701325362
+  },
+  "forty_v1-test.tfrecord-00002-of-01024": {
+    "bytes": 109128160,
+    "inode": 5773203,
+    "mtime_ns": 1793291613611966467
+  },
+  "forty_v1-test.tfrecord-00003-of-01024": {
+    "bytes": 70933302,
+    "inode": 5773204,
+    "mtime_ns": 1793291625774146754
+  },
+  "forty_v1-test.tfrecord-00004-of-01024": {
+    "bytes": 109128160,
+    "inode": 5773205,
+    "mtime_ns": 1793291642513771262
+  },
+  "forty_v1-test.tfrecord-00005-of-01024": {
+    "bytes": 81846117,
+    "inode": 5773206,
+    "mtime_ns": 1793291654829966701
+  },
+  "forty_v1-test.tfrecord-00006-of-01024": {
+    "bytes": 65476896,
+    "inode": 5773207,
+    "mtime_ns": 1793291664782932870
+  },
+  "forty_v1-test.tfrecord-00007-of-01024": {
+    "bytes": 125497383,
+    "inode": 5773208,
+    "mtime_ns": 1793291683306731040
+  },
+  "forty_v1-train.tfrecord-00210-of-01024": {
+    "bytes": 774809922,
+    "inode": 5773191,
+    "mtime_ns": 1793290900852787586
+  },
+  "forty_v1-train.tfrecord-00243-of-01024": {
+    "bytes": 889394486,
+    "inode": 5773189,
+    "mtime_ns": 1793290649100343378
+  },
+  "forty_v1-train.tfrecord-00457-of-01024": {
+    "bytes": 862112450,
+    "inode": 5773192,
+    "mtime_ns": 1793291030396363648
+  },
+  "forty_v1-train.tfrecord-00491-of-01024": {
+    "bytes": 703876625,
+    "inode": 5773196,
+    "mtime_ns": 1793291490984066040
+  },
+  "forty_v1-train.tfrecord-00654-of-01024": {
+    "bytes": 813004783,
+    "inode": 5773190,
+    "mtime_ns": 1793290781914237488
+  },
+  "forty_v1-train.tfrecord-00861-of-01024": {
+    "bytes": 840286818,
+    "inode": 5773193,
+    "mtime_ns": 1793291154587418448
+  },
+  "forty_v1-train.tfrecord-00903-of-01024": {
+    "bytes": 856656043,
+    "inode": 5773195,
+    "mtime_ns": 1793291387158990580
+  },
+  "forty_v1-train.tfrecord-01005-of-01024": {
+    "bytes": 780266333,
+    "inode": 5773194,
+    "mtime_ns": 1793291263558996581
+  },
+  "forty_v1-validation.tfrecord-00000-of-01024": {
+    "bytes": 109128158,
+    "inode": 5773197,
+    "mtime_ns": 1793291510061917407
+  },
+  "forty_v1-validation.tfrecord-00001-of-01024": {
+    "bytes": 120040975,
+    "inode": 5773198,
+    "mtime_ns": 1793291527797638558
+  },
+  "forty_v1-validation.tfrecord-00002-of-01024": {
+    "bytes": 103671747,
+    "inode": 5773199,
+    "mtime_ns": 1793291543298142815
+  },
+  "forty_v1-validation.tfrecord-00003-of-01024": {
+    "bytes": 109128160,
+    "inode": 5773200,
+    "mtime_ns": 1793291559991762858
+  }
+}

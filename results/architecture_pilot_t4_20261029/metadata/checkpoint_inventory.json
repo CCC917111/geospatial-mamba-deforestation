@@ -1,0 +1,98 @@
+{
+  "completed_training_runs": 6,
+  "required_training_runs": 6,
+  "runs": [
+    {
+      "best": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_42/best.weights.h5",
+        "sha256": "c2749e9015dae51c8ccdc8378302476aa6c373fb57de8b901693bb2755d156af"
+      },
+      "last": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_42/last.weights.h5",
+        "sha256": "f66a20aaf6499c9866222af55f9b25c87df94871f3d20527b549cb5ad754ea50"
+      },
+      "seed": 42,
+      "selected_epoch": 9,
+      "variant": "cnn_ssm"
+    },
+    {
+      "best": {
+        "bytes": 20321464,
+        "path": "cnn_only_42/best.weights.h5",
+        "sha256": "da580ead014e5ce8616e9028195b19779e241bec75e6268058e6274aa805d02f"
+      },
+      "last": {
+        "bytes": 20321464,
+        "path": "cnn_only_42/last.weights.h5",
+        "sha256": "da580ead014e5ce8616e9028195b19779e241bec75e6268058e6274aa805d02f"
+      },
+      "seed": 42,
+      "selected_epoch": 10,
+      "variant": "cnn_only"
+    },
+    {
+      "best": {
+        "bytes": 20321464,
+        "path": "cnn_only_43/best.weights.h5",
+        "sha256": "d1c922dfbb8c0b1d6e9556dab984ba6b74a01bd72d9db832c9b6e7830d429057"
+      },
+      "last": {
+        "bytes": 20321464,
+        "path": "cnn_only_43/last.weights.h5",
+        "sha256": "d1c922dfbb8c0b1d6e9556dab984ba6b74a01bd72d9db832c9b6e7830d429057"
+      },
+      "seed": 43,
+      "selected_epoch": 10,
+      "variant": "cnn_only"
+    },
+    {
+      "best": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_43/best.weights.h5",
+        "sha256": "adc4667c023e4ac042169438d82f6234eb73312a2ca211db4320d6c49cb0cd99"
+      },
+      "last": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_43/last.weights.h5",
+        "sha256": "adc4667c023e4ac042169438d82f6234eb73312a2ca211db4320d6c49cb0cd99"
+      },
+      "seed": 43,
+      "selected_epoch": 10,
+      "variant": "cnn_ssm"
+    },
+    {
+      "best": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_44/best.weights.h5",
+        "sha256": "ef57461077521a042f0221e665a9ca05a95b48d74d58fdca8ccad9896859272b"
+      },
+      "last": {
+        "bytes": 31163864,
+        "path": "cnn_ssm_44/last.weights.h5",
+        "sha256": "ef57461077521a042f0221e665a9ca05a95b48d74d58fdca8ccad9896859272b"
+      },
+      "seed": 44,
+      "selected_epoch": 10,
+      "variant": "cnn_ssm"
+    },
+    {
+      "best": {
+        "bytes": 20321464,
+        "path": "cnn_only_44/best.weights.h5",
+        "sha256": "407193ef735733418fc8baacefee4ad81c08db84a0f2e50d2afb16dca2865a06"
+      },
+      "last": {
+        "bytes": 20321464,
+        "path": "cnn_only_44/last.weights.h5",
+        "sha256": "407193ef735733418fc8baacefee4ad81c08db84a0f2e50d2afb16dca2865a06"
+      },
+      "seed": 44,
+      "selected_epoch": 10,
+      "variant": "cnn_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Weights-only checkpoints; optimizer state is not resumed"
+}

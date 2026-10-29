@@ -4,10 +4,19 @@
 
 This study tests whether the CNN + Mamba-inspired selective state-space model
 improves segmentation over the CNN-only component control under one fixed
-training cohort and budget. The workflow is implemented and verified with
-three-seed synthetic CPU training, continuation and checkpoint checks. **The
-real-data multi-seed GPU experiment has not run yet.** No positive architecture
-effect or new accuracy score is claimed.
+training cohort and budget. The real-data Tesla T4 pilot completed on
+2026-10-29. Its [audited result](../results/architecture_pilot_t4_20261029/README.md)
+is a small average Macro F1 difference of **+1.10 ± 2.11 percentage points**
+across three seeds, with improvement in two seeds and regression in one.
+The SSM model has 53.6% more parameters. This is a seed-sensitive component
+ablation, not evidence of a stable or capacity-matched architecture advantage.
+
+The retained archive includes all six confusion matrices and metadata for
+six best/six last checkpoint files. Included metadata hashes and metrics were
+independently verified. H5 weights and source TFRecords are excluded, so their
+actual bytes and current Drive retention were not independently checked here.
+The separate synthetic CPU check verifies stage continuation; the completed
+real-data study ran in one session without retries.
 
 ## Run the real-data pilot
 

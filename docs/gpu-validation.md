@@ -8,9 +8,11 @@ UTAE or MTSViT baselines. Two paired modes address separate questions: `architec
 with CNN + selective SSM under the same ComboLoss, while the default
 `objective` mode compares ComboLoss with plain cross-entropy on CNN + SSM.
 
-**Execution status, 2026-10-26:** the full-budget, multi-seed real-data
-protocols below remain pending. The local workspace is CPU-only and Google
-Cloud Storage access is blocked. A separate
+**Execution status, 2026-10-29:** a smaller
+[three-seed real-data architecture pilot](../results/architecture_pilot_t4_20261029/README.md)
+completed in Colab on T4. Its fixed 8/4/8 shard budget and ten epochs differ
+from the full-budget protocols below, which remain pending. The local
+workspace is CPU-only and Google Cloud Storage access is blocked. A separate
 [Tesla T4 synthetic comparison](performance.md#retained-tesla-t4-comparison)
 completed in Colab and retains compute timing and allocator memory. Those
 measurements do not establish real-data accuracy or dataset compatibility.

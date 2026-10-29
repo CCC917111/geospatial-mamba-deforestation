@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "criterion": "validation_overall_f1",
+  "mode": "max",
+  "tie_break": "first",
+  "epoch": 10,
+  "score": 0.38525111439918064,
+  "weights": "best.weights.h5",
+  "weights_sha256": "adc4667c023e4ac042169438d82f6234eb73312a2ca211db4320d6c49cb0cd99"
+}

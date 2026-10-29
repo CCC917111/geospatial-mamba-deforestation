@@ -29,24 +29,46 @@ analysis. The implemented task is forest-type segmentation.
   export order. Versioned timing reports separate measured batch latency from
   allocated per-tile costs.
 
-## Research evidence in progress
+## Audited research pilot
 
-The [retained architecture pilot](research-pilot.md) prepares three model seeds
-on one fixed real-data cohort, with six validation-selected best checkpoints,
-paired numeric-ID metrics and preserved test boundaries. Its continuation and
-retention workflow passed a synthetic CPU integration check. **The real-data
-multi-seed experiment has not been executed yet**, so no positive architecture
-effect is stated. Semantic class naming and the official Unknown protocol are
-awaiting publisher clarification.
+The [real-data pilot](../results/architecture_pilot_t4_20261029/README.md)
+completed six Tesla T4 training/evaluation runs on 2026-10-29: CNN-only and
+CNN+SSM at seeds 42, 43 and 44, using one fixed ForTy cohort, the same objective,
+and ten epochs per run. All training completed before test evaluation.
+
+| Test metric | CNN-only | CNN+SSM |
+|---|---:|---:|
+| Macro F1 over nine numeric IDs | 38.19 ± 0.88% | 39.30 ± 1.38% |
+| Mean IoU | 27.32 ± 0.82% | 28.52 ± 0.96% |
+
+Values are means and sample standard deviations across three seeds. The paired
+Macro F1 change was **+1.10 ± 2.11 percentage points**, improving in two of
+three seeds. This is a small, seed-sensitive average benefit. CNN+SSM has
+7.73M parameters versus 5.04M for CNN-only, a **53.6% increase**; the comparison
+does not isolate an effect at matched model capacity. Numeric ID 7 received
+no predicted pixels in any of the six models despite positive test support.
+
+Independent recomputation from six retained confusion matrices matches the
+reported metrics. All 95 export-manifest file hashes and 13 recorded source
+module hashes were checked. Metadata records six best and six last checkpoint
+files in Drive; their binary weights and the TFRecords are excluded from the
+uploaded archive and were not independently rehashed. The study uses a small
+cohort and does not establish full-benchmark performance, statistical
+significance or geographic independence. Semantic class naming and the official
+Unknown protocol remain awaiting publisher clarification.
 
 ## CV wording
 
 > **Project Lead — Multimodal Forest-Type Segmentation**
 
-> Led a team project developing a reproducible segmentation pipeline using CNNs
-> and a Mamba-inspired selective state-space model; profiled Tesla T4 execution
-> and measured 4.80× synthetic inference compute throughput at batch 8 versus
-> batch 1, excluding data IO and exports.
+> Led a team project developing a reproducible forest-type segmentation pipeline
+> with CNNs and a Mamba-inspired selective state-space model. A controlled
+> three-seed ForTy pilot measured a +1.10 percentage-point mean Macro F1 change
+> versus CNN-only, with seed-sensitive outcomes and 53.6% more parameters.
+
+> Profiled Tesla T4 execution and measured 4.80× synthetic inference compute
+> throughput at batch 8 versus batch 1 on one repeated synthetic tile with
+> initialized weights, excluding data IO and exports.
 
 Describe individual responsibilities using the actual division of work.
 The lead role and team attribution are retained together.
@@ -56,6 +78,7 @@ The lead role and team attribution are retained together.
 Explain how the shard-selection seed is separated from run randomness, why
 climate statistics must be computed per tile over seasons, how validation
 chooses a checkpoint before test evaluation, and how profiler overhead and
-batch latency differ from unprofiled throughput. The next research conclusion
-must follow the retained multi-seed results, including a neutral or negative
-outcome if observed.
+batch latency differ from unprofiled throughput. Discuss the negative seed,
+parameter overhead and unpredicted numeric ID alongside the average benefit.
+Any changes motivated by the observed test errors need a new held-out
+assessment; the completed pilot should remain an unchanged evidence record.

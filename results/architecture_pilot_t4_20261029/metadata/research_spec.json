@@ -1,0 +1,33 @@
+{
+  "checkpoint_policy": "validation macro-F1 over all nine numeric IDs",
+  "class_semantics": "unverified; primary report uses numeric IDs 0 through 8",
+  "config": {
+    "allow_cpu": false,
+    "batch_size": 8,
+    "bottleneck_channels": 512,
+    "comparison": "architecture",
+    "d_model": 32,
+    "d_state_spatial": 16,
+    "d_state_temporal": 8,
+    "data_root": "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "dropout": 0.2,
+    "epochs": 10,
+    "evaluation_precision": "float32",
+    "precision": "mixed_float16",
+    "run_root": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1",
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "selection_seed": 2026,
+    "test_shards": 8,
+    "total_shards": 1024,
+    "train_shards": 8,
+    "val_shards": 4
+  },
+  "data_kind": "real_forty",
+  "data_manifest": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/selected_data.json",
+  "protocol": "fixed-cohort-architecture-pilot-v1",
+  "schema_version": 1
+}

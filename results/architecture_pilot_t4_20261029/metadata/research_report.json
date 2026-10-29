@@ -1,0 +1,1312 @@
+{
+  "class_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "comparison": "architecture",
+  "coverage": {
+    "full_published_test_split": false,
+    "published_shards_per_split": 1024,
+    "source_root": "gs://forest_typology/forty_v1/1.0.0",
+    "source_shards_per_split": 1024,
+    "test_shards": 8,
+    "train_shards": 8,
+    "validation_shards": 4
+  },
+  "data_kind": "real_forty",
+  "delta_direction": "cnn_ssm_minus_cnn_only",
+  "label_semantics": {
+    "class_names_reported": false,
+    "publisher_question": "https://github.com/google-deepmind/forest_typology/issues/2",
+    "status": "unverified",
+    "unknown_protocol": "No numeric ID is ignored; publisher Unknown protocol is unconfirmed"
+  },
+  "limitations": [
+    "Seed means and sample standard deviations are descriptive; no significance claim follows.",
+    "CNN-only uses temporal mean pooling and omits selective SSM blocks; parameter budgets are not matched.",
+    "Shared examples and training settings do not imply identical augmentation draws, optimizer updates or trajectories.",
+    "Test pixels repeat across seeds; matrices are not pooled into a larger independent test set.",
+    "Numeric-ID metrics do not establish semantic forest-class scores or the publisher's official Unknown protocol.",
+    "Selected shards and sample checks do not establish whole-dataset validity or geographic independence."
+  ],
+  "metric_conventions": {
+    "macro_f1_all_ids": "Macro F1 over all nine numeric IDs; absent IDs have F1 zero",
+    "mean_iou_present_ids": "Mean IoU over IDs with nonzero true or predicted support",
+    "pixel_accuracy": "Correct pixels divided by all evaluated pixels",
+    "units": "percent; paired differences are percentage points"
+  },
+  "pairs": [
+    {
+      "cnn_only": {
+        "confusion_matrix": [
+          [
+            32447,
+            66760,
+            27541,
+            43954,
+            137686,
+            13,
+            2151,
+            0,
+            7012
+          ],
+          [
+            29997,
+            209095,
+            125711,
+            87473,
+            58456,
+            0,
+            35,
+            0,
+            1576
+          ],
+          [
+            5658,
+            55724,
+            70865,
+            11481,
+            19832,
+            6,
+            740,
+            0,
+            895
+          ],
+          [
+            23687,
+            32187,
+            1786,
+            90294,
+            94017,
+            174,
+            2066,
+            0,
+            756
+          ],
+          [
+            31148,
+            24863,
+            13797,
+            11775,
+            560677,
+            33,
+            1557,
+            0,
+            46480
+          ],
+          [
+            4469,
+            1863,
+            3985,
+            2803,
+            143088,
+            137,
+            1064,
+            0,
+            12122
+          ],
+          [
+            226,
+            720,
+            90,
+            56,
+            2033,
+            14,
+            102526,
+            0,
+            5007
+          ],
+          [
+            8,
+            0,
+            0,
+            0,
+            1525,
+            0,
+            4467,
+            0,
+            3770
+          ],
+          [
+            5118,
+            610,
+            33,
+            43,
+            44122,
+            101,
+            18452,
+            0,
+            103207
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 37.646232216000335,
+          "mean_iou_present_ids": 26.9327276096916,
+          "pixel_accuracy": 48.88029751712329
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1499,
+          "skipped_optimizer_updates": 1,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 5035392,
+        "per_numeric_class": [
+          {
+            "f1_percent": 14.410577320228638,
+            "id": 0,
+            "iou_percent": 7.764762189650015,
+            "predicted_pixels": 132758,
+            "support": 317564
+          },
+          {
+            "f1_percent": 46.251513827675254,
+            "id": 1,
+            "iou_percent": 30.082581610485278,
+            "predicted_pixels": 391822,
+            "support": 512343
+          },
+          {
+            "f1_percent": 34.65204922141078,
+            "id": 2,
+            "iou_percent": 20.957047884924766,
+            "predicted_pixels": 243808,
+            "support": 165201
+          },
+          {
+            "f1_percent": 36.641871903190854,
+            "id": 3,
+            "iou_percent": 22.430394085733024,
+            "predicted_pixels": 247879,
+            "support": 244967
+          },
+          {
+            "f1_percent": 64.01277339553342,
+            "id": 4,
+            "iou_percent": 47.07263688943479,
+            "predicted_pixels": 1061436,
+            "support": 690330
+          },
+          {
+            "f1_percent": 0.16116793816797934,
+            "id": 5,
+            "iou_percent": 0.08064895921635114,
+            "predicted_pixels": 478,
+            "support": 169531
+          },
+          {
+            "f1_percent": 84.13080047593648,
+            "id": 6,
+            "iou_percent": 72.60842469051867,
+            "predicted_pixels": 133058,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 58.555335861859625,
+            "id": 8,
+            "iou_percent": 41.3980521772615,
+            "predicted_pixels": 180825,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 10,
+          "mode": "max",
+          "score_fraction": 0.405655941666438,
+          "tie_break": "first"
+        }
+      },
+      "cnn_ssm": {
+        "confusion_matrix": [
+          [
+            18173,
+            88907,
+            33361,
+            34187,
+            125604,
+            6489,
+            1949,
+            0,
+            8894
+          ],
+          [
+            17372,
+            273127,
+            123905,
+            34096,
+            60893,
+            276,
+            239,
+            0,
+            2435
+          ],
+          [
+            1783,
+            43610,
+            73468,
+            8526,
+            36047,
+            623,
+            854,
+            0,
+            290
+          ],
+          [
+            6212,
+            69164,
+            1902,
+            69857,
+            90553,
+            5057,
+            1534,
+            0,
+            688
+          ],
+          [
+            11890,
+            26907,
+            15207,
+            23767,
+            497370,
+            37254,
+            2380,
+            0,
+            75555
+          ],
+          [
+            2446,
+            2610,
+            5498,
+            8580,
+            99031,
+            38784,
+            2207,
+            0,
+            10375
+          ],
+          [
+            188,
+            336,
+            490,
+            40,
+            1220,
+            780,
+            100979,
+            0,
+            6639
+          ],
+          [
+            100,
+            1,
+            0,
+            0,
+            1519,
+            1,
+            71,
+            0,
+            8078
+          ],
+          [
+            1591,
+            1044,
+            588,
+            641,
+            32584,
+            17400,
+            3339,
+            0,
+            114499
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 40.840912610449614,
+          "mean_iou_present_ids": 29.42756119161804,
+          "pixel_accuracy": 49.59135708743579
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1500,
+          "skipped_optimizer_updates": 0,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 7732800,
+        "per_numeric_class": [
+          {
+            "f1_percent": 9.632698061852173,
+            "id": 0,
+            "iou_percent": 5.0600591402939195,
+            "predicted_pixels": 59755,
+            "support": 317564
+          },
+          {
+            "f1_percent": 53.656945785517195,
+            "id": 1,
+            "iou_percent": 36.66518105251288,
+            "predicted_pixels": 505706,
+            "support": 512343
+          },
+          {
+            "f1_percent": 35.016443448834664,
+            "id": 2,
+            "iou_percent": 21.22420208463334,
+            "predicted_pixels": 254419,
+            "support": 165201
+          },
+          {
+            "f1_percent": 32.90012504091499,
+            "id": 3,
+            "iou_percent": 19.688898659541607,
+            "predicted_pixels": 179694,
+            "support": 244967
+          },
+          {
+            "f1_percent": 60.83474859508387,
+            "id": 4,
+            "iou_percent": 43.71403635673297,
+            "predicted_pixels": 944821,
+            "support": 690330
+          },
+          {
+            "f1_percent": 28.084505512409713,
+            "id": 5,
+            "iou_percent": 16.336227049294262,
+            "predicted_pixels": 106664,
+            "support": 169531
+          },
+          {
+            "f1_percent": 90.06975167689454,
+            "id": 6,
+            "iou_percent": 81.93354699987829,
+            "predicted_pixels": 113552,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 57.37299537253939,
+            "id": 8,
+            "iou_percent": 40.2258993816751,
+            "predicted_pixels": 227453,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 9,
+          "mode": "max",
+          "score_fraction": 0.40905859116957305,
+          "tie_break": "first"
+        }
+      },
+      "paired_delta_percentage_points": {
+        "macro_f1_all_ids": 3.1946803944492785,
+        "mean_iou_present_ids": 2.4948335819264393,
+        "pixel_accuracy": 0.7110595703125
+      },
+      "seed": 42
+    },
+    {
+      "cnn_only": {
+        "confusion_matrix": [
+          [
+            15614,
+            67610,
+            29053,
+            59008,
+            129920,
+            100,
+            1661,
+            0,
+            14598
+          ],
+          [
+            10643,
+            212463,
+            123996,
+            102750,
+            60976,
+            8,
+            26,
+            0,
+            1481
+          ],
+          [
+            1856,
+            40684,
+            85413,
+            10739,
+            24471,
+            73,
+            588,
+            0,
+            1377
+          ],
+          [
+            10575,
+            16084,
+            3484,
+            119938,
+            91815,
+            520,
+            1484,
+            0,
+            1067
+          ],
+          [
+            5722,
+            19477,
+            19346,
+            27245,
+            561258,
+            609,
+            759,
+            0,
+            55914
+          ],
+          [
+            640,
+            1981,
+            4089,
+            7657,
+            133575,
+            3779,
+            991,
+            0,
+            16819
+          ],
+          [
+            256,
+            780,
+            82,
+            189,
+            1150,
+            83,
+            99441,
+            0,
+            8691
+          ],
+          [
+            261,
+            0,
+            0,
+            0,
+            290,
+            0,
+            5168,
+            0,
+            4051
+          ],
+          [
+            910,
+            725,
+            25,
+            139,
+            34494,
+            407,
+            15356,
+            0,
+            119630
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 39.20705939709032,
+          "mean_iou_present_ids": 28.26155873822002,
+          "pixel_accuracy": 50.898972602739725
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1499,
+          "skipped_optimizer_updates": 1,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 5035392,
+        "per_numeric_class": [
+          {
+            "f1_percent": 8.57815465840386,
+            "id": 0,
+            "iou_percent": 4.48128302341667,
+            "predicted_pixels": 46477,
+            "support": 317564
+          },
+          {
+            "f1_percent": 48.721832443383974,
+            "id": 1,
+            "iou_percent": 32.20678385408772,
+            "predicted_pixels": 359804,
+            "support": 512343
+          },
+          {
+            "f1_percent": 39.66342302682446,
+            "id": 2,
+            "iou_percent": 24.73760122336913,
+            "predicted_pixels": 265488,
+            "support": 165201
+          },
+          {
+            "f1_percent": 41.89007949258861,
+            "id": 3,
+            "iou_percent": 26.494276486986795,
+            "predicted_pixels": 327665,
+            "support": 244967
+          },
+          {
+            "f1_percent": 64.94992995922534,
+            "id": 4,
+            "iou_percent": 48.09322197286938,
+            "predicted_pixels": 1037949,
+            "support": 690330
+          },
+          {
+            "f1_percent": 4.316144137970419,
+            "id": 5,
+            "iou_percent": 2.2056720616817738,
+            "predicted_pixels": 5579,
+            "support": 169531
+          },
+          {
+            "f1_percent": 84.21993173714566,
+            "id": 6,
+            "iou_percent": 72.74130426831499,
+            "predicted_pixels": 125474,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 60.52403911827054,
+            "id": 8,
+            "iou_percent": 43.39388575325373,
+            "predicted_pixels": 223628,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 10,
+          "mode": "max",
+          "score_fraction": 0.40726961285387364,
+          "tie_break": "first"
+        }
+      },
+      "cnn_ssm": {
+        "confusion_matrix": [
+          [
+            10801,
+            76811,
+            52805,
+            46239,
+            113376,
+            1224,
+            2243,
+            0,
+            14065
+          ],
+          [
+            11260,
+            217177,
+            183799,
+            53281,
+            41414,
+            133,
+            354,
+            0,
+            4925
+          ],
+          [
+            5550,
+            30334,
+            84733,
+            13421,
+            29677,
+            453,
+            979,
+            0,
+            54
+          ],
+          [
+            5338,
+            61922,
+            8418,
+            83613,
+            78762,
+            5050,
+            1688,
+            0,
+            176
+          ],
+          [
+            13870,
+            16262,
+            40504,
+            25734,
+            498826,
+            12759,
+            1879,
+            0,
+            80496
+          ],
+          [
+            2124,
+            1021,
+            10449,
+            14670,
+            106413,
+            17389,
+            3879,
+            0,
+            13586
+          ],
+          [
+            121,
+            249,
+            566,
+            46,
+            1345,
+            413,
+            100568,
+            0,
+            7364
+          ],
+          [
+            4,
+            0,
+            31,
+            0,
+            1620,
+            5,
+            0,
+            0,
+            8110
+          ],
+          [
+            371,
+            248,
+            1651,
+            874,
+            40490,
+            5009,
+            3378,
+            0,
+            119665
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 38.17932724840618,
+          "mean_iou_present_ids": 27.522218012010665,
+          "pixel_accuracy": 47.355421928510275
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1500,
+          "skipped_optimizer_updates": 0,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 7732800,
+        "per_numeric_class": [
+          {
+            "f1_percent": 5.886055427339832,
+            "id": 0,
+            "iou_percent": 3.0322682073654836,
+            "predicted_pixels": 49439,
+            "support": 317564
+          },
+          {
+            "f1_percent": 47.399568076982256,
+            "id": 1,
+            "iou_percent": 31.061227992391196,
+            "predicted_pixels": 404024,
+            "support": 512343
+          },
+          {
+            "f1_percent": 30.91559534950753,
+            "id": 2,
+            "iou_percent": 18.284119941996963,
+            "predicted_pixels": 382956,
+            "support": 165201
+          },
+          {
+            "f1_percent": 34.63347451045367,
+            "id": 3,
+            "iou_percent": 20.943461445976276,
+            "predicted_pixels": 237878,
+            "support": 244967
+          },
+          {
+            "f1_percent": 62.26557229101771,
+            "id": 4,
+            "iou_percent": 45.20697789704258,
+            "predicted_pixels": 911923,
+            "support": 690330
+          },
+          {
+            "f1_percent": 16.407348348320014,
+            "id": 5,
+            "iou_percent": 8.93682192653808,
+            "predicted_pixels": 42435,
+            "support": 169531
+          },
+          {
+            "f1_percent": 89.14022336465166,
+            "id": 6,
+            "iou_percent": 80.4080849430728,
+            "predicted_pixels": 114968,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 56.96610786738295,
+            "id": 8,
+            "iou_percent": 39.82699975371261,
+            "predicted_pixels": 248441,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 10,
+          "mode": "max",
+          "score_fraction": 0.38525111439918064,
+          "tie_break": "first"
+        }
+      },
+      "paired_delta_percentage_points": {
+        "macro_f1_all_ids": -1.0277321486841373,
+        "mean_iou_present_ids": -0.7393407262093561,
+        "pixel_accuracy": -3.5435506742294507
+      },
+      "seed": 43
+    },
+    {
+      "cnn_only": {
+        "confusion_matrix": [
+          [
+            14675,
+            47325,
+            50315,
+            50774,
+            139160,
+            757,
+            2877,
+            0,
+            11681
+          ],
+          [
+            12158,
+            142539,
+            202840,
+            93390,
+            59631,
+            195,
+            100,
+            0,
+            1490
+          ],
+          [
+            1768,
+            18835,
+            100760,
+            21513,
+            18845,
+            489,
+            942,
+            0,
+            2049
+          ],
+          [
+            9082,
+            23132,
+            6870,
+            107737,
+            93223,
+            2458,
+            2116,
+            0,
+            349
+          ],
+          [
+            8144,
+            5428,
+            39097,
+            17480,
+            546810,
+            9509,
+            3354,
+            0,
+            60508
+          ],
+          [
+            892,
+            826,
+            6745,
+            3952,
+            128801,
+            11933,
+            1506,
+            0,
+            14876
+          ],
+          [
+            262,
+            547,
+            282,
+            146,
+            878,
+            195,
+            102586,
+            0,
+            5776
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            1374,
+            0,
+            1113,
+            0,
+            7282
+          ],
+          [
+            608,
+            251,
+            102,
+            98,
+            34009,
+            2453,
+            19533,
+            0,
+            114632
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 37.730403393856136,
+          "mean_iou_present_ids": 26.76977259753426,
+          "pixel_accuracy": 47.72748555222603
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1499,
+          "skipped_optimizer_updates": 1,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 5035392,
+        "per_numeric_class": [
+          {
+            "f1_percent": 8.037704639686268,
+            "id": 0,
+            "iou_percent": 4.1871267608044995,
+            "predicted_pixels": 47590,
+            "support": 317564
+          },
+          {
+            "f1_percent": 37.94836706929739,
+            "id": 1,
+            "iou_percent": 23.41745429095742,
+            "predicted_pixels": 238883,
+            "support": 512343
+          },
+          {
+            "f1_percent": 35.217716510663884,
+            "id": 2,
+            "iou_percent": 21.372271196219337,
+            "predicted_pixels": 407011,
+            "support": 165201
+          },
+          {
+            "f1_percent": 39.898381096810155,
+            "id": 3,
+            "iou_percent": 24.92066062176166,
+            "predicted_pixels": 295090,
+            "support": 244967
+          },
+          {
+            "f1_percent": 63.84010843746953,
+            "id": 4,
+            "iou_percent": 46.886133430968115,
+            "predicted_pixels": 1022731,
+            "support": 690330
+          },
+          {
+            "f1_percent": 12.082827055488051,
+            "id": 5,
+            "iou_percent": 6.429868471390776,
+            "predicted_pixels": 27989,
+            "support": 169531
+          },
+          {
+            "f1_percent": 83.81243387432139,
+            "id": 6,
+            "iou_percent": 72.13545878365551,
+            "predicted_pixels": 134127,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 58.736091860968564,
+            "id": 8,
+            "iou_percent": 41.57897982205102,
+            "predicted_pixels": 218643,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 10,
+          "mode": "max",
+          "score_fraction": 0.37797744851033244,
+          "tie_break": "first"
+        }
+      },
+      "cnn_ssm": {
+        "confusion_matrix": [
+          [
+            30448,
+            111242,
+            12101,
+            35806,
+            118925,
+            152,
+            2090,
+            0,
+            6800
+          ],
+          [
+            26228,
+            337655,
+            79667,
+            29167,
+            37106,
+            8,
+            153,
+            0,
+            2359
+          ],
+          [
+            9427,
+            83605,
+            40429,
+            7891,
+            22841,
+            51,
+            837,
+            0,
+            120
+          ],
+          [
+            7423,
+            58206,
+            1009,
+            86818,
+            88759,
+            240,
+            1116,
+            0,
+            1396
+          ],
+          [
+            32137,
+            52918,
+            5842,
+            17349,
+            514318,
+            157,
+            2349,
+            0,
+            65260
+          ],
+          [
+            6155,
+            8909,
+            968,
+            9622,
+            125532,
+            496,
+            3420,
+            0,
+            14429
+          ],
+          [
+            514,
+            149,
+            398,
+            40,
+            1179,
+            120,
+            103508,
+            0,
+            4764
+          ],
+          [
+            106,
+            0,
+            0,
+            0,
+            1547,
+            1,
+            132,
+            0,
+            7984
+          ],
+          [
+            3123,
+            1777,
+            187,
+            247,
+            50062,
+            128,
+            4410,
+            0,
+            111752
+          ]
+        ],
+        "metrics_percent": {
+          "macro_f1_all_ids": 38.86927169723387,
+          "mean_iou_present_ids": 28.62074819210498,
+          "pixel_accuracy": 51.22872966609589
+        },
+        "optimizer_updates": {
+          "optimizer_updates": 1499,
+          "skipped_optimizer_updates": 1,
+          "status": "recorded",
+          "train_batches": 1500
+        },
+        "parameter_count": 7732800,
+        "per_numeric_class": [
+          {
+            "f1_percent": 14.05968253968254,
+            "id": 0,
+            "iou_percent": 7.561395361542875,
+            "predicted_pixels": 115561,
+            "support": 317564
+          },
+          {
+            "f1_percent": 57.876901347612794,
+            "id": 1,
+            "iou_percent": 40.72307872288334,
+            "predicted_pixels": 654461,
+            "support": 512343
+          },
+          {
+            "f1_percent": 26.44129207788046,
+            "id": 2,
+            "iou_percent": 15.234782739766292,
+            "predicted_pixels": 140601,
+            "support": 165201
+          },
+          {
+            "f1_percent": 40.20217315301674,
+            "id": 3,
+            "iou_percent": 25.158147608298147,
+            "predicted_pixels": 186940,
+            "support": 244967
+          },
+          {
+            "f1_percent": 62.31895208951417,
+            "id": 4,
+            "iou_percent": 45.26327554539766,
+            "predicted_pixels": 960269,
+            "support": 690330
+          },
+          {
+            "f1_percent": 0.5805107558343672,
+            "id": 5,
+            "iou_percent": 0.2911003122285607,
+            "predicted_pixels": 1353,
+            "support": 169531
+          },
+          {
+            "f1_percent": 90.52372893955494,
+            "id": 6,
+            "iou_percent": 82.68799079717844,
+            "predicted_pixels": 118015,
+            "support": 110672
+          },
+          {
+            "f1_percent": 0.0,
+            "id": 7,
+            "iou_percent": 0.0,
+            "predicted_pixels": 0,
+            "support": 9770
+          },
+          {
+            "f1_percent": 57.820204372008796,
+            "id": 8,
+            "iou_percent": 40.6669626416495,
+            "predicted_pixels": 214864,
+            "support": 171686
+          }
+        ],
+        "test_pixels": 2392064,
+        "train_examples": 11950,
+        "validation_selection": {
+          "criterion": "macro_f1_all_nine_ids",
+          "epoch": 10,
+          "mode": "max",
+          "score_fraction": 0.3956006668659693,
+          "tie_break": "first"
+        }
+      },
+      "paired_delta_percentage_points": {
+        "macro_f1_all_ids": 1.138868303377734,
+        "mean_iou_present_ids": 1.8509755945707198,
+        "pixel_accuracy": 3.501244113869859
+      },
+      "seed": 44
+    }
+  ],
+  "provenance_validation": {
+    "data_manifest_sha256": "31d5361370d757268c037795071d7b23c687ad216151c6f3111d7f4b6d45c126",
+    "gpu_probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "runtime_versions": {
+      "keras": "3.13.2",
+      "numpy": "2.1.3",
+      "python": "3.13.16",
+      "tensorflow": "2.21.0"
+    },
+    "source_commit": "7f55b2c30c830693873e1fe1628c8e52208ed57d",
+    "status": "passed"
+  },
+  "report_kind": "neutral_architecture_pilot",
+  "research_pilot_multiseed": true,
+  "retention_manifest": {
+    "path": "checkpoint_manifest.json",
+    "sha256": "66c668774ddba98f04bdc46a2ff3a5fd7fcd6ee07b208317b7dcd9d778460fb1"
+  },
+  "schema_version": 1,
+  "seed_count": 3,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "shared_cohort": {
+    "paths": {
+      "test": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00000-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00001-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00002-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00003-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00004-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00006-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00007-of-01024"
+      ],
+      "train": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "validation": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00000-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00001-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00002-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00003-of-01024"
+      ]
+    },
+    "selection_seed": 2026
+  },
+  "status": "completed_pilot",
+  "summary": {
+    "cnn_only": {
+      "metrics_percent": {
+        "macro_f1_all_ids": {
+          "mean": 38.1945650023156,
+          "sample_sd": 0.87785526790188
+        },
+        "mean_iou_present_ids": {
+          "mean": 27.321352981815295,
+          "sample_sd": 0.818308457905232
+        },
+        "pixel_accuracy": {
+          "mean": 49.168918557363014,
+          "sample_sd": 1.6053221192476648
+        }
+      },
+      "parameter_count": 5035392
+    },
+    "cnn_ssm": {
+      "metrics_percent": {
+        "macro_f1_all_ids": {
+          "mean": 39.296503852029886,
+          "sample_sd": 1.3812692154065056
+        },
+        "mean_iou_present_ids": {
+          "mean": 28.52350913191123,
+          "sample_sd": 0.9563862891842438
+        },
+        "pixel_accuracy": {
+          "mean": 49.39183622734732,
+          "sample_sd": 1.944346840900043
+        }
+      },
+      "parameter_count": 7732800
+    },
+    "paired_delta_percentage_points": {
+      "macro_f1_all_ids": {
+        "mean": 1.1019388497142917,
+        "sample_sd": 2.1114484979543096
+      },
+      "mean_iou_present_ids": {
+        "mean": 1.2021561500959344,
+        "sample_sd": 1.7119275298615417
+      },
+      "pixel_accuracy": {
+        "mean": 0.22291766998430282,
+        "sample_sd": 3.547674631043526
+      }
+    }
+  }
+}

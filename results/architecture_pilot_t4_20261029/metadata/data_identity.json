@@ -1,0 +1,155 @@
+{
+  "config": {
+    "cache_root": "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "selection_seed": 2026,
+    "source_root": "gs://forest_typology/forty_v1/1.0.0",
+    "test_shards": 8,
+    "total_shards": 1024,
+    "train_shards": 8,
+    "val_shards": 4
+  },
+  "data_kind": "real_forty",
+  "files": [
+    {
+      "bytes": 889394486,
+      "filename": "forty_v1-train.tfrecord-00243-of-01024",
+      "sha256": "6c42184589f7a39019cafb909f0be0a20c71b63b11782062a20afcef7baedd82",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00243-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 813004783,
+      "filename": "forty_v1-train.tfrecord-00654-of-01024",
+      "sha256": "fee3cc50f2431c87e86940af364b651be2a8688c5f4d1171b7f5b6c78193cfbc",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00654-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 774809922,
+      "filename": "forty_v1-train.tfrecord-00210-of-01024",
+      "sha256": "0d856f0d25da1f09eb2f230d8e67f86790f2f773b032ce933147bdd64714eb42",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00210-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 862112450,
+      "filename": "forty_v1-train.tfrecord-00457-of-01024",
+      "sha256": "5068fe2bdac152b326c8a2c4eb9f3a3d560eda2289a21f1f8620d5f6140f2766",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00457-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 840286818,
+      "filename": "forty_v1-train.tfrecord-00861-of-01024",
+      "sha256": "9b7dec01b2211a68bef729af60bac5d55650f5de80edf5737dffd4965a4cf6c7",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00861-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 780266333,
+      "filename": "forty_v1-train.tfrecord-01005-of-01024",
+      "sha256": "5dc9e025a447a326715b725a8ecc0d3e2a0fefcf82521ca99695ecf7141dc375",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-01005-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 856656043,
+      "filename": "forty_v1-train.tfrecord-00903-of-01024",
+      "sha256": "9c9f4800216f50a4d8cd0f0b137f621531e155c7e2b208905424211b9145f20c",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00903-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 703876625,
+      "filename": "forty_v1-train.tfrecord-00491-of-01024",
+      "sha256": "52cae52681182b71e51efabd6157dd27c93eb9b67ba36a8814f77a54a9b6b7a1",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-train.tfrecord-00491-of-01024",
+      "split": "train"
+    },
+    {
+      "bytes": 109128158,
+      "filename": "forty_v1-validation.tfrecord-00000-of-01024",
+      "sha256": "56aa9ab1584a17aa5c07dcfd5fef73df65d4dd9885eee600d33639ea2ff19a17",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-validation.tfrecord-00000-of-01024",
+      "split": "validation"
+    },
+    {
+      "bytes": 120040975,
+      "filename": "forty_v1-validation.tfrecord-00001-of-01024",
+      "sha256": "a4fb4a5bce173101f2544a1246c562c187b67d4df3f84ce42316080b4d57a933",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-validation.tfrecord-00001-of-01024",
+      "split": "validation"
+    },
+    {
+      "bytes": 103671747,
+      "filename": "forty_v1-validation.tfrecord-00002-of-01024",
+      "sha256": "4bfb9b1a07c61fd8b0f2f8dbc718f2c13a9b89df278eb11a85c6123ecb345574",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-validation.tfrecord-00002-of-01024",
+      "split": "validation"
+    },
+    {
+      "bytes": 109128160,
+      "filename": "forty_v1-validation.tfrecord-00003-of-01024",
+      "sha256": "6dd9e93e41a691579e1bc89cb73d10026cb5ccd2f84b7a220b7d7ffd6dacb6d3",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-validation.tfrecord-00003-of-01024",
+      "split": "validation"
+    },
+    {
+      "bytes": 109128159,
+      "filename": "forty_v1-test.tfrecord-00000-of-01024",
+      "sha256": "eb0f48b03ef9658d4f13de93bfc40e073b032abc26b188a677c8f30a16521d72",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00000-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 125497381,
+      "filename": "forty_v1-test.tfrecord-00001-of-01024",
+      "sha256": "018d36e0c888e2f24b0fbf9e8a0da6af8c2be2113ecb05915e2bb35e6e990b9b",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00001-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 109128160,
+      "filename": "forty_v1-test.tfrecord-00002-of-01024",
+      "sha256": "927f76a37798cb77b9670807aed3b5a43e63b4965ef40fefa56731dbee27f22e",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00002-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 70933302,
+      "filename": "forty_v1-test.tfrecord-00003-of-01024",
+      "sha256": "a29e897dbced275d767cf1a3c5a1cbbc3e71ee07e8740d355d0d66067e601316",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00003-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 109128160,
+      "filename": "forty_v1-test.tfrecord-00004-of-01024",
+      "sha256": "953d70687246e201ed7f20c98a93f574d0e43f28ac6a884fa712dc319b4a5877",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00004-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 81846117,
+      "filename": "forty_v1-test.tfrecord-00005-of-01024",
+      "sha256": "f362a5e52c70b24a44ed5e2216af200d5eba9ebbea2d08e1425137aa58094028",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00005-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 65476896,
+      "filename": "forty_v1-test.tfrecord-00006-of-01024",
+      "sha256": "48c760d592220850564c40586ff8732eb65a3cf1f34a22dbad44f01285621734",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00006-of-01024",
+      "split": "test"
+    },
+    {
+      "bytes": 125497383,
+      "filename": "forty_v1-test.tfrecord-00007-of-01024",
+      "sha256": "4d96bb8027aceaa04345afd8b13b1027d2a765830ddf419a6e959d19e745d2e8",
+      "source": "gs://forest_typology/forty_v1/1.0.0/forty_v1-test.tfrecord-00007-of-01024",
+      "split": "test"
+    }
+  ],
+  "manifest_sha256": "31d5361370d757268c037795071d7b23c687ad216151c6f3111d7f4b6d45c126"
+}

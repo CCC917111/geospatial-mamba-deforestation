@@ -1,0 +1,94 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-m",
+    "mamba_forest.train",
+    "--data-root",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "--total-shards",
+    "1024",
+    "--dropout",
+    "0.2",
+    "--d-model",
+    "32",
+    "--d-state-temporal",
+    "8",
+    "--d-state-spatial",
+    "16",
+    "--bottleneck-channels",
+    "512",
+    "--seed",
+    "43",
+    "--selection-seed",
+    "2026",
+    "--fixed-train-subset",
+    "--train-shards",
+    "8",
+    "--val-shards",
+    "4",
+    "--batch-size",
+    "8",
+    "--epochs",
+    "10",
+    "--patience",
+    "0",
+    "--precision",
+    "mixed_float16",
+    "--combo-alpha",
+    "0.4",
+    "--label-smoothing",
+    "0.05",
+    "--model-variant",
+    "cnn_only",
+    "--output-dir",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_43"
+  ],
+  "attempt": {
+    "id": "20261029T165339Z-a9afe229",
+    "log": "logs/train_cnn_only_43-20261029T165339Z-a9afe229.log",
+    "preserved_partial": null,
+    "seconds": 373.75681347499994,
+    "session": "20261029T163445Z-f4c4c6f0",
+    "state": "completed"
+  },
+  "outputs": [
+    {
+      "bytes": 829,
+      "path": "cnn_only_43/config.json",
+      "sha256": "4d5bd84454a2706d7a05feb5d060da6788a03c7c84567a3eced47293b4aa9b9a"
+    },
+    {
+      "bytes": 20321464,
+      "path": "cnn_only_43/best.weights.h5",
+      "sha256": "d1c922dfbb8c0b1d6e9556dab984ba6b74a01bd72d9db832c9b6e7830d429057"
+    },
+    {
+      "bytes": 20321464,
+      "path": "cnn_only_43/last.weights.h5",
+      "sha256": "d1c922dfbb8c0b1d6e9556dab984ba6b74a01bd72d9db832c9b6e7830d429057"
+    },
+    {
+      "bytes": 3635,
+      "path": "cnn_only_43/training_results.csv",
+      "sha256": "11e85a0c5063218024faa5f3e44ccd7a1e8cc0805ad0c536e0da7864fa3c54a8"
+    },
+    {
+      "bytes": 12049,
+      "path": "cnn_only_43/split_manifest.json",
+      "sha256": "7140c88f80a18c85f11cebf92bb9f46025ced4c8bb3181aab6bbc8537c2b945f"
+    },
+    {
+      "bytes": 273,
+      "path": "cnn_only_43/checkpoint_selection.json",
+      "sha256": "31875e5faf975a03542a93a39c5439548c8d21bfb214f4f5a8addf492829b9fb"
+    },
+    {
+      "bytes": 14,
+      "path": "cnn_only_43/train_wall_seconds.txt",
+      "sha256": "0a65a93002c8fc95700f9fe8c6a616814d2961bccd074c9583d4400266eb5bfe"
+    }
+  ],
+  "schema_version": 1,
+  "session": "20261029T163445Z-f4c4c6f0",
+  "stage_id": "train_cnn_only_43"
+}

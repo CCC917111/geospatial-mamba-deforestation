@@ -42,14 +42,16 @@ software integration; they do not measure accuracy on satellite observations.
 
 | Evidence | What it supports | Where to inspect it |
 |---|---|---|
+| **Three-seed ForTy pilot** | Fixed-cohort CNN+SSM/CNN-only comparison: small average improvement, seed sensitivity, parameter and process-time costs | [Audited results and paired-seed figure](../results/architecture_pilot_t4_20261029/README.md) · [Protocol](research-pilot.md) |
 | **Local software verification** | Automated tests and synthetic CPU training, checkpoint restoration, evaluation, and prediction | [Testing guide](testing.md) · [Completed demo record](../results/local_demo_cpu.json) |
 | **CPU timing measurements** | Compute diagnostics and a separately measured file-to-file prediction workflow, each with its own architecture and timing boundary | [Measurement guide](local-demo.md) · [Raw prediction timing](../results/performance_predict_cpu.json) · [Audit](optimization-audit.md) |
 | **T4 compute measurements** | Source comparison plus batch scaling and four real GPU traces; synthetic timing boundaries | [Performance guide](performance.md) · [Source comparison](../results/performance_t4_20261026/README.md) · [Batch study](../results/batch_study_t4_20261028/README.md) |
 | **Historical ForTy scores** | Context from earlier reported results; original logs and weights are unavailable, and literature baselines use different protocols | [Results discussion](../results/README.md) |
 
-Full-scale live-data accuracy and multi-seed architecture comparisons remain
-unverified. The [validation runbook](gpu-validation.md) documents those
-prepared experiments; the T4 compute results use synthetic data.
+The small real-data architecture pilot is complete. Full-scale training,
+full-test evaluation and a stable architecture advantage remain unestablished.
+The [validation runbook](gpu-validation.md) documents larger experiments;
+the separate T4 throughput measurements use synthetic data.
 
 ## Prepare another runtime when needed
 

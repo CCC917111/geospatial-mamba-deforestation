@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-m",
+    "mamba_forest.compare",
+    "--run-root",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1",
+    "--comparison",
+    "architecture",
+    "--seeds",
+    "42",
+    "43",
+    "44",
+    "--output",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/comparison.json"
+  ],
+  "attempt": {
+    "id": "20261029T173533Z-fa694d5c",
+    "log": "logs/compare-20261029T173533Z-fa694d5c.log",
+    "preserved_partial": null,
+    "seconds": 1.6726404099999854,
+    "session": "20261029T163445Z-f4c4c6f0",
+    "state": "completed"
+  },
+  "outputs": [
+    {
+      "bytes": 14572,
+      "path": "comparison.json",
+      "sha256": "ff9d56859f94ac884c8ba41beafdc4aeb7848e10eda21f8c46b0fd19d9b0be04"
+    }
+  ],
+  "schema_version": 1,
+  "session": "20261029T163445Z-f4c4c6f0",
+  "stage_id": "compare"
+}

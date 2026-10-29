@@ -1,0 +1,94 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-m",
+    "mamba_forest.train",
+    "--data-root",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "--total-shards",
+    "1024",
+    "--dropout",
+    "0.2",
+    "--d-model",
+    "32",
+    "--d-state-temporal",
+    "8",
+    "--d-state-spatial",
+    "16",
+    "--bottleneck-channels",
+    "512",
+    "--seed",
+    "44",
+    "--selection-seed",
+    "2026",
+    "--fixed-train-subset",
+    "--train-shards",
+    "8",
+    "--val-shards",
+    "4",
+    "--batch-size",
+    "8",
+    "--epochs",
+    "10",
+    "--patience",
+    "0",
+    "--precision",
+    "mixed_float16",
+    "--combo-alpha",
+    "0.4",
+    "--label-smoothing",
+    "0.05",
+    "--model-variant",
+    "cnn_ssm",
+    "--output-dir",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_44"
+  ],
+  "attempt": {
+    "id": "20261029T171334Z-e6fdce89",
+    "log": "logs/train_cnn_ssm_44-20261029T171334Z-e6fdce89.log",
+    "preserved_partial": null,
+    "seconds": 786.749265467,
+    "session": "20261029T163445Z-f4c4c6f0",
+    "state": "completed"
+  },
+  "outputs": [
+    {
+      "bytes": 827,
+      "path": "cnn_ssm_44/config.json",
+      "sha256": "592b79065c9834c28d4c9387edd6cec18d25046904cec44bbfe7ad8c01163e3e"
+    },
+    {
+      "bytes": 31163864,
+      "path": "cnn_ssm_44/best.weights.h5",
+      "sha256": "ef57461077521a042f0221e665a9ca05a95b48d74d58fdca8ccad9896859272b"
+    },
+    {
+      "bytes": 31163864,
+      "path": "cnn_ssm_44/last.weights.h5",
+      "sha256": "ef57461077521a042f0221e665a9ca05a95b48d74d58fdca8ccad9896859272b"
+    },
+    {
+      "bytes": 3689,
+      "path": "cnn_ssm_44/training_results.csv",
+      "sha256": "07dfce8ebdbeef6a5345da92ec0c81111bae3364de5c634410366d5b2caa0450"
+    },
+    {
+      "bytes": 12049,
+      "path": "cnn_ssm_44/split_manifest.json",
+      "sha256": "2956ef0be15ea2aab282103485929f07f41b686549f34f9a851570d2677c05d2"
+    },
+    {
+      "bytes": 272,
+      "path": "cnn_ssm_44/checkpoint_selection.json",
+      "sha256": "3854e13fb3917ded88d23e83a1751611a4dbe78f8c2e9d9e9f5a448bbc4ca42e"
+    },
+    {
+      "bytes": 14,
+      "path": "cnn_ssm_44/train_wall_seconds.txt",
+      "sha256": "2f50343abaebf8f520cdf163f3a22f5f63f122ad57d5d85a94c1a430297ab2b8"
+    }
+  ],
+  "schema_version": 1,
+  "session": "20261029T163445Z-f4c4c6f0",
+  "stage_id": "train_cnn_ssm_44"
+}

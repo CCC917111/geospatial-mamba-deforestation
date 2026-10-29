@@ -140,8 +140,11 @@ The [validation runbook](docs/gpu-validation.md#controlled-architecture-comparis
 explains execution, shared controls and the different parameter counts.
 The [retained research pilot](docs/research-pilot.md) fixes one shard cohort
 across three run seeds and keeps all six best checkpoints in Drive, with
-verified stage continuation. Its three-seed synthetic CPU workflow check is
-complete; real-data multi-seed training remains pending.
+verified stage continuation. The completed
+[three-seed ForTy pilot](results/architecture_pilot_t4_20261029/README.md)
+observed a small, seed-sensitive average benefit from the SSM model, with
+higher parameter count and training-process wall time. Its original metadata,
+independent metric reconstruction and paired-seed figure are retained.
 The [free Colab notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_free_gpu.ipynb)
 prepares a smaller real-source GPU check. The separate
 [performance notebook](https://colab.research.google.com/github/CCC917111/geospatial-mamba-deforestation/blob/main/notebooks/colab_performance.ipynb)
@@ -154,6 +157,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
+| **Three-seed ForTy pilot** | Macro F1 **39.30 ± 1.38%** with SSM versus **38.19 ± 0.88%** CNN-only | Same fixed cohort and ten epochs; improves in 2/3 seeds; **53.6% more parameters**. Small pilot, not a full-benchmark or stable architecture ranking. |
 | **Software checks** | **486 tests passed** | CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
@@ -167,11 +171,17 @@ training budget, modalities and test membership, so they do not form a
 controlled ranking. Full-scale real ForTy training and full-test evaluation
 remain pending. The retained GPU compute record does not establish accuracy.
 
-The next research question is whether selective-SSM modules improve
-segmentation over a matched CNN control across seeds. A controlled multi-seed
-architecture ranking has not been established.
+In the retained pilot, the paired Macro F1 difference was **+1.10 ± 2.11
+percentage points** across three seeds (mean ± sample SD). The CNN-only
+control has fewer parameters and uses temporal mean pooling, so this result
+does not isolate recurrence from capacity or temporal-order handling. Numeric
+ID 7 received no predictions from any of the six models despite positive test
+support. The [full report](results/architecture_pilot_t4_20261029/README.md)
+records this failure, process-time costs and the metadata-only verification
+boundary. The publisher's class mapping remains unresolved.
 
-**Inspect the evidence:** [Demo record](results/local_demo_cpu.json) ·
+**Inspect the evidence:** [Real-data architecture pilot](results/architecture_pilot_t4_20261029/README.md) ·
+[Demo record](results/local_demo_cpu.json) ·
 [Prediction timings](results/performance_predict_cpu.json) ·
 [Compute timings](results/performance_cpu_128.json) ·
 [Paired workflow check](results/paired_pipeline_smoke.json) ·

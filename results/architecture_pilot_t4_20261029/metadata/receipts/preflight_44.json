@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-m",
+    "mamba_forest.validate_data",
+    "--data-root",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "--total-shards",
+    "1024",
+    "--train-shards",
+    "8",
+    "--val-shards",
+    "4",
+    "--test-shards",
+    "8",
+    "--seed",
+    "44",
+    "--selection-seed",
+    "2026",
+    "--output",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/preflight_44.json",
+    "--require-gpu"
+  ],
+  "attempt": {
+    "id": "20261029T163546Z-59fe0a15",
+    "log": "logs/preflight_44-20261029T163546Z-59fe0a15.log",
+    "preserved_partial": null,
+    "seconds": 7.245258346000128,
+    "session": "20261029T163445Z-f4c4c6f0",
+    "state": "completed"
+  },
+  "outputs": [
+    {
+      "bytes": 15603,
+      "path": "preflight_44.json",
+      "sha256": "64ce050558af4c46fe7e58c6a2472f71076d21f6fb46fe2a7bde80077fba458a"
+    }
+  ],
+  "schema_version": 1,
+  "session": "20261029T163445Z-f4c4c6f0",
+  "stage_id": "preflight_44"
+}

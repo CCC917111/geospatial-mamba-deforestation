@@ -1,0 +1,61 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793293199.855123   14855 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+W0000 00:00:1793293207.246441   14855 gpu_bfc_allocator.cc:47] Overriding orig_value setting because the TF_FORCE_GPU_ALLOW_GROWTH environment variable is set. Original config value was false.
+I0000 00:00:1793293207.248523   14855 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 13757 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0000:00:04.0, compute capability: 7.5
+I0000 00:00:1793293208.163091   14913 tf_record_dataset_op.cc:390] TFRecordDataset `buffer_size` is unspecified, default to 262144
+W0000 00:00:1793293208.409561   14923 prefetch_autotuner.cc:55] Prefetch autotuner tried to allocate 44564480 bytes after encountering the first element of size 44564480 bytes.This already causes the autotune ram budget to be exceeded. To stay within the ram budget, either increase the ram budget or reduce element size
+W0000 00:00:1793293208.409803   14855 prefetch_autotuner.cc:55] Prefetch autotuner tried to allocate 44564480 bytes after encountering the first element of size 44564480 bytes.This already causes the autotune ram budget to be exceeded. To stay within the ram budget, either increase the ram budget or reduce element size
+I0000 00:00:1793293212.236619   14855 cuda_dnn.cc:461] Loaded cuDNN version 92700
+model built with 7,732,800 parameters
+epoch   1/10 | lr 2.00e-04 | loss 1.4305 | val acc 0.3341 | mIoU 0.1476 | overall F1 0.2145 | forests F1 0.1723
+  train 109.05s | val 6.15s | 10.96 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.2228 | P 0.2028 | TC 0.0914
+  new best overall F1: 0.2145
+epoch   2/10 | lr 1.95e-04 | loss 1.3034 | val acc 0.4466 | mIoU 0.2253 | overall F1 0.3192 | forests F1 0.3053
+  train 82.01s | val 2.35s | 14.57 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.3278 | P 0.2828 | TC 0.3053
+  new best overall F1: 0.3192
+epoch   3/10 | lr 1.79e-04 | loss 1.2602 | val acc 0.4508 | mIoU 0.2311 | overall F1 0.3272 | forests F1 0.3291
+  train 67.82s | val 2.21s | 17.62 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.3360 | P 0.2819 | TC 0.3694
+  new best overall F1: 0.3272
+epoch   4/10 | lr 1.55e-04 | loss 1.2418 | val acc 0.4973 | mIoU 0.2534 | overall F1 0.3538 | forests F1 0.3723
+  train 68.23s | val 2.23s | 17.51 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.3834 | P 0.3303 | TC 0.4030
+  new best overall F1: 0.3538
+epoch   5/10 | lr 1.26e-04 | loss 1.2225 | val acc 0.5045 | mIoU 0.2675 | overall F1 0.3670 | forests F1 0.3856
+  train 67.44s | val 2.19s | 17.72 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4015 | P 0.3235 | TC 0.4318
+  new best overall F1: 0.3670
+epoch   6/10 | lr 9.44e-05 | loss 1.2081 | val acc 0.5208 | mIoU 0.2763 | overall F1 0.3760 | forests F1 0.3868
+  train 67.79s | val 2.21s | 17.63 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4382 | P 0.3160 | TC 0.4062
+  new best overall F1: 0.3760
+epoch   7/10 | lr 6.50e-05 | loss 1.2005 | val acc 0.5201 | mIoU 0.2750 | overall F1 0.3771 | forests F1 0.3951
+  train 67.73s | val 2.27s | 17.64 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4214 | P 0.3202 | TC 0.4437
+  new best overall F1: 0.3771
+epoch   8/10 | lr 4.11e-05 | loss 1.1978 | val acc 0.5234 | mIoU 0.2789 | overall F1 0.3815 | forests F1 0.3973
+  train 68.61s | val 2.30s | 17.42 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4329 | P 0.3038 | TC 0.4553
+  new best overall F1: 0.3815
+epoch   9/10 | lr 2.54e-05 | loss 1.1892 | val acc 0.5195 | mIoU 0.2774 | overall F1 0.3809 | forests F1 0.3873
+  train 82.02s | val 2.40s | 14.57 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4214 | P 0.3279 | TC 0.4125
+epoch  10/10 | lr 2.00e-05 | loss 1.1864 | val acc 0.5191 | mIoU 0.2816 | overall F1 0.3853 | forests F1 0.3950
+  train 67.31s | val 2.60s | 17.75 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4061 | P 0.3407 | TC 0.4383
+  new best overall F1: 0.3853
+best overall F1: 0.3853
+metrics written to /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_43/training_results.csv

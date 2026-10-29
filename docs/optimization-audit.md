@@ -8,6 +8,10 @@ prediction at baseline commit `0b7b8a2`.
 This document records the audit and its dated follow-ups. Later runtime
 evidence is summarized in the [performance guide](performance.md), including
 the completed [Tesla T4 comparison](../results/performance_t4_20261026/README.md).
+The [2026-10-29 real-data pilot](../results/architecture_pilot_t4_20261029/README.md)
+adds a completed three-seed architecture comparison with independently checked
+metadata and numeric-ID metrics. Its small-cohort result and missing binary
+weights/source records have a separate verification scope.
 Earlier statements about pending GPU measurements describe the evidence
 available at that stage.
 

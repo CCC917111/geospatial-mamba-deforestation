@@ -18,8 +18,9 @@ while representing different land uses. The implemented task predicts nine
 land-cover classes for each pixel of a 128 × 128 tile in the ForTy v1 format.
 
 The research question is whether selective state-space processing improves
-segmentation over a matched convolutional model under the same data and
-training budget. A controlled architecture comparison remains to be run.
+segmentation over a convolutional component control under the same data and
+training budget. A retained three-seed pilot found a small, seed-sensitive
+average improvement with greater model capacity and training cost.
 Deforestation change detection requires separate temporal validation.
 
 ## Approach
@@ -55,6 +56,29 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 - **Software:** CPU verification includes 486 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
+- **Controlled real-data pilot:** Six Tesla T4 runs compare CNN-only and
+  CNN+SSM at seeds 42/43/44 on one fixed 8/4/8-shard training/validation/test
+  cohort, with ten epochs per run. Test Macro F1 over all nine numeric IDs is
+  **38.19 ± 0.88% versus 39.30 ± 1.38%**, respectively. The paired change is
+  **+1.10 ± 2.11 percentage points**, with improvement in two of three seeds.
+  Mean IoU is 27.32 ± 0.82% versus 28.52 ± 0.96%. Values are means and sample
+  standard deviations, not significance claims. The shared test cohort has
+  146 tiles; each run uses 1,195 training examples per epoch. See the
+  [audited results](../results/architecture_pilot_t4_20261029/README.md).
+- **Research tradeoffs:** Parameter count increases from 5,035,392 to
+  7,732,800 (+53.6%). Mean training-process wall time was 339.42 seconds for
+  CNN-only versus 785.15 seconds for CNN+SSM in one sequential session,
+  including startup, validation and checkpoint writes; this is not a kernel
+  or steady-state inference benchmark. Numeric ID 7 has 9,770 true test pixels
+  but zero predictions in every model. Class semantics and the official
+  Unknown protocol remain unconfirmed, so primary results use numeric IDs.
+- **Evidence boundary:** Recomputed metrics match all six confusion matrices;
+  all 95 export-manifest file hashes and 13 source-module hashes were verified.
+  The metadata records six best and six last H5 files in Drive, representing
+  seven unique weight hashes. The uploaded archive excludes weights and
+  TFRecords, so their bytes and current Drive availability were not
+  independently verified. This small-cohort pilot does not establish
+  full-benchmark performance or a capacity-matched architectural effect.
 - **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes
   and 48.81% across the three forest types. Original logs and weights are
   unavailable. Published baselines use different protocols, so these values
@@ -70,18 +94,19 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
   evaluation remain unverified; synthetic timings do not establish accuracy.
 
 The [results record](../results/README.md) links the raw artifacts and explains
-their scope. The [validation runbook](gpu-validation.md) documents prepared
-real-data experiments; it does not report completed runs.
+their scope. The [validation runbook](gpu-validation.md) documents broader
+real-data protocols; the larger controlled full-scale training and full-test
+protocols remain unexecuted.
 
 ## Next study
 
-The [retained research pilot](research-pilot.md) now provides a Drive-first
-three-seed workflow with one shard-selection seed, validation-selected weights
-and checked stage continuation. Its synthetic CPU integration retained six
-best and six last checkpoints; the real-data GPU pilot remains pending.
+The [retained research pilot](research-pilot.md) provides a Drive-first workflow
+with one shard-selection seed, validation-selected checkpoints and checked
+stage continuation. Its completed real-data result should remain frozen.
 
-Compare the selective-SSM model with a CNN control using identical split
-membership, objectives and training budgets, then repeat across seeds. Report
-forest-class F1, mean IoU, inference time and memory alongside retained
-checkpoints and error analysis. This would test the model's added value and
-provide reproducible evidence for subsequent research.
+The next study can test longer training and a capacity-matched CNN control,
+with additional seeds and a predeclared evaluation cohort. Investigate class
+imbalance and underpredicted numeric IDs using training/validation data; use
+a new held-out assessment for changes motivated by the observed pilot test
+errors. Resolve class semantics and geographic split provenance before
+claiming official benchmark comparability or semantic forest-class gains.

@@ -1,0 +1,437 @@
+{
+  "schema_version": 1,
+  "run_root": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "comparison": "architecture",
+  "selection_scope": {
+    "selection_seed": 2026,
+    "training_membership": "shared_across_seeds"
+  },
+  "delta_direction": "cnn_ssm_minus_cnn_only",
+  "pairs": [
+    {
+      "seed": 42,
+      "cnn_ssm": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_42",
+        "epochs_completed": 10,
+        "best_validation_epoch": 9,
+        "best_validation_overall_f1": 0.40905859116957305,
+        "scores_percent": {
+          "overall_f1": 40.84091261044962,
+          "forests_f1": 40.52450475842229,
+          "natural_forest_f1": 53.656945785517195,
+          "planted_forest_f1": 35.016443448834664,
+          "tree_crops_f1": 32.90012504091499,
+          "mean_iou": 29.427561191618047
+        },
+        "parameter_count": 7732800,
+        "train_seconds": 702.6727217110001,
+        "validation_seconds": 26.180198930000643,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1500,
+        "skipped_optimizer_updates": 0,
+        "train_examples_per_second": 17.00649481724847,
+        "train_wall_seconds": 759.956532487,
+        "test_wall_seconds": 29.06182753,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 103.05274755999994,
+            "validation_seconds": 5.829705077999961,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 599.6199741510002,
+            "validation_seconds": 20.35049385200068,
+            "train_examples": 10755,
+            "train_examples_per_second": 17.93636046769117
+          }
+        }
+      },
+      "cnn_only": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_42",
+        "epochs_completed": 10,
+        "best_validation_epoch": 10,
+        "best_validation_overall_f1": 0.405655941666438,
+        "scores_percent": {
+          "overall_f1": 37.646232216000335,
+          "forests_f1": 39.181811650758966,
+          "natural_forest_f1": 46.251513827675254,
+          "planted_forest_f1": 34.65204922141078,
+          "tree_crops_f1": 36.641871903190854,
+          "mean_iou": 26.932727609691597
+        },
+        "parameter_count": 5035392,
+        "train_seconds": 251.30113652399996,
+        "validation_seconds": 19.17983508799898,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1499,
+        "skipped_optimizer_updates": 1,
+        "train_examples_per_second": 47.552510765739186,
+        "train_wall_seconds": 298.66668217,
+        "test_wall_seconds": 21.825311124,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 50.87350322300017,
+            "validation_seconds": 3.5609826619997875,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 200.4276333009998,
+            "validation_seconds": 15.618852425999194,
+            "train_examples": 10755,
+            "train_examples_per_second": 53.66026541783423
+          }
+        }
+      },
+      "paired_delta_percentage_points": {
+        "overall_f1": 3.194680394449284,
+        "forests_f1": 1.342693107663323,
+        "natural_forest_f1": 7.40543195784194,
+        "planted_forest_f1": 0.3643942274238865,
+        "tree_crops_f1": -3.741746862275863,
+        "mean_iou": 2.4948335819264478
+      }
+    },
+    {
+      "seed": 43,
+      "cnn_ssm": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_43",
+        "epochs_completed": 10,
+        "best_validation_epoch": 10,
+        "best_validation_overall_f1": 0.38525111439918064,
+        "scores_percent": {
+          "overall_f1": 38.17932724840618,
+          "forests_f1": 37.64954597898115,
+          "natural_forest_f1": 47.399568076982256,
+          "planted_forest_f1": 30.91559534950753,
+          "tree_crops_f1": 34.63347451045367,
+          "mean_iou": 27.52221801201066
+        },
+        "parameter_count": 7732800,
+        "train_seconds": 748.0214113449993,
+        "validation_seconds": 26.89448602900029,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1500,
+        "skipped_optimizer_updates": 0,
+        "train_examples_per_second": 15.975478534114409,
+        "train_wall_seconds": 808.754743996,
+        "test_wall_seconds": 21.289600496,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 109.0488301549999,
+            "validation_seconds": 6.146009003000017,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 638.9725811899993,
+            "validation_seconds": 20.748477026000273,
+            "train_examples": 10755,
+            "train_examples_per_second": 16.83170814617785
+          }
+        }
+      },
+      "cnn_only": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_43",
+        "epochs_completed": 10,
+        "best_validation_epoch": 10,
+        "best_validation_overall_f1": 0.40726961285387364,
+        "scores_percent": {
+          "overall_f1": 39.20705939709032,
+          "forests_f1": 43.42511165426568,
+          "natural_forest_f1": 48.721832443383974,
+          "planted_forest_f1": 39.66342302682446,
+          "tree_crops_f1": 41.89007949258861,
+          "mean_iou": 28.26155873822002
+        },
+        "parameter_count": 5035392,
+        "train_seconds": 326.5361865459995,
+        "validation_seconds": 19.160299036998822,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1499,
+        "skipped_optimizer_updates": 1,
+        "train_examples_per_second": 36.5962502545383,
+        "train_wall_seconds": 373.756813475,
+        "test_wall_seconds": 15.961237739,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 51.10020290500006,
+            "validation_seconds": 3.4741012289996434,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 275.43598364099944,
+            "validation_seconds": 15.686197807999179,
+            "train_examples": 10755,
+            "train_examples_per_second": 39.04718569385604
+          }
+        }
+      },
+      "paired_delta_percentage_points": {
+        "overall_f1": -1.027732148684135,
+        "forests_f1": -5.775565675284527,
+        "natural_forest_f1": -1.3222643664017153,
+        "planted_forest_f1": -8.747827677316932,
+        "tree_crops_f1": -7.256604982134945,
+        "mean_iou": -0.7393407262093588
+      }
+    },
+    {
+      "seed": 44,
+      "cnn_ssm": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_44",
+        "epochs_completed": 10,
+        "best_validation_epoch": 10,
+        "best_validation_overall_f1": 0.3956006668659693,
+        "scores_percent": {
+          "overall_f1": 38.86927169723387,
+          "forests_f1": 41.506788859503324,
+          "natural_forest_f1": 57.876901347612794,
+          "planted_forest_f1": 26.44129207788046,
+          "tree_crops_f1": 40.20217315301674,
+          "mean_iou": 28.620748192104976
+        },
+        "parameter_count": 7732800,
+        "train_seconds": 726.2440544309998,
+        "validation_seconds": 26.74074731699966,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1499,
+        "skipped_optimizer_updates": 1,
+        "train_examples_per_second": 16.454523692262963,
+        "train_wall_seconds": 786.749265467,
+        "test_wall_seconds": 20.602260483,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 105.64452833800033,
+            "validation_seconds": 6.048901100999956,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 620.5995260929994,
+            "validation_seconds": 20.691846215999703,
+            "train_examples": 10755,
+            "train_examples_per_second": 17.330016456358553
+          }
+        }
+      },
+      "cnn_only": {
+        "run_dir": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_44",
+        "epochs_completed": 10,
+        "best_validation_epoch": 10,
+        "best_validation_overall_f1": 0.37797744851033244,
+        "scores_percent": {
+          "overall_f1": 37.73040339385613,
+          "forests_f1": 37.688154892257145,
+          "natural_forest_f1": 37.94836706929739,
+          "planted_forest_f1": 35.217716510663884,
+          "tree_crops_f1": 39.898381096810155,
+          "mean_iou": 26.769772597534264
+        },
+        "parameter_count": 5035392,
+        "train_seconds": 297.6318347080014,
+        "validation_seconds": 19.223695462999785,
+        "train_examples": 11950,
+        "train_batches": 1500,
+        "optimizer_updates": 1499,
+        "skipped_optimizer_updates": 1,
+        "train_examples_per_second": 40.15027495873828,
+        "train_wall_seconds": 345.824678334,
+        "test_wall_seconds": 15.749223078,
+        "epoch_timing": {
+          "first_epoch": {
+            "train_seconds": 51.41946295800062,
+            "validation_seconds": 3.538217741000153,
+            "train_examples": 1195
+          },
+          "later_epochs": {
+            "count": 9,
+            "train_seconds": 246.21237175000078,
+            "validation_seconds": 15.685477721999632,
+            "train_examples": 10755,
+            "train_examples_per_second": 43.68180170458866
+          }
+        }
+      },
+      "paired_delta_percentage_points": {
+        "overall_f1": 1.138868303377738,
+        "forests_f1": 3.818633967246182,
+        "natural_forest_f1": 19.928534278315407,
+        "planted_forest_f1": -8.776424432783426,
+        "tree_crops_f1": 0.303792056206581,
+        "mean_iou": 1.850975594570714
+      }
+    }
+  ],
+  "summary": {
+    "cnn_ssm": {
+      "scores_percent": {
+        "overall_f1": {
+          "mean": 39.29650385202989,
+          "sample_sd": 1.3812692154065096
+        },
+        "forests_f1": {
+          "mean": 39.89361319896892,
+          "sample_sd": 2.0045195882497313
+        },
+        "natural_forest_f1": {
+          "mean": 52.97780507003741,
+          "sample_sd": 5.271579668328289
+        },
+        "planted_forest_f1": {
+          "mean": 30.79111029207422,
+          "sample_sd": 4.288930828987287
+        },
+        "tree_crops_f1": {
+          "mean": 35.91192423479513,
+          "sample_sd": 3.815206669515262
+        },
+        "mean_iou": {
+          "mean": 28.52350913191123,
+          "sample_sd": 0.9563862891842488
+        }
+      },
+      "parameter_count": 7732800,
+      "train_seconds": {
+        "mean": 725.6460624956663,
+        "sample_sd": 22.680258125652756
+      },
+      "validation_seconds": {
+        "mean": 26.6051440920002,
+        "sample_sd": 0.37595570340403706
+      },
+      "train_examples": {
+        "mean": 11950,
+        "sample_sd": 0.0
+      },
+      "train_examples_per_second": 16.46808357079918,
+      "train_wall_seconds": {
+        "mean": 785.1535139833334,
+        "sample_sd": 24.438211446779267
+      },
+      "test_wall_seconds": {
+        "mean": 23.651229503,
+        "sample_sd": 4.698301536800286
+      },
+      "train_batches": {
+        "mean": 1500,
+        "sample_sd": 0.0
+      },
+      "optimizer_updates": {
+        "mean": 1499.6666666666667,
+        "sample_sd": 0.5773502691896257
+      },
+      "skipped_optimizer_updates": {
+        "mean": 0.3333333333333333,
+        "sample_sd": 0.5773502691896257
+      }
+    },
+    "cnn_only": {
+      "scores_percent": {
+        "overall_f1": {
+          "mean": 38.19456500231559,
+          "sample_sd": 0.8778552679018818
+        },
+        "forests_f1": {
+          "mean": 40.09835939909393,
+          "sample_sd": 2.976275029885893
+        },
+        "natural_forest_f1": {
+          "mean": 44.307237780118875,
+          "sample_sd": 5.643761693541529
+        },
+        "planted_forest_f1": {
+          "mean": 36.51106291963304,
+          "sample_sd": 2.744635778130072
+        },
+        "tree_crops_f1": {
+          "mean": 39.47677749752987,
+          "sample_sd": 2.6493834983912055
+        },
+        "mean_iou": {
+          "mean": 27.321352981815295,
+          "sample_sd": 0.8183084579052317
+        }
+      },
+      "parameter_count": 5035392,
+      "train_seconds": {
+        "mean": 291.82305259266695,
+        "sample_sd": 37.95239979501646
+      },
+      "validation_seconds": {
+        "mean": 19.187943195999196,
+        "sample_sd": 0.03246664086306543
+      },
+      "train_examples": {
+        "mean": 11950,
+        "sample_sd": 0.0
+      },
+      "train_examples_per_second": 40.94947227037637,
+      "train_wall_seconds": {
+        "mean": 339.416057993,
+        "sample_sd": 37.95306003284642
+      },
+      "test_wall_seconds": {
+        "mean": 17.845257313666664,
+        "sample_sd": 3.4484574528303806
+      },
+      "train_batches": {
+        "mean": 1500,
+        "sample_sd": 0.0
+      },
+      "optimizer_updates": {
+        "mean": 1499,
+        "sample_sd": 0.0
+      },
+      "skipped_optimizer_updates": {
+        "mean": 1,
+        "sample_sd": 0.0
+      }
+    },
+    "paired_delta_percentage_points": {
+      "overall_f1": {
+        "mean": 1.1019388497142957,
+        "sample_sd": 2.1114484979543113
+      },
+      "forests_f1": {
+        "mean": -0.2047462001250074,
+        "sample_sd": 4.980772330035816
+      },
+      "natural_forest_f1": {
+        "mean": 8.670567289918544,
+        "sample_sd": 10.681738450080548
+      },
+      "planted_forest_f1": {
+        "mean": -5.719952627558824,
+        "sample_sd": 5.269218341690663
+      },
+      "tree_crops_f1": {
+        "mean": -3.5648532627347427,
+        "sample_sd": 3.7833013828546345
+      },
+      "mean_iou": {
+        "mean": 1.2021561500959344,
+        "sample_sd": 1.7119275298615453
+      }
+    }
+  },
+  "test_coverage": {
+    "shards": 8,
+    "total_shards": 1024,
+    "full_split": false
+  },
+  "timing_scope": "Reported epoch training/validation time; excludes model build and checkpoint I/O.",
+  "architecture_scope": "CNN-only uses temporal mean pooling and omits both selective SSM blocks; parameter budgets are not matched."
+}

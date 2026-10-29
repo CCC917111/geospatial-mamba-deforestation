@@ -1,0 +1,298 @@
+{
+  "analysis_script_sha256": "59bc9f344f2b6ed7185de7cb802d7c0a30ed72c11348099daef7e750b51485e7",
+  "models": [
+    {
+      "best_epoch": 10,
+      "best_validation_macro_f1_percent": 40.5655941666438,
+      "macro_f1_all_ids": 37.646232216000335,
+      "mean_iou_present_ids": 26.9327276096916,
+      "model": "cnn_only",
+      "optimizer_updates": 1499,
+      "parameters": 5035392,
+      "pixel_accuracy": 48.88029751712329,
+      "seed": 42,
+      "skipped_optimizer_updates": 1,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 21.825311124,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 298.66668217
+    },
+    {
+      "best_epoch": 9,
+      "best_validation_macro_f1_percent": 40.9058591169573,
+      "macro_f1_all_ids": 40.840912610449614,
+      "mean_iou_present_ids": 29.42756119161804,
+      "model": "cnn_ssm",
+      "optimizer_updates": 1500,
+      "parameters": 7732800,
+      "pixel_accuracy": 49.59135708743579,
+      "seed": 42,
+      "skipped_optimizer_updates": 0,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 29.06182753,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 759.956532487
+    },
+    {
+      "best_epoch": 10,
+      "best_validation_macro_f1_percent": 40.72696128538736,
+      "macro_f1_all_ids": 39.20705939709032,
+      "mean_iou_present_ids": 28.26155873822002,
+      "model": "cnn_only",
+      "optimizer_updates": 1499,
+      "parameters": 5035392,
+      "pixel_accuracy": 50.898972602739725,
+      "seed": 43,
+      "skipped_optimizer_updates": 1,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 15.961237739,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 373.756813475
+    },
+    {
+      "best_epoch": 10,
+      "best_validation_macro_f1_percent": 38.525111439918064,
+      "macro_f1_all_ids": 38.17932724840618,
+      "mean_iou_present_ids": 27.522218012010665,
+      "model": "cnn_ssm",
+      "optimizer_updates": 1500,
+      "parameters": 7732800,
+      "pixel_accuracy": 47.355421928510275,
+      "seed": 43,
+      "skipped_optimizer_updates": 0,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 21.289600496,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 808.754743996
+    },
+    {
+      "best_epoch": 10,
+      "best_validation_macro_f1_percent": 37.797744851033244,
+      "macro_f1_all_ids": 37.730403393856136,
+      "mean_iou_present_ids": 26.76977259753426,
+      "model": "cnn_only",
+      "optimizer_updates": 1499,
+      "parameters": 5035392,
+      "pixel_accuracy": 47.72748555222603,
+      "seed": 44,
+      "skipped_optimizer_updates": 1,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 15.749223078,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 345.824678334
+    },
+    {
+      "best_epoch": 10,
+      "best_validation_macro_f1_percent": 39.560066686596926,
+      "macro_f1_all_ids": 38.86927169723387,
+      "mean_iou_present_ids": 28.62074819210498,
+      "model": "cnn_ssm",
+      "optimizer_updates": 1499,
+      "parameters": 7732800,
+      "pixel_accuracy": 51.22872966609589,
+      "seed": 44,
+      "skipped_optimizer_updates": 1,
+      "test_pixels": 2392064,
+      "test_process_wall_seconds": 20.602260483,
+      "train_batches": 1500,
+      "train_example_presentations": 11950,
+      "train_process_wall_seconds": 786.749265467
+    }
+  ],
+  "numeric_id_7": {
+    "f1_percent_each_of_six_runs": 0,
+    "predicted_pixels_each_of_six_runs": 0,
+    "support_per_test": 9770
+  },
+  "parameters": {
+    "cnn_only": 5035392,
+    "cnn_ssm": 7732800,
+    "increase_percent": 53.56897735072066
+  },
+  "recorded_runtime": {
+    "build": {
+      "cuda_version": "12.5.1",
+      "cudnn_version": "9"
+    },
+    "gpu_details": [
+      {
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_name": "Tesla T4"
+      }
+    ],
+    "keras": "3.13.2",
+    "numpy": "2.1.3",
+    "probe_device": "/job:localhost/replica:0/task:0/device:GPU:0",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0"
+  },
+  "schema_version": 1,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "status": "metadata_checks_passed_weights_and_records_not_present",
+  "summary_percent_and_paired_percentage_points": {
+    "cnn_only": {
+      "macro_f1_all_ids": {
+        "mean": 38.1945650023156,
+        "sample_sd": 0.87785526790188,
+        "seed_values": [
+          37.646232216000335,
+          39.20705939709032,
+          37.730403393856136
+        ]
+      },
+      "mean_iou_present_ids": {
+        "mean": 27.321352981815295,
+        "sample_sd": 0.818308457905232,
+        "seed_values": [
+          26.9327276096916,
+          28.26155873822002,
+          26.76977259753426
+        ]
+      },
+      "pixel_accuracy": {
+        "mean": 49.168918557363014,
+        "sample_sd": 1.6053221192476648,
+        "seed_values": [
+          48.88029751712329,
+          50.898972602739725,
+          47.72748555222603
+        ]
+      }
+    },
+    "cnn_ssm": {
+      "macro_f1_all_ids": {
+        "mean": 39.296503852029886,
+        "sample_sd": 1.3812692154065056,
+        "seed_values": [
+          40.840912610449614,
+          38.17932724840618,
+          38.86927169723387
+        ]
+      },
+      "mean_iou_present_ids": {
+        "mean": 28.52350913191123,
+        "sample_sd": 0.9563862891842438,
+        "seed_values": [
+          29.42756119161804,
+          27.522218012010665,
+          28.62074819210498
+        ]
+      },
+      "pixel_accuracy": {
+        "mean": 49.39183622734732,
+        "sample_sd": 1.944346840900043,
+        "seed_values": [
+          49.59135708743579,
+          47.355421928510275,
+          51.22872966609589
+        ]
+      }
+    },
+    "paired_delta_percentage_points": {
+      "macro_f1_all_ids": {
+        "mean": 1.1019388497142917,
+        "sample_sd": 2.1114484979543096,
+        "seed_values": [
+          3.1946803944492785,
+          -1.0277321486841373,
+          1.138868303377734
+        ]
+      },
+      "mean_iou_present_ids": {
+        "mean": 1.2021561500959344,
+        "sample_sd": 1.7119275298615417,
+        "seed_values": [
+          2.4948335819264393,
+          -0.7393407262093561,
+          1.8509755945707198
+        ]
+      },
+      "pixel_accuracy": {
+        "mean": 0.22291766998430282,
+        "sample_sd": 3.547674631043526,
+        "seed_values": [
+          0.7110595703125,
+          -3.5435506742294507,
+          3.501244113869859
+        ]
+      }
+    }
+  },
+  "verification": {
+    "archive_saved_receipts": {
+      "absent_weight_paths": [],
+      "absent_weights": 0,
+      "present_verified": 95,
+      "references": 95
+    },
+    "completed_stage_receipt_hashes_verified": 16,
+    "record_bytes_and_weight_bytes_rehashed_locally": false,
+    "recorded_checkpoint_files": 12,
+    "recorded_checkpoint_total_bytes": 308911968,
+    "recorded_unique_weight_hashes": 7,
+    "retention_manifest": {
+      "absent_weight_paths": [
+        "cnn_only_42/best.weights.h5",
+        "cnn_only_42/last.weights.h5",
+        "cnn_only_43/best.weights.h5",
+        "cnn_only_43/last.weights.h5",
+        "cnn_only_44/best.weights.h5",
+        "cnn_only_44/last.weights.h5",
+        "cnn_ssm_42/best.weights.h5",
+        "cnn_ssm_42/last.weights.h5",
+        "cnn_ssm_43/best.weights.h5",
+        "cnn_ssm_43/last.weights.h5",
+        "cnn_ssm_44/best.weights.h5",
+        "cnn_ssm_44/last.weights.h5"
+      ],
+      "absent_weights": 12,
+      "present_verified": 86,
+      "references": 98
+    },
+    "selected_data_manifest_sha256": "31d5361370d757268c037795071d7b23c687ad216151c6f3111d7f4b6d45c126",
+    "selected_data_receipts": 20,
+    "source_commit": "7f55b2c30c830693873e1fe1628c8e52208ed57d",
+    "source_module_check": "13_recorded_module_hashes_match_git_commit",
+    "stage_output_receipts": {
+      "absent_weight_paths": [
+        "cnn_only_42/best.weights.h5",
+        "cnn_only_42/last.weights.h5",
+        "cnn_only_43/best.weights.h5",
+        "cnn_only_43/last.weights.h5",
+        "cnn_only_44/best.weights.h5",
+        "cnn_only_44/last.weights.h5",
+        "cnn_ssm_42/best.weights.h5",
+        "cnn_ssm_42/last.weights.h5",
+        "cnn_ssm_43/best.weights.h5",
+        "cnn_ssm_43/last.weights.h5",
+        "cnn_ssm_44/best.weights.h5",
+        "cnn_ssm_44/last.weights.h5"
+      ],
+      "absent_weights": 12,
+      "present_verified": 46,
+      "references": 58
+    },
+    "zip_entries_match_extracted_bytes": 96,
+    "zip_sha256": "ba644a9633e3af063dd083bf513d0b38319f9084d755ee0aa2dee9fd337bd3ba"
+  },
+  "verification_boundary": [
+    "Metadata bytes and internal hash receipts were checked locally.",
+    "The 12 H5 weights and 20 TFRecord shards are excluded; their recorded hashes are cross-checked, not rehashed from actual bytes.",
+    "Source module hashes match the pinned commit when Git is available; metadata is not independent proof of remote execution or storage durability.",
+    "Numeric IDs have unconfirmed semantics; no ID is ignored.",
+    "Three seed differences are descriptive, not a significance claim; the same test pixels repeat across seeds.",
+    "Process wall times include setup, data, evaluation and checkpoint I/O; they are not isolated compute performance measurements."
+  ]
+}

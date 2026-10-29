@@ -1,0 +1,193 @@
+{
+  "weights": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_44/best.weights.h5",
+  "weights_sha256": "407193ef735733418fc8baacefee4ad81c08db84a0f2e50d2afb16dca2865a06",
+  "training_config_path": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_44/config.json",
+  "gcs_root": "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+  "split": "test",
+  "test_shards": 8,
+  "total_shards_per_split": 1024,
+  "shard_paths": [
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00000-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00001-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00002-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00003-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00004-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00005-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00006-of-01024",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00007-of-01024"
+  ],
+  "batch_size": 8,
+  "model_config": {
+    "name": "mamba_forest_segmenter",
+    "trainable": true,
+    "dtype": {
+      "module": "keras",
+      "class_name": "DTypePolicy",
+      "config": {
+        "name": "float32"
+      },
+      "registered_name": null
+    },
+    "num_classes": 9,
+    "d_model": 32,
+    "dropout_rate": 0.2,
+    "d_state_temporal": 8,
+    "d_state_spatial": 16,
+    "bottleneck_channels": 512,
+    "model_variant": "cnn_only"
+  },
+  "parameters": 5035392,
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "precision_policy": "float32",
+    "devices": [
+      {
+        "name": "/physical_device:CPU:0",
+        "type": "CPU"
+      },
+      {
+        "name": "/physical_device:GPU:0",
+        "type": "GPU"
+      }
+    ]
+  },
+  "num_pixels": 2392064,
+  "confusion_matrix": [
+    [
+      14675,
+      47325,
+      50315,
+      50774,
+      139160,
+      757,
+      2877,
+      0,
+      11681
+    ],
+    [
+      12158,
+      142539,
+      202840,
+      93390,
+      59631,
+      195,
+      100,
+      0,
+      1490
+    ],
+    [
+      1768,
+      18835,
+      100760,
+      21513,
+      18845,
+      489,
+      942,
+      0,
+      2049
+    ],
+    [
+      9082,
+      23132,
+      6870,
+      107737,
+      93223,
+      2458,
+      2116,
+      0,
+      349
+    ],
+    [
+      8144,
+      5428,
+      39097,
+      17480,
+      546810,
+      9509,
+      3354,
+      0,
+      60508
+    ],
+    [
+      892,
+      826,
+      6745,
+      3952,
+      128801,
+      11933,
+      1506,
+      0,
+      14876
+    ],
+    [
+      262,
+      547,
+      282,
+      146,
+      878,
+      195,
+      102586,
+      0,
+      5776
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      1374,
+      0,
+      1113,
+      0,
+      7282
+    ],
+    [
+      608,
+      251,
+      102,
+      98,
+      34009,
+      2453,
+      19533,
+      0,
+      114632
+    ]
+  ],
+  "confusion_axes": {
+    "rows": "true",
+    "columns": "predicted"
+  },
+  "class_support": {
+    "Unknown": 317564,
+    "Natural Forest": 512343,
+    "Planted Forest": 165201,
+    "Tree Crops": 244967,
+    "Other Vegetation": 690330,
+    "Water": 169531,
+    "Ice": 110672,
+    "Bare Ground": 9770,
+    "Built Areas": 171686
+  },
+  "metric_conventions": {
+    "overall_f1": "macro mean over all classes; absent classes have F1 0",
+    "mean_iou": "mean over classes with nonzero true or predicted support"
+  },
+  "pixel_accuracy": 0.4772748555222603,
+  "mean_iou": 0.26769772597534264,
+  "overall_f1": 0.3773040339385613,
+  "forests_f1": 0.3768815489225714,
+  "natural_forest_f1": 0.3794836706929739,
+  "planted_forest_f1": 0.3521771651066388,
+  "tree_crops_f1": 0.39898381096810154,
+  "per_class_f1": {
+    "Unknown": 0.08037704639686269,
+    "Natural Forest": 0.3794836706929739,
+    "Planted Forest": 0.3521771651066388,
+    "Tree Crops": 0.39898381096810154,
+    "Other Vegetation": 0.6384010843746953,
+    "Water": 0.12082827055488052,
+    "Ice": 0.8381243387432138,
+    "Bare Ground": 0.0,
+    "Built Areas": 0.5873609186096856
+  }
+}

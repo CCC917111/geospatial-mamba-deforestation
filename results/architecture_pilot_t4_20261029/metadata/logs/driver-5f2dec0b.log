@@ -1,0 +1,17 @@
+running preflight_42
+running preflight_43
+running preflight_44
+running train_cnn_ssm_42
+running train_cnn_only_42
+running train_cnn_only_43
+running train_cnn_ssm_43
+running train_cnn_ssm_44
+running train_cnn_only_44
+running evaluate_cnn_ssm_42
+running evaluate_cnn_only_42
+running evaluate_cnn_ssm_43
+running evaluate_cnn_only_43
+running evaluate_cnn_ssm_44
+running evaluate_cnn_only_44
+running compare
+Research state: completed

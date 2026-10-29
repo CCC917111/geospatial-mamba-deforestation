@@ -2,10 +2,10 @@
 
 # Results and evidence
 
-Historical benchmark scores, retained CPU/GPU measurements and local workflow
-checks are recorded separately below.
+The completed real-data architecture pilot, historical benchmark scores,
+retained CPU/GPU measurements and local workflow checks are recorded below.
 
-[Historical scores](#benchmark) · [Compute diagnostics](#retained-compute-measurements) ·
+[Three-seed pilot](#retained-three-seed-forty-pilot) · [Historical scores](#benchmark) · [Compute diagnostics](#retained-compute-measurements) ·
 [File-to-file timing](#local-demo-and-file-to-file-prediction-timing)
 
 The historical accuracy table reports F1 scores in percent, computed over
@@ -17,6 +17,32 @@ the three forest types, and the last three columns are the F1 of natural
 forest, planted forest and tree crops. In the code and in `test_metrics.json`
 the keys are `overall_f1`, `forests_f1`, `natural_forest_f1`,
 `planted_forest_f1` and `tree_crops_f1`, stored as fractions.
+
+## Retained three-seed ForTy pilot
+
+The [2026-10-29 T4 pilot](architecture_pilot_t4_20261029/README.md) compares
+CNN+SSM with CNN-only across seeds 42/43/44, using one fixed 8/4/8
+training/validation/test shard cohort, batch eight and ten epochs per run.
+
+| Metric | CNN-only | CNN+SSM | Paired difference |
+|---|---:|---:|---:|
+| Macro F1, all nine numeric IDs | 38.19 ± 0.88% | 39.30 ± 1.38% | +1.10 ± 2.11 pp |
+| Mean IoU, IDs with true/predicted support | 27.32 ± 0.82% | 28.52 ± 0.96% | +1.20 ± 1.71 pp |
+| Pixel accuracy | 49.17 ± 1.61% | 49.39 ± 1.94% | +0.22 ± 3.55 pp |
+
+Values are means ± sample standard deviations across three seeds; `pp` means
+percentage points. SSM improves Macro F1 in two seeds and regresses in one,
+with 53.6% more parameters and higher recorded training-process wall time.
+Numeric ID 7 has positive test support but no predictions in any run. These
+findings support a small, seed-sensitive average effect under this pilot
+protocol. They do not establish a stable, capacity-matched or full-benchmark
+advantage. Numeric class IDs avoid the unresolved publisher label mapping.
+
+The original metadata ZIP, all six confusion matrices, histories, receipts,
+independent analysis and paired-seed figure are retained. All included
+metadata hashes were verified; actual H5 weights and TFRecords are excluded
+and were not rehashed locally. Checkpoint records describe six best and six
+last files in Drive, not twelve independently distinct models.
 
 ## Benchmark
 
@@ -94,7 +120,8 @@ differ. This is a component ablation under a shared training budget; it does
 not isolate recurrence from parameter count or loss of optical temporal order.
 The [controlled protocol](../docs/gpu-validation.md#controlled-architecture-comparison)
 describes the controls, metrics and remaining geographic validation.
-No real-data architecture ranking is established.
+The small retained pilot above provides a completed comparison; a stable
+architecture ranking and the larger full-test protocol remain unestablished.
 
 ## Effect of the objective
 
@@ -128,7 +155,8 @@ evaluation. These experiments have not run in the current CPU environment.
   three-seed synthetic CPU research-workflow check with six best/six last
   checkpoints, verified stage continuation and a training-before-test gate.
   It establishes software behavior, not real-data accuracy. The
-  [real-data pilot](../docs/research-pilot.md) remains to be executed.
+  [real-data pilot](architecture_pilot_t4_20261029/README.md) subsequently
+  completed on T4; its metrics have a separate scope.
 - [`batch_study_t4_20261028/`](batch_study_t4_20261028/README.md): completed
   batch 1/2/4/8 capacity study with 24 timing processes and four real GPU
   traces. Batch-eight throughput was 48.82 inference / 22.61 training tiles/s,

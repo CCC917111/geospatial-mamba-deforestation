@@ -1,0 +1,56 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793292518.292513   10492 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+W0000 00:00:1793292526.535447   10492 gpu_bfc_allocator.cc:47] Overriding orig_value setting because the TF_FORCE_GPU_ALLOW_GROWTH environment variable is set. Original config value was false.
+I0000 00:00:1793292526.537548   10492 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 13757 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0000:00:04.0, compute capability: 7.5
+I0000 00:00:1793292527.417869   10555 tf_record_dataset_op.cc:390] TFRecordDataset `buffer_size` is unspecified, default to 262144
+I0000 00:00:1793292530.646030   10492 cuda_dnn.cc:461] Loaded cuDNN version 92700
+model built with 5,035,392 parameters
+epoch   1/10 | lr 2.00e-04 | loss 1.4483 | val acc 0.3959 | mIoU 0.1524 | overall F1 0.2146 | forests F1 0.1749
+  train 50.87s | val 3.56s | 23.49 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4251 | P 0.0820 | TC 0.0176
+  new best overall F1: 0.2146
+epoch   2/10 | lr 1.95e-04 | loss 1.3021 | val acc 0.4423 | mIoU 0.2270 | overall F1 0.3271 | forests F1 0.3259
+  train 22.36s | val 1.73s | 53.45 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4116 | P 0.2428 | TC 0.3234
+  new best overall F1: 0.3271
+epoch   3/10 | lr 1.79e-04 | loss 1.2599 | val acc 0.4735 | mIoU 0.2428 | overall F1 0.3529 | forests F1 0.3468
+  train 22.19s | val 1.73s | 53.86 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4265 | P 0.2555 | TC 0.3584
+  new best overall F1: 0.3529
+epoch   4/10 | lr 1.55e-04 | loss 1.2417 | val acc 0.4906 | mIoU 0.2695 | overall F1 0.3796 | forests F1 0.3804
+  train 22.30s | val 1.74s | 53.60 training tiles/s
+  optimizer updates 149 | skipped batches 1
+  N 0.4202 | P 0.3148 | TC 0.4062
+  new best overall F1: 0.3796
+epoch   5/10 | lr 1.26e-04 | loss 1.2231 | val acc 0.5099 | mIoU 0.2927 | overall F1 0.4023 | forests F1 0.3901
+  train 22.22s | val 1.73s | 53.79 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4214 | P 0.3468 | TC 0.4021
+  new best overall F1: 0.4023
+epoch   6/10 | lr 9.44e-05 | loss 1.2128 | val acc 0.5196 | mIoU 0.2953 | overall F1 0.4018 | forests F1 0.4093
+  train 22.31s | val 1.73s | 53.57 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4616 | P 0.2988 | TC 0.4676
+epoch   7/10 | lr 6.50e-05 | loss 1.2039 | val acc 0.5299 | mIoU 0.2982 | overall F1 0.4018 | forests F1 0.4042
+  train 22.30s | val 1.73s | 53.60 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4495 | P 0.2457 | TC 0.5174
+epoch   8/10 | lr 4.11e-05 | loss 1.1949 | val acc 0.5308 | mIoU 0.2940 | overall F1 0.3943 | forests F1 0.3899
+  train 22.26s | val 1.74s | 53.69 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4649 | P 0.1842 | TC 0.5207
+epoch   9/10 | lr 2.54e-05 | loss 1.1959 | val acc 0.5309 | mIoU 0.2986 | overall F1 0.4007 | forests F1 0.4068
+  train 22.22s | val 1.73s | 53.77 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4544 | P 0.2392 | TC 0.5267
+epoch  10/10 | lr 2.00e-05 | loss 1.1881 | val acc 0.5333 | mIoU 0.3022 | overall F1 0.4057 | forests F1 0.4217
+  train 22.29s | val 1.73s | 53.61 training tiles/s
+  optimizer updates 150 | skipped batches 0
+  N 0.4592 | P 0.2770 | TC 0.5288
+  new best overall F1: 0.4057
+best overall F1: 0.4057
+metrics written to /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_42/training_results.csv

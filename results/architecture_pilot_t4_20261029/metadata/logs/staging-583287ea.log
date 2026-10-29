@@ -1,0 +1,30 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793290489.849457    1118 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+W0000 00:00:1793290495.326940    1118 google_auth_provider.cc:196] All attempts to get a Google authentication bearer token failed, returning an empty token. Retrieving token from files failed with "NOT_FOUND: Could not locate the credentials file.". Retrieving token from GCE failed with "NOT_FOUND: Error executing an HTTP request: HTTP response code 404".
+staging train: forty_v1-train.tfrecord-00243-of-01024
+staging train: forty_v1-train.tfrecord-00654-of-01024
+staging train: forty_v1-train.tfrecord-00210-of-01024
+staging train: forty_v1-train.tfrecord-00457-of-01024
+staging train: forty_v1-train.tfrecord-00861-of-01024
+staging train: forty_v1-train.tfrecord-01005-of-01024
+staging train: forty_v1-train.tfrecord-00903-of-01024
+staging train: forty_v1-train.tfrecord-00491-of-01024
+staging validation: forty_v1-validation.tfrecord-00000-of-01024
+staging validation: forty_v1-validation.tfrecord-00001-of-01024
+staging validation: forty_v1-validation.tfrecord-00002-of-01024
+staging validation: forty_v1-validation.tfrecord-00003-of-01024
+staging test: forty_v1-test.tfrecord-00000-of-01024
+staging test: forty_v1-test.tfrecord-00001-of-01024
+staging test: forty_v1-test.tfrecord-00002-of-01024
+staging test: forty_v1-test.tfrecord-00003-of-01024
+staging test: forty_v1-test.tfrecord-00004-of-01024
+staging test: forty_v1-test.tfrecord-00005-of-01024
+staging test: forty_v1-test.tfrecord-00006-of-01024
+staging test: forty_v1-test.tfrecord-00007-of-01024
+{
+  "status": "ready",
+  "files": 20,
+  "bytes": 7759012058,
+  "manifest": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/selected_data.json"
+}

@@ -1,0 +1,100 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793295293.671126   26412 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+W0000 00:00:1793295298.789051   26412 gpu_bfc_allocator.cc:47] Overriding orig_value setting because the TF_FORCE_GPU_ALLOW_GROWTH environment variable is set. Original config value was false.
+I0000 00:00:1793295298.791214   26412 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 13757 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0000:00:04.0, compute capability: 7.5
+I0000 00:00:1793295299.351602   26459 tf_record_dataset_op.cc:390] TFRecordDataset `buffer_size` is unspecified, default to 262144
+I0000 00:00:1793295303.148739   26412 cuda_dnn.cc:461] Loaded cuDNN version 92700
+W0000 00:00:1793295311.932993   26448 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly    
+batch: 2
+in_depths: 64
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 64
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+W0000 00:00:1793295311.941630   26448 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly    
+batch: 2
+in_depths: 128
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 128
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+W0000 00:00:1793295312.158581   26447 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly    
+batch: 2
+in_depths: 192
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 192
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+pixel accuracy : 0.5123
+mean IoU       : 0.2862
+Overall (F1)   : 38.87
+Forests (F1)   : 41.51
+  N            : 57.88
+  P            : 26.44
+  TC           : 40.20
+per-class F1:
+  Unknown            0.1406
+  Natural Forest     0.5788
+  Planted Forest     0.2644
+  Tree Crops         0.4020
+  Other Vegetation   0.6232
+  Water              0.0058
+  Ice                0.9052
+  Bare Ground        0.0000
+  Built Areas        0.5782
+metrics written to /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_44/test/test_metrics.json

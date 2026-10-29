@@ -1,0 +1,19 @@
+{
+  "commit": "7f55b2c30c830693873e1fe1628c8e52208ed57d",
+  "module_sha256": {
+    "checkpoint.py": "87f2ab014096863d7cba411ba3597d92e817c3613621a8166c093f38b45b62de",
+    "compare.py": "8a4fbdecff7e164e95c9f019271d4ccf977ad497e1cf7d0b86ff2bda0080d1b4",
+    "constants.py": "62f3b3850351f6dde3d63f1861376f73a2a6e881d192f79ea742ecabadbe0790",
+    "data.py": "a7576b897bc7374fa38efb1b7813872d6693776d30ed0f715b3699f6f743ad29",
+    "evaluate.py": "9cc0d70033cc9b391beb07f08b8387fee09f73723d307b768d9804d022b135b4",
+    "experiment.py": "f730a8a2834946f3be9cf1346b0c9455987f4299c3470f7c99a3a138ceb62b27",
+    "layers.py": "7cca1804bcc56de2ec3f08fb05c1bd16b99ab6c52090502b2d9de8de25ddaa49",
+    "losses.py": "fd74604d0b3f86832bcadf11fbac6e33ff590d2b715f70d0d02ff912505a705c",
+    "model.py": "ae8ff5dd3a98cd001968406b7e7f97737a0ccae0d964d81edcce2040b7b59eba",
+    "research.py": "3da6292edfae8537ef4557a78907fe5bb3422b22254a1045da5606fd1fbfbf6b",
+    "research_report.py": "73e7adfafdf29f181349f48ea6a7257961e26c2079b0c9a61c86bbec19ad8b52",
+    "stage_data.py": "968402cfbc39fa00f297db9f8596da34a32b1f3cef889ae973e428e04c08fa3b",
+    "train.py": "eb72d3901fb6c392f3ec370a139d4878dd82cb0bf05927b17e6edffabef7fcde"
+  },
+  "worktree_status": ""
+}

@@ -1,0 +1,646 @@
+{
+  "status": "passed",
+  "scope": "First record of one selected shard per split only; this does not establish geographic isolation or full-dataset validity.",
+  "config": {
+    "gcs_root": "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "train_shards": 8,
+    "val_shards": 4,
+    "test_shards": 8,
+    "total_shards": 1024,
+    "seed": 43,
+    "selection_seed": 2026,
+    "require_gpu": true,
+    "output": "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/preflight_43.json"
+  },
+  "runtime": {
+    "tensorflow_version": "2.21.0",
+    "precision_policy": "float32",
+    "devices": [
+      {
+        "name": "/physical_device:CPU:0",
+        "type": "CPU"
+      },
+      {
+        "name": "/physical_device:GPU:0",
+        "type": "GPU"
+      }
+    ]
+  },
+  "splits": {
+    "train": {
+      "status": "passed",
+      "record_index": 0,
+      "selected_shard_paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00654-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00210-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00457-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00861-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-01005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00903-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00491-of-01024"
+      ],
+      "path": "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-train.tfrecord-00243-of-01024",
+      "raw_features": {
+        "climate": {
+          "kind": "float_list",
+          "length": 56
+        },
+        "elevation": {
+          "kind": "float_list",
+          "length": 49152
+        },
+        "id": {
+          "kind": "int64_list",
+          "length": 1
+        },
+        "lat": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "lon": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "s1_asc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_asc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s1_desc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_desc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s2": {
+          "kind": "float_list",
+          "length": 655360
+        },
+        "s2_mask": {
+          "kind": "int64_list",
+          "length": 655360
+        },
+        "segmentation_labels": {
+          "kind": "int64_list",
+          "length": 16384
+        }
+      },
+      "metadata": {
+        "id": [
+          145172
+        ],
+        "lat": [
+          41.33572769165039
+        ],
+        "lon": [
+          77.30624389648438
+        ]
+      },
+      "tensors": {
+        "parsed": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "normalized": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "encoded": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int32"
+          },
+          "labels": {
+            "shape": [
+              128,
+              128,
+              9
+            ],
+            "dtype": "float32"
+          }
+        }
+      },
+      "finite_inputs": {
+        "s2": true,
+        "elevation": true,
+        "climate": true
+      },
+      "labels": {
+        "min": 0,
+        "max": 8,
+        "num_pixels": 16384,
+        "class_support": {
+          "Unknown": 177,
+          "Natural Forest": 0,
+          "Planted Forest": 0,
+          "Tree Crops": 0,
+          "Other Vegetation": 160,
+          "Water": 0,
+          "Ice": 0,
+          "Bare Ground": 0,
+          "Built Areas": 16047
+        }
+      }
+    },
+    "validation": {
+      "status": "passed",
+      "record_index": 0,
+      "selected_shard_paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00000-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00001-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00002-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00003-of-01024"
+      ],
+      "path": "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-validation.tfrecord-00000-of-01024",
+      "raw_features": {
+        "climate": {
+          "kind": "float_list",
+          "length": 56
+        },
+        "elevation": {
+          "kind": "float_list",
+          "length": 49152
+        },
+        "id": {
+          "kind": "int64_list",
+          "length": 1
+        },
+        "lat": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "lon": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "s1_asc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_asc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s1_desc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_desc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s2": {
+          "kind": "float_list",
+          "length": 655360
+        },
+        "s2_mask": {
+          "kind": "int64_list",
+          "length": 655360
+        },
+        "segmentation_labels": {
+          "kind": "int64_list",
+          "length": 16384
+        }
+      },
+      "metadata": {
+        "id": [
+          96774
+        ],
+        "lat": [
+          9.144189834594727
+        ],
+        "lon": [
+          -83.76575469970703
+        ]
+      },
+      "tensors": {
+        "parsed": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "normalized": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "encoded": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int32"
+          },
+          "labels": {
+            "shape": [
+              128,
+              128,
+              9
+            ],
+            "dtype": "float32"
+          }
+        }
+      },
+      "finite_inputs": {
+        "s2": true,
+        "elevation": true,
+        "climate": true
+      },
+      "labels": {
+        "min": 0,
+        "max": 8,
+        "num_pixels": 16384,
+        "class_support": {
+          "Unknown": 76,
+          "Natural Forest": 0,
+          "Planted Forest": 0,
+          "Tree Crops": 0,
+          "Other Vegetation": 0,
+          "Water": 0,
+          "Ice": 16286,
+          "Bare Ground": 0,
+          "Built Areas": 22
+        }
+      }
+    },
+    "test": {
+      "status": "passed",
+      "record_index": 0,
+      "selected_shard_paths": [
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00000-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00001-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00002-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00003-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00004-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00005-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00006-of-01024",
+        "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00007-of-01024"
+      ],
+      "path": "/content/geospatial-research/cache/forty-architecture-pilot-v1/forty_v1-test.tfrecord-00000-of-01024",
+      "raw_features": {
+        "climate": {
+          "kind": "float_list",
+          "length": 56
+        },
+        "elevation": {
+          "kind": "float_list",
+          "length": 49152
+        },
+        "id": {
+          "kind": "int64_list",
+          "length": 1
+        },
+        "lat": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "lon": {
+          "kind": "float_list",
+          "length": 1
+        },
+        "s1_asc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_asc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s1_desc": {
+          "kind": "float_list",
+          "length": 196608
+        },
+        "s1_desc_mask": {
+          "kind": "int64_list",
+          "length": 196608
+        },
+        "s2": {
+          "kind": "float_list",
+          "length": 655360
+        },
+        "s2_mask": {
+          "kind": "int64_list",
+          "length": 655360
+        },
+        "segmentation_labels": {
+          "kind": "int64_list",
+          "length": 16384
+        }
+      },
+      "metadata": {
+        "id": [
+          125478
+        ],
+        "lat": [
+          13.76179027557373
+        ],
+        "lon": [
+          76.17420196533203
+        ]
+      },
+      "tensors": {
+        "parsed": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "normalized": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int64"
+          }
+        },
+        "encoded": {
+          "s2": {
+            "shape": [
+              4,
+              128,
+              128,
+              10
+            ],
+            "dtype": "float32"
+          },
+          "elevation": {
+            "shape": [
+              128,
+              128,
+              3
+            ],
+            "dtype": "float32"
+          },
+          "climate": {
+            "shape": [
+              4,
+              14
+            ],
+            "dtype": "float32"
+          },
+          "segmentation_labels": {
+            "shape": [
+              128,
+              128
+            ],
+            "dtype": "int32"
+          },
+          "labels": {
+            "shape": [
+              128,
+              128,
+              9
+            ],
+            "dtype": "float32"
+          }
+        }
+      },
+      "finite_inputs": {
+        "s2": true,
+        "elevation": true,
+        "climate": true
+      },
+      "labels": {
+        "min": 0,
+        "max": 8,
+        "num_pixels": 16384,
+        "class_support": {
+          "Unknown": 316,
+          "Natural Forest": 62,
+          "Planted Forest": 0,
+          "Tree Crops": 3373,
+          "Other Vegetation": 12313,
+          "Water": 166,
+          "Ice": 0,
+          "Bare Ground": 0,
+          "Built Areas": 154
+        }
+      }
+    }
+  },
+  "errors": []
+}

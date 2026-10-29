@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "/usr/bin/python3",
+    "-m",
+    "mamba_forest.evaluate",
+    "--data-root",
+    "/content/geospatial-research/cache/forty-architecture-pilot-v1",
+    "--total-shards",
+    "1024",
+    "--weights",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_42/best.weights.h5",
+    "--test-shards",
+    "8",
+    "--batch-size",
+    "8",
+    "--output-dir",
+    "/content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_ssm_42/test"
+  ],
+  "attempt": {
+    "id": "20261029T173313Z-2362d33e",
+    "log": "logs/evaluate_cnn_ssm_42-20261029T173313Z-2362d33e.log",
+    "preserved_partial": null,
+    "seconds": 29.0618275300003,
+    "session": "20261029T163445Z-f4c4c6f0",
+    "state": "completed"
+  },
+  "outputs": [
+    {
+      "bytes": 4383,
+      "path": "cnn_ssm_42/test/test_metrics.json",
+      "sha256": "6aaccf04af807c24b6dec6d9001a4c936b4eeeba9f2a5598815f6cfc0765d944"
+    },
+    {
+      "bytes": 13,
+      "path": "cnn_ssm_42/test_wall_seconds.txt",
+      "sha256": "d33ad186358b551fd830215825bba7611857e70c0670faa0e3184f43fc0b71e8"
+    }
+  ],
+  "schema_version": 1,
+  "session": "20261029T163445Z-f4c4c6f0",
+  "stage_id": "evaluate_cnn_ssm_42"
+}

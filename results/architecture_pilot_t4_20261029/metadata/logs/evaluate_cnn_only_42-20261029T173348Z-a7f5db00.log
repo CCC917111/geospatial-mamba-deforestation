@@ -1,0 +1,101 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793295229.344720   25716 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+W0000 00:00:1793295237.296791   25716 gpu_bfc_allocator.cc:47] Overriding orig_value setting because the TF_FORCE_GPU_ALLOW_GROWTH environment variable is set. Original config value was false.
+I0000 00:00:1793295237.298994   25716 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 13757 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0000:00:04.0, compute capability: 7.5
+I0000 00:00:1793295238.100621   25777 tf_record_dataset_op.cc:390] TFRecordDataset `buffer_size` is unspecified, default to 262144
+W0000 00:00:1793295238.289484   25716 prefetch_autotuner.cc:55] Prefetch autotuner tried to allocate 44564480 bytes after encountering the first element of size 44564480 bytes.This already causes the autotune ram budget to be exceeded. To stay within the ram budget, either increase the ram budget or reduce element size
+I0000 00:00:1793295241.378485   25716 cuda_dnn.cc:461] Loaded cuDNN version 92700
+W0000 00:00:1793295246.800699   25763 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly   
+batch: 2
+in_depths: 64
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 64
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+W0000 00:00:1793295246.819584   25763 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly   
+batch: 2
+in_depths: 128
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 128
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+W0000 00:00:1793295246.927358   25763 conv_ops_gpu.cc:147] None of the algorithms provided by cuDNN frontend heuristics worked; trying fallback algorithms.  Conv: goo.gle/debugonly   
+batch: 2
+in_depths: 192
+out_depths: 128
+in: 64
+in: 64
+data_format: 1
+filter: 3
+filter: 3
+filter: 192
+dilation: 1
+dilation: 1
+stride: 1
+stride: 1
+padding: 1
+padding: 1
+dtype: DT_FLOAT
+group_count: 1
+device_identifier: "sm_7.5 with 15.6GB RAM, 40 cores, 1590000KHz clock, 5001000KHz mem clock, 4194304B L2$"
+fusion {
+  activation_mode: kRelu
+  conv_scale: 1
+}
+version: 3
+
+pixel accuracy : 0.4888
+mean IoU       : 0.2693
+Overall (F1)   : 37.65
+Forests (F1)   : 39.18
+  N            : 46.25
+  P            : 34.65
+  TC           : 36.64
+per-class F1:
+  Unknown            0.1441
+  Natural Forest     0.4625
+  Planted Forest     0.3465
+  Tree Crops         0.3664
+  Other Vegetation   0.6401
+  Water              0.0016
+  Ice                0.8413
+  Bare Ground        0.0000
+  Built Areas        0.5856
+metrics written to /content/drive/MyDrive/geospatial-mamba/research/forty-architecture-pilot-v1/cnn_only_42/test/test_metrics.json

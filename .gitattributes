@@ -1,0 +1,3 @@
+# Keep uploaded evidence byte-identical, including its original line endings.
+results/architecture_pilot_t4_20261029/metadata/** -text -whitespace
+results/architecture_pilot_t4_20261029/metadata.zip -text
