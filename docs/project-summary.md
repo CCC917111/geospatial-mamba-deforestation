@@ -52,7 +52,7 @@ source and data identifiers, checkpoint identity, logs and labelled figures.
 
 ## Evidence and limitations
 
-- **Software:** CPU verification includes 484 passing tests and
+- **Software:** CPU verification includes 486 passing tests and
   synthetic CPU pipeline runs. These establish software behavior, not accuracy
   on satellite observations.
 - **Historical accuracy:** Reported ForTy macro F1 is 56.89% across nine classes

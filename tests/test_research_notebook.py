@@ -4,6 +4,10 @@ import ast
 import json
 from pathlib import Path
 import re
+import sys
+from types import ModuleType, SimpleNamespace
+
+import pytest
 
 
 NOTEBOOK = (Path(__file__).resolve().parents[1]
@@ -42,6 +46,47 @@ def test_research_notebook_freezes_cohort_and_uses_drive_before_training():
   assert '"--output-dir", str(destination)' in source["archive-helper"]
   assert "sha256" in source["download-results"]
   assert "-seed" in source["download-results"]
+
+
+@pytest.mark.parametrize("mount_error", [True, False],
+                         ids=["credential-failure", "local-folder-only"])
+def test_drive_failure_blocks_staging_and_training_even_after_prior_success(
+        monkeypatch, tmp_path, mount_error):
+  source = {cell["id"]: "".join(cell["source"]) for cell in cells()}
+  credential_error = ValueError("credential propagation was unsuccessful")
+
+  def mount(_path):
+    if mount_error:
+      raise credential_error
+
+  colab = ModuleType("google.colab")
+  colab.drive = SimpleNamespace(mount=mount)
+  monkeypatch.setitem(sys.modules, "google.colab", colab)
+
+  def unexpected_command(*args, **kwargs):
+    pytest.fail("No planning, staging or training command may run without Drive")
+
+  namespace = {
+      "PERSISTENT_STUDY_READY": True,
+      "Path": lambda _path: tmp_path,
+      "os": SimpleNamespace(path=SimpleNamespace(ismount=lambda _path: False)),
+      "subprocess": SimpleNamespace(run=unexpected_command),
+  }
+  with pytest.raises(RuntimeError) as error:
+    exec(compile(source["persistent-study"], "persistent-study", "exec"),
+         namespace)
+  assert namespace["PERSISTENT_STUDY_READY"] is False
+  if mount_error:
+    assert error.value.__cause__ is credential_error
+    assert "all requested permissions" in str(error.value)
+  else:
+    assert "Drive did not expose MyDrive" in str(error.value)
+  for stale_readiness in (False, True):
+    namespace["PERSISTENT_STUDY_READY"] = stale_readiness
+    for cell_id in ("stage-selected-data", "execute-study"):
+      with pytest.raises(RuntimeError, match="Complete the Drive authorization"):
+        exec(compile(source[cell_id], cell_id, "exec"), namespace)
+  assert not list(tmp_path.iterdir())
 
 
 def test_research_result_cell_handles_paused_training_without_false_completion(

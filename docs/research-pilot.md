@@ -16,6 +16,18 @@ select an available T4 GPU and run the cells in order. The notebook checks the
 GPU before data downloads, pins its source and writes model artifacts to
 Google Drive. A stable `STUDY_ID` identifies one immutable protocol.
 
+If mounting Drive reports `credential propagation was unsuccessful`, rerun
+the Drive cell, allow notebook credential access and consent to every requested
+permission by checking all boxes. Use the Google account for the intended
+Drive. Colab maintainers describe this cause in
+[colabtools issue 6089](https://github.com/googlecolab/colabtools/issues/6089).
+If no authorization prompt appears, refresh Colab with the same account and
+check browser pop-up/cookie settings. Saving a copy to Drive can preserve the
+notebook, but does not replace authorization. The notebook blocks staging and
+training until the persistent-study cell succeeds; it does not substitute
+temporary local storage for retained checkpoints. This failure occurs before
+training, so retry Drive authorization without resetting the GPU runtime.
+
 | Setting | Default |
 |---|---|
 | Architecture arms | `cnn_ssm`, `cnn_only` |

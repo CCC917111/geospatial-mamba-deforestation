@@ -154,7 +154,7 @@ protocols are linked from the [results record](results/README.md).
 
 | Evidence | Retained result | Interpretation |
 |---|---|---|
-| **Software checks** | **484 tests passed** | CPU verification; supports software behavior. |
+| **Software checks** | **486 tests passed** | CPU verification; supports software behavior. |
 | **Offline demonstration** | Two training epochs, evaluation and prediction | Generated 128 × 128 inputs and a reduced model. |
 | **File-to-file prediction** | **60 tile executions · 7.20 tiles/s** | Two synthetic inputs, 30 passes after one warmup pass; includes PNG and CSV output. |
 | **Controlled CPU compute** | Inference median latency **6.4%–8.9% lower** per round | Three alternating rounds, 30 synthetic samples per source/workload/round; no stable training gain. |
