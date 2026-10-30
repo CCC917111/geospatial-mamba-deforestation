@@ -2,14 +2,14 @@
 
 # Run the small GPU check in free Colab
 
-This notebook prepares a small real-source architecture check. The local
-workspace is CPU-only; run the notebook on an available Colab GPU. For the
+This notebook prepares a small real-source architecture check on an available
+Colab GPU. For the
 separate synthetic before/after compute study, see the completed
 [Tesla T4 record](../results/performance_t4_20261026/README.md) and
 [performance notebook](../notebooks/colab_performance.ipynb).
 
-This workflow uses Colab's free runtime, without a paid API, Colab Pro or
-enabling billing. GPU availability, session duration and usage allowances are
+This workflow uses Colab's free runtime without Colab Pro or enabled cloud
+billing. GPU availability, session duration and usage allowances are
 not guaranteed. A run may remain incomplete if no free GPU is available or the
 runtime is reclaimed.
 See the [Colab FAQ](https://research.google.com/colaboratory/faq.html) for the
@@ -32,7 +32,7 @@ provider's current resource rules; this workflow assumes no fixed free quota.
 No recovery archive is needed by default. `UPLOAD_SOURCE_BUNDLE = True`
 enables the optional upload path for a `.bundle` or recovery `.zip` containing
 `geospatial-mamba-deforestation.bundle`. That bundle must contain the pinned
-commit; an older handoff archive may not. Both paths reject a source mismatch
+commit; an older recovery archive may not. Both paths reject a source mismatch
 or a modified working tree. Use a fresh workspace when changing revisions.
 
 The notebook installs the package editable with `--no-deps`, preserving Colab's

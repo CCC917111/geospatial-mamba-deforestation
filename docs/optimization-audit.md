@@ -276,9 +276,8 @@ requested device, with CPU fallback disabled for GPU checks.
 All 190 tests passed in 59.85 seconds; lint, shell syntax and diff checks
 passed. The standalone checker passed on the current CPU runtime and rejected
 it as a GPU runtime. No new host was created, no target installation was run,
-and no billable resources were provisioned. Provider, account connection and
-budget remain required before deployment; the current environment interface
-exposes inspection only.
+and no billable resources were provisioned. GPU execution requires a
+provisioned host and dataset access.
 
 ### Free Colab preparation — 2026-10-23
 
@@ -299,12 +298,12 @@ Optional Drive output preserves completed artifacts from the start; otherwise
 the user must download from temporary storage. Normal interruptions stop the
 runner process group before archiving. Forced runtime reclamation may prevent
 export, and interrupted training does not resume optimizer state. Free GPU
-availability and duration remain subject to the provider. Actual Colab GPU
-execution requires the user's signed-in session and remains unexecuted here.
+availability and duration remain subject to the provider. Colab GPU execution
+requires a signed-in session and was not run during this preparation.
 
 Final preparation checks: 202 tests passed in 54.50 seconds; lint, diff checks
 and all 33 documentation Bash blocks passed. Keras emitted 865 upstream NumPy
-deprecation warnings. Notebook cells remain unexecuted in the delivered file.
+deprecation warnings. The saved notebook contains no execution outputs.
 
 ### Local demonstration and prediction timing — 2026-10-23
 
